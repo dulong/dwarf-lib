@@ -17,7 +17,6 @@ public class Test {
 			for (String sectionName : vector) {
 				System.out.println(sectionName);
 			}
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

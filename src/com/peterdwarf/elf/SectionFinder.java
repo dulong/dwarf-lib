@@ -34,7 +34,7 @@ public class SectionFinder {
 
 		Elf32_Shdr shdr = new Elf32_Shdr();
 
-		outer: for (int i = 0; i < ehdr.e_shnum; i++) {
+		for (int i = 0; i < ehdr.e_shnum; i++) {
 			// Read information about this section.
 			f.seek(ehdr.e_shoff + (i * Elf32_Shdr.sizeof()));
 			shdr.read(f);
