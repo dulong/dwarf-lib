@@ -9,13 +9,13 @@ import com.peterdwarf.elf.SectionFinder;
 public class Test {
 	public static void main(String[] args) {
 		Dwarf dwarf = new Dwarf();
-		File file = new File("/Users/peter/a.o");
+		File file = new File("/Users/peter/a.out");
 
 		try {
 			Vector<String> vector = SectionFinder.getAllSection(file);
 
 			for (String sectionName : vector) {
-				System.out.println(sectionName);
+				// System.out.println(sectionName);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -23,7 +23,9 @@ public class Test {
 		if (!dwarf.init(file, ".debug_line")) {
 			System.out.println("dwarf init fail");
 		}
-		DwarfLib.printMappedByteBuffer(dwarf.byteBuffer);
+		// DwarfLib.printMappedByteBuffer(dwarf.byteBuffer);
+
+		//dwarf.printHeader();
 	}
 
 }

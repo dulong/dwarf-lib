@@ -2,8 +2,8 @@ package com.peterdwarf;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
 
 public class DwarfLib {
 	private static final boolean WORDS_BIGENDIAN = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
@@ -31,7 +31,8 @@ public class DwarfLib {
 		}
 	}
 
-	public static void printMappedByteBuffer(MappedByteBuffer byteBuffer) {
+	public static void printMappedByteBuffer(ByteBuffer byteBuffer) {
+		int position = byteBuffer.position();
 		int x = 0;
 		while (byteBuffer.hasRemaining()) {
 			System.out.printf("%02x ", byteBuffer.get());
@@ -43,6 +44,35 @@ public class DwarfLib {
 			}
 		}
 		System.out.println();
-		byteBuffer.position(0);
+		byteBuffer.position(position);
+	}
+
+	public static String getString(ByteBuffer buf) {
+		int pos = buf.position();
+		int len = 0;
+		while (buf.get() != 0) {
+			len++;
+		}
+		byte[] bytes = new byte[len];
+		buf.position(pos);
+		buf.get(bytes);
+		buf.get();
+		return new String(bytes);
+	}
+
+	public static long getUleb128(ByteBuffer buf) {
+		long val = 0;
+		byte b;
+		int shift = 0;
+
+		while (true) {
+			b = buf.get();
+			val |= (b & 0x7f) << shift;
+			if ((b & 0x80) == 0)
+				break;
+			shift += 7;
+		}
+
+		return val;
 	}
 }
