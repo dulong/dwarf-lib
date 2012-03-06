@@ -3,7 +3,7 @@ package com.peterdwarf.elf;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import com.peterdwarf.DwarfLib;
+import com.peterdwarf.dwarf.DwarfLib;
 
 public class Elf32_Ehdr {
 	public static final int EI_NIDENT = 16;

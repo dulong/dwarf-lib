@@ -1,9 +1,10 @@
-package com.peterdwarf;
+package com.peterdwarf.dwarf;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+
 
 public class DwarfLib {
 	private static final boolean WORDS_BIGENDIAN = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
@@ -74,5 +75,30 @@ public class DwarfLib {
 		}
 
 		return val;
+	}
+
+	public void printHeader(DwarfHeader header) {
+		System.out.println("total_length: " + header.total_length);
+		System.out.println("version: " + header.version);
+		System.out.println("prologue_length: " + header.header_length);
+		System.out.println("minimum_instruction_length: " + header.minimum_instruction_length);
+		System.out.println("default_is_stmt: " + header.default_is_stmt);
+		System.out.println("line_base: " + header.line_base);
+		System.out.println("line_range: " + header.line_range);
+		System.out.println("opcode_base: " + header.opcode_base);
+		System.out.print("standard_opcode_lengths: { ");
+		System.out.print(header.standard_opcode_lengths[0]);
+		System.out.print(header.standard_opcode_lengths[1]);
+		System.out.print(header.standard_opcode_lengths[2]);
+		System.out.print(header.standard_opcode_lengths[3]);
+		System.out.print(header.standard_opcode_lengths[4]);
+		System.out.print(header.standard_opcode_lengths[5]);
+		System.out.print(header.standard_opcode_lengths[6]);
+		System.out.print(header.standard_opcode_lengths[7]);
+		System.out.print(header.standard_opcode_lengths[8]);
+		System.out.print(header.standard_opcode_lengths[9]);
+		System.out.print(header.standard_opcode_lengths[10]);
+		System.out.print(header.standard_opcode_lengths[11]);
+		System.out.println(" }");
 	}
 }
