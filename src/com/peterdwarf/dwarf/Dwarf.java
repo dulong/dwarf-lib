@@ -16,7 +16,6 @@ public class Dwarf {
 	public boolean init(File file, String sectionName) {
 		try {
 			byteBuffer = SectionFinder.findSection(file, sectionName);
-			System.out.println(byteBuffer.position() + ",," + byteBuffer.limit());
 			parseHeader(byteBuffer);
 			parseHeader(byteBuffer);
 		} catch (IOException e) {
@@ -43,30 +42,58 @@ public class Dwarf {
 		final int end = (int) (begin + header.total_length + 4);
 		final int prologue_end = (int) (begin + header.header_length + 9);
 
-		DwarfLib.printMappedByteBuffer(b);
-
 		// Skip the directories; they end with a single null byte.
 		String s;
 		while ((s = DwarfLib.getString(b)).length() > 0) {
-			System.out.println("Directory: " + s);
+			header.dirnames.add(s);
 		}
 
 		// Read the file names.
 		LinkedList<String> fnames = new LinkedList<String>();
 		while (b.hasRemaining() && b.position() < prologue_end) {
+			DwarfHeader_filename f = new DwarfHeader_filename();
 			String fname = DwarfLib.getString(b);
-			System.out.println("File name: " + fname);
 
 			fnames.add(fname);
 
 			long u1 = DwarfLib.getUleb128(b);
 			long u2 = DwarfLib.getUleb128(b);
 			long u3 = DwarfLib.getUleb128(b);
-			System.out.println("   dir: " + new Long(u1) + ", time: " + new Long(u2) + ", len: " + new Long(u3));
+
+			f.dir = u1;
+			f.time = u2;
+			f.len = u3;
+			header.filenames.add(f);
+
 		}
+		System.out.println("--" + b.position());
+
+		b.get();
+
+		while (b.hasRemaining()) {
+			int code = b.get() & 0xff;
+
+			if (code == 0) {
+				int size = b.get();
+				int opcode = b.get();
+				if (opcode == 2) {
+					int address = b.getInt();
+					System.out.println("Extended opcode:" + opcode + ", address=" + Long.toHexString(address));
+				} else if (opcode == 4) {
+					int discriminator = b.get();
+					System.out.println("Extended opcode:" + opcode + ", set discriminator=" + discriminator);
+				} else {
+					System.out.println("error, wrong size in address");
+					// System.exit(1);
+				}
+			} else if (code > header.opcode_base) {
+				System.out.println("Special opcode:" + Integer.toHexString(code));
+			}
+		}
+		DwarfLib.printMappedByteBuffer(b);
 		b.position(end);
+		System.out.println("++" + b.position());
 
 		headers.add(header);
 	}
-
 }

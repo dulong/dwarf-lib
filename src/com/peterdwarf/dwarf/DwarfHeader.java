@@ -12,5 +12,6 @@ public class DwarfHeader {
 	public int line_range;
 	public int opcode_base;
 	public final byte[] standard_opcode_lengths = new byte[12];
-	public Vector<String> filenames = new Vector<String>();
+	public Vector<String> dirnames = new Vector<String>();
+	public Vector<DwarfHeader_filename> filenames = new Vector<DwarfHeader_filename>();
 }
