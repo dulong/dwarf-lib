@@ -16,8 +16,9 @@ public class Dwarf {
 	public boolean init(File file, String sectionName) {
 		try {
 			byteBuffer = SectionFinder.findSection(file, sectionName);
-			parseHeader(byteBuffer);
-			parseHeader(byteBuffer);
+			while (((ByteBuffer) byteBuffer).hasRemaining()) {
+				parseHeader(byteBuffer);
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
