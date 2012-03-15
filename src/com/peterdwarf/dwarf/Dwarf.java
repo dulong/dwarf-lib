@@ -78,24 +78,23 @@ public class Dwarf {
 		boolean basic_block = false;
 		boolean end_sequence = false;
 
-		int oplen = 0;
-		int len;
-
 		while (b.hasRemaining()) {
-			oplen++;
 			int opcode = b.get() & 0xff;
 
 			if (opcode == 0) {
 				long size = DwarfLib.getUleb128(b);
 				int code = b.get();
-				if (code == 2) {
+				if (code == 1) {
+					System.out.println("Extended opcode:" + code + " End of sequence");
+					break;
+				} else if (code == 2) {
 					address = b.getInt();
 					System.out.println("Extended opcode:" + code + "\t,address=" + Long.toHexString(address));
 				} else if (code == 4) {
 					int discriminator = b.get();
 					System.out.println("Extended opcode:" + code + ",\tset discriminator=" + discriminator);
 				} else {
-					System.out.println("error, wrong size in address,\topcode=" + opcode);
+					System.out.println("error, wrong size in address,\topcode=" + opcode + ", code=" + code);
 					// System.exit(1);
 				}
 			} else if (opcode > header.opcode_base) {
@@ -143,7 +142,6 @@ public class Dwarf {
 				} else {
 					System.out.println("error, what? opcode=" + opcode);
 				}
-				len = oplen;
 			}
 		}
 		DwarfLib.printMappedByteBuffer(b);
