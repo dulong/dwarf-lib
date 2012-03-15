@@ -51,17 +51,13 @@ public class Dwarf {
 		}
 
 		// Read the file names.
-		LinkedList<String> fnames = new LinkedList<String>();
 		while (b.hasRemaining() && b.position() < prologue_end) {
 			DwarfHeader_filename f = new DwarfHeader_filename();
 			String fname = DwarfLib.getString(b);
-
-			fnames.add(fname);
-
 			long u1 = DwarfLib.getUleb128(b);
 			long u2 = DwarfLib.getUleb128(b);
 			long u3 = DwarfLib.getUleb128(b);
-
+			f.filename = fname;
 			f.dir = u1;
 			f.time = u2;
 			f.len = u3;
