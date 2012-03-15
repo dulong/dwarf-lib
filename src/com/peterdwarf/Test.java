@@ -17,10 +17,21 @@ public class Test {
 		} else {
 
 			for (DwarfHeader header : dwarf.headers) {
+				System.out.println("length: " + header.total_length);
+				System.out.println("dwarf version: " + header.version);
+				System.out.println("header length: " + header.header_length);
+				System.out.println("minimum instruction length: " + header.minimum_instruction_length);
+				System.out.println("default is_stmt: " + header.default_is_stmt);
+				System.out.println("line base: " + header.line_base);
+				System.out.println("line range: " + header.line_range);
+				System.out.println("opcode base: " + header.opcode_base);
+				System.out.println();
+
 				System.out.println("dir\ttime\tlen\tfilename");
 				for (DwarfHeader_filename filename : header.filenames) {
 					System.out.println(filename.dir + "\t" + filename.time + "\t" + filename.len + "\t" + filename.filename);
 				}
+				System.out.println();
 
 				System.out.println("file no.\tline no.\tcolumn no.\taddress");
 				for (DwarfLine line : header.lines) {
