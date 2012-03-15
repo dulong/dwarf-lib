@@ -15,9 +15,9 @@ public class Test {
 		try {
 			Vector<String> vector = SectionFinder.getAllSection(file);
 
-			for (String sectionName : vector) {
-				// System.out.println(sectionName);
-			}
+			//			for (String sectionName : vector) {
+			// System.out.println(sectionName);
+			//			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

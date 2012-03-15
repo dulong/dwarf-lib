@@ -70,24 +70,80 @@ public class Dwarf {
 
 		b.get();
 
-		while (b.hasRemaining()) {
-			int code = b.get() & 0xff;
+		long address = 0;
+		long file_num = 1;
+		int line_num = 1;
+		long column_num = 0;
+		boolean is_stmt = header.default_is_stmt;
+		boolean basic_block = false;
+		boolean end_sequence = false;
 
-			if (code == 0) {
-				int size = b.get();
-				int opcode = b.get();
-				if (opcode == 2) {
-					int address = b.getInt();
-					System.out.println("Extended opcode:" + opcode + ", address=" + Long.toHexString(address));
-				} else if (opcode == 4) {
+		int oplen = 0;
+		int len;
+
+		while (b.hasRemaining()) {
+			oplen++;
+			int opcode = b.get() & 0xff;
+
+			if (opcode == 0) {
+				long size = DwarfLib.getUleb128(b);
+				int code = b.get();
+				if (code == 2) {
+					address = b.getInt();
+					System.out.println("Extended opcode:" + code + "\t,address=" + Long.toHexString(address));
+				} else if (code == 4) {
 					int discriminator = b.get();
-					System.out.println("Extended opcode:" + opcode + ", set discriminator=" + discriminator);
+					System.out.println("Extended opcode:" + code + ",\tset discriminator=" + discriminator);
 				} else {
-					System.out.println("error, wrong size in address");
+					System.out.println("error, wrong size in address,\topcode=" + opcode);
 					// System.exit(1);
 				}
-			} else if (code > header.opcode_base) {
-				System.out.println("Special opcode:" + Integer.toHexString(code));
+			} else if (opcode > header.opcode_base) {
+				opcode -= header.opcode_base;
+				int advance_address = ((opcode / header.line_range) * header.minimum_instruction_length);
+				address += advance_address;
+				int advance_line = ((opcode % header.line_range) + header.line_base);
+				line_num += advance_line;
+				System.out.println("Special  opcode:" + opcode + ",\tadvance address by " + advance_address + " to " + Long.toHexString(address) + ", line by " + advance_line
+						+ " to " + line_num);
+			} else {
+				if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_copy) {
+					is_stmt = false;
+					continue;
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_pc) {
+					long advance_address = DwarfLib.getUleb128(b);
+					address += header.minimum_instruction_length * advance_address;
+					System.out.println("advance pc, address=" + Long.toHexString(address));
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_line) {
+					long advance_line = DwarfLib.getUleb128(b);
+					line_num += advance_line;
+					System.out.println("advence line, line=" + line_num);
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_file) {
+					long fileno = DwarfLib.getUleb128(b);
+					file_num = fileno;
+					System.out.println("set file, file=" + line_num);
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_column) {
+					long colno = DwarfLib.getUleb128(b);
+					column_num = colno;
+					System.out.println("set column, column=" + column_num);
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_negate_stmt) {
+					is_stmt = !is_stmt;
+					System.out.println("!stmt, stmt=" + is_stmt);
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_basic_block) {
+					basic_block = true;
+					System.out.println("set basic_block, basic_block=" + basic_block);
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_fixed_advance_pc) {
+					int advance_address = b.getInt();
+					address += advance_address;
+					System.out.println("fixed advance pc, address=" + Long.toHexString(address));
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_const_add_pc) {
+					int advance_address = (header.minimum_instruction_length * ((255 - header.opcode_base) / header.line_range));
+					address += advance_address;
+					System.out.println("add pc, address=" + Long.toHexString(address));
+				} else {
+					System.out.println("error, what? opcode=" + opcode);
+				}
+				len = oplen;
 			}
 		}
 		DwarfLib.printMappedByteBuffer(b);
