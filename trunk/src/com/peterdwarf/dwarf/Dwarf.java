@@ -13,10 +13,14 @@ import com.peterdwarf.elf.SectionFinder;
 public class Dwarf {
 	public MappedByteBuffer byteBuffer;
 	public Vector<DwarfHeader> headers = new Vector<DwarfHeader>();
+	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 
-	public boolean init(File file, String sectionName) {
+	public boolean init(File file) {
 		try {
-			byteBuffer = SectionFinder.findSection(file, sectionName);
+			byteBuffer = SectionFinder.findSection(file, ".debug_info");
+			DwarfLib.printMappedByteBuffer(byteBuffer);
+
+			byteBuffer = SectionFinder.findSection(file, ".debug_line");
 			while (((ByteBuffer) byteBuffer).hasRemaining()) {
 				parseHeader(byteBuffer);
 			}

@@ -12,7 +12,7 @@ public class Test {
 		Dwarf dwarf = new Dwarf();
 		File file = new File("/Users/peter/a.out");
 
-		if (!dwarf.init(file, ".debug_line")) {
+		if (!dwarf.init(file)) {
 			System.out.println("dwarf init fail");
 		} else {
 
