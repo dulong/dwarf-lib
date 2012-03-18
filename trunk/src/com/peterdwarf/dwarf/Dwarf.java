@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
-import java.util.LinkedList;
 import java.util.Vector;
 
 import com.peterdwarf.Global;
@@ -14,11 +13,21 @@ public class Dwarf {
 	public MappedByteBuffer byteBuffer;
 	public Vector<DwarfHeader> headers = new Vector<DwarfHeader>();
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
+	private File file;
+
+	public File getFile() {
+		return file;
+	}
 
 	public boolean init(File file) {
+		this.file = file;
+		headers.clear();
+		compileUnits.clear();
+
 		try {
 			byteBuffer = SectionFinder.findSection(file, ".debug_info");
 			DwarfLib.printMappedByteBuffer(byteBuffer);
+			parseDebugInfo(byteBuffer);
 
 			byteBuffer = SectionFinder.findSection(file, ".debug_line");
 			while (((ByteBuffer) byteBuffer).hasRemaining()) {
@@ -29,6 +38,15 @@ public class Dwarf {
 			return false;
 		}
 		return true;
+	}
+
+	public void parseDebugInfo(ByteBuffer b) {
+		CompileUnit cu = new CompileUnit();
+		cu.length = b.getInt();
+		cu.version = b.getShort();
+		cu.abbrev_offset = b.getInt();
+		cu.addr_size = b.get();
+		compileUnits.add(cu);
 	}
 
 	public void parseHeader(ByteBuffer b) {

@@ -2,6 +2,7 @@ package com.peterdwarf;
 
 import java.io.File;
 
+import com.peterdwarf.dwarf.CompileUnit;
 import com.peterdwarf.dwarf.Dwarf;
 import com.peterdwarf.dwarf.DwarfHeader;
 import com.peterdwarf.dwarf.DwarfHeader_filename;
@@ -10,12 +11,19 @@ import com.peterdwarf.dwarf.DwarfLine;
 public class Test {
 	public static void main(String[] args) {
 		Dwarf dwarf = new Dwarf();
-		File file = new File("/Users/peter/a.out");
+		File file = new File("/root/a.out");
 
 		if (!dwarf.init(file)) {
 			System.out.println("dwarf init fail");
 		} else {
-
+			for (CompileUnit cu : dwarf.compileUnits) {
+				System.out.println("compile unit");
+				System.out.println("  length="+cu.length);
+				System.out.println("  version="+cu.version);
+				System.out.println("  abbrev_offset="+cu.abbrev_offset);
+				System.out.println("  addr_size="+cu.addr_size);
+			}
+			System.out.println();
 			for (DwarfHeader header : dwarf.headers) {
 				System.out.println("length: " + header.total_length);
 				System.out.println("dwarf version: " + header.version);
@@ -42,7 +50,7 @@ public class Test {
 		}
 		// DwarfLib.printMappedByteBuffer(dwarf.byteBuffer);
 
-		//dwarf.printHeader();
+		// dwarf.printHeader();
 	}
 
 }
