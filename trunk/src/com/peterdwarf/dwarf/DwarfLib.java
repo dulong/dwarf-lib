@@ -37,11 +37,13 @@ public class DwarfLib {
 		while (byteBuffer.hasRemaining()) {
 			System.out.printf("%02x ", byteBuffer.get());
 			if (x == 7) {
+				System.out.print(" - ");
+			} else if (x == 15) {
 				System.out.println();
 				x = 0;
-			} else {
-				x++;
+				continue;
 			}
+			x++;
 		}
 		System.out.println();
 		byteBuffer.position(position);
