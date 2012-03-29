@@ -25,10 +25,8 @@ public class Dwarf {
 		compileUnits.clear();
 
 		try {
-
 			byteBuffer = SectionFinder.findSection(file, ".debug_abbrev");
 			DwarfLib.printMappedByteBuffer(byteBuffer);
-			parseDebugInfo(byteBuffer);
 			
 			System.out.println();
 
