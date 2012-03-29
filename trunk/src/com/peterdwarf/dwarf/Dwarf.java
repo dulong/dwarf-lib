@@ -11,6 +11,7 @@ import com.peterdwarf.elf.SectionFinder;
 
 public class Dwarf {
 	public MappedByteBuffer byteBuffer;
+	public MappedByteBuffer debug_abbrevBuffer;
 	public Vector<DwarfHeader> headers = new Vector<DwarfHeader>();
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	private File file;
@@ -25,9 +26,8 @@ public class Dwarf {
 		compileUnits.clear();
 
 		try {
-			byteBuffer = SectionFinder.findSection(file, ".debug_abbrev");
-			DwarfLib.printMappedByteBuffer(byteBuffer);
-			
+			debug_abbrevBuffer = SectionFinder.findSection(file, ".debug_abbrev");
+			DwarfLib.printMappedByteBuffer(debug_abbrevBuffer);
 			System.out.println();
 
 			byteBuffer = SectionFinder.findSection(file, ".debug_info");
@@ -46,14 +46,30 @@ public class Dwarf {
 	}
 
 	public void parseDebugInfo(ByteBuffer b) {
-		CompileUnit cu = new CompileUnit();
-		cu.length = b.getInt();
-		cu.version = b.getShort();
-		cu.abbrev_offset = b.getInt();
-		cu.addr_size = b.get();
-		compileUnits.add(cu);
-		
-		
+		int offset = 0;
+		while (b.hasRemaining()) {
+			CompileUnit cu = new CompileUnit();
+			cu.length = b.getInt();
+			cu.version = b.getShort();
+			cu.abbrev_offset = b.getInt();
+			cu.addr_size = b.get();
+			compileUnits.add(cu);
+
+			debug_abbrevBuffer.position(cu.abbrev_offset);
+			int abbrevNo = debug_abbrevBuffer.get();
+			System.out.println("abbrevNo=" + abbrevNo);
+			while (true) {
+				int atTag = debug_abbrevBuffer.get();
+				int atValue = debug_abbrevBuffer.get();
+				System.out.println("AT:" + Integer.toHexString(atTag) + ", " + CompileUnit.getATname(atTag));
+				if (atTag == 0) {
+					break;
+				}
+			}
+			offset += cu.length + 4;
+			b.position(offset);
+			System.out.println("-----------");
+		}
 	}
 
 	public void parseHeader(ByteBuffer b) {
