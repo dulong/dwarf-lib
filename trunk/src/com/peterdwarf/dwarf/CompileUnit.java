@@ -313,6 +313,89 @@ public class CompileUnit {
 	public static final int DW_AT_APPLE_omit_frame_ptr = 0x3fe7;
 	public static final int DW_AT_hi_user = 0x3fff;
 
+	public static final int DW_FORM_addr = 0x0001;
+	public static final int DW_FORM_block2 = 0x0003;
+	public static final int DW_FORM_block4 = 0x0004;
+	public static final int DW_FORM_data2 = 0x0005;
+	public static final int DW_FORM_data4 = 0x0006;
+	public static final int DW_FORM_data8 = 0x0007;
+	public static final int DW_FORM_string = 0x0008;
+	public static final int DW_FORM_block = 0x0009;
+	public static final int DW_FORM_block1 = 0x000a;
+	public static final int DW_FORM_data1 = 0x000b;
+	public static final int DW_FORM_flag = 0x000c;
+	public static final int DW_FORM_sdata = 0x000d;
+	public static final int DW_FORM_strp = 0x000e;
+	public static final int DW_FORM_udata = 0x000f;
+	public static final int DW_FORM_ref_addr = 0x0010;
+	public static final int DW_FORM_ref1 = 0x0011;
+	public static final int DW_FORM_ref2 = 0x0012;
+	public static final int DW_FORM_ref4 = 0x0013;
+	public static final int DW_FORM_ref8 = 0x0014;
+	public static final int DW_FORM_ref_udata = 0x0015;
+	public static final int DW_FORM_indirect = 0x0016;
+	public static final int DW_FORM_sec_offset = 0x0017;
+	public static final int DW_FORM_exprloc = 0x0018;
+	public static final int DW_FORM_flag_present = 0x0019;
+	public static final int DW_FORM_ref_sig8 = 0x0020;
+
+	public static String getFormName(int x) {
+		switch (x) {
+		case DW_FORM_addr:
+			return "DW_FORM_addr";
+		case DW_FORM_block2:
+			return "DW_FORM_block2";
+		case DW_FORM_block4:
+			return "DW_FORM_block4";
+		case DW_FORM_data2:
+			return "DW_FORM_data2";
+		case DW_FORM_data4:
+			return "DW_FORM_data4";
+		case DW_FORM_data8:
+			return "DW_FORM_data8";
+		case DW_FORM_string:
+			return "DW_FORM_string";
+		case DW_FORM_block:
+			return "DW_FORM_block";
+		case DW_FORM_block1:
+			return "DW_FORM_block1";
+		case DW_FORM_data1:
+			return "DW_FORM_data1";
+		case DW_FORM_flag:
+			return "DW_FORM_flag";
+		case DW_FORM_sdata:
+			return "DW_FORM_sdata";
+		case DW_FORM_strp:
+			return "DW_FORM_strp";
+		case DW_FORM_udata:
+			return "DW_FORM_udata";
+		case DW_FORM_ref_addr:
+			return "DW_FORM_ref_addr";
+		case DW_FORM_ref1:
+			return "DW_FORM_ref1";
+		case DW_FORM_ref2:
+			return "DW_FORM_ref2";
+		case DW_FORM_ref4:
+			return "DW_FORM_ref4";
+		case DW_FORM_ref8:
+			return "DW_FORM_ref8";
+		case DW_FORM_ref_udata:
+			return "DW_FORM_ref_udata";
+		case DW_FORM_indirect:
+			return "DW_FORM_indirect";
+		case DW_FORM_sec_offset:
+			return "DW_FORM_sec_offset";
+		case DW_FORM_exprloc:
+			return "DW_FORM_exprloc";
+		case DW_FORM_flag_present:
+			return "DW_FORM_flag_present";
+		case DW_FORM_ref_sig8:
+			return "DW_FORM_ref_sig8";
+		default:
+			return null;
+		}
+	}
+
 	public static String getATname(int x) {
 		switch (x) {
 		case DW_AT_location:

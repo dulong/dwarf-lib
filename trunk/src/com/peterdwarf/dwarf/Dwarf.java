@@ -56,19 +56,20 @@ public class Dwarf {
 			compileUnits.add(cu);
 
 			debug_abbrevBuffer.position(cu.abbrev_offset);
-			int abbrevNo = debug_abbrevBuffer.get();
-			System.out.println("abbrevNo=" + abbrevNo);
-			while (true) {
-				int atTag = debug_abbrevBuffer.get();
-				int atValue = debug_abbrevBuffer.get();
-				System.out.println("AT:" + Integer.toHexString(atTag) + ", " + CompileUnit.getATname(atTag));
-				if (atTag == 0) {
-					break;
+			while (debug_abbrevBuffer.position() < cu.length) {
+				int abbrevNo = debug_abbrevBuffer.get();
+				System.out.println("abbrevNo=" + abbrevNo);
+				while (true) {
+					int atTag = debug_abbrevBuffer.get();
+					int atValue = debug_abbrevBuffer.get();
+					System.out.println("AT:" + Integer.toHexString(atTag) + ", " + CompileUnit.getATname(atTag) + ",\tvalue=0x" + CompileUnit.getFormName(atValue));
+					if (atTag == 0) {
+						break;
+					}
 				}
+				System.out.println("-----------" + debug_abbrevBuffer.position());
 			}
-			offset += cu.length + 4;
-			b.position(offset);
-			System.out.println("-----------");
+			System.out.println("end");
 		}
 	}
 
