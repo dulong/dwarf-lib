@@ -398,6 +398,8 @@ public class CompileUnit {
 
 	public static String getATname(int x) {
 		switch (x) {
+		case DW_AT_sibling:
+			return "DW_AT_sibling";
 		case DW_AT_location:
 			return "DW_AT_location";
 		case DW_AT_name:

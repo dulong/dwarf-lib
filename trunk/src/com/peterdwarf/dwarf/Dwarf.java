@@ -46,7 +46,7 @@ public class Dwarf {
 	}
 
 	public void parseDebugInfo(ByteBuffer b) {
-		int offset = 0;
+		int baseOffset = 0;
 		while (b.hasRemaining()) {
 			CompileUnit cu = new CompileUnit();
 			cu.length = b.getInt();
@@ -55,20 +55,97 @@ public class Dwarf {
 			cu.addr_size = b.get();
 			compileUnits.add(cu);
 
-			debug_abbrevBuffer.position(cu.abbrev_offset);
-			while (debug_abbrevBuffer.position() < cu.length) {
-				int abbrevNo = debug_abbrevBuffer.get();
-				System.out.println("abbrevNo=" + abbrevNo);
+			debug_abbrevBuffer.position(cu.abbrev_offset + 3);
+			System.out.println("baseOffset=" + baseOffset);
+			while (b.position() < cu.length + baseOffset) {
+				System.out.println("PPPPPP = " + Integer.toHexString(b.position()));
+				int abbrevNo = b.get();
+				System.out.println("abbrevNo=" + abbrevNo + ", offset=" + debug_abbrevBuffer.position());
 				while (true) {
 					int atTag = debug_abbrevBuffer.get();
 					int atValue = debug_abbrevBuffer.get();
-					System.out.println("AT:" + Integer.toHexString(atTag) + ", " + CompileUnit.getATname(atTag) + ",\tvalue=0x" + CompileUnit.getFormName(atValue));
+					System.out.println("AT:" + Integer.toHexString(atTag) + ", " + CompileUnit.getATname(atTag) + ",\tvalue=" + CompileUnit.getFormName(atValue));
+
 					if (atTag == 0) {
+						if (debug_abbrevBuffer.hasRemaining()) {
+							debug_abbrevBuffer.get();
+						}
+						if (debug_abbrevBuffer.hasRemaining()) {
+							debug_abbrevBuffer.get();
+						}
+						if (debug_abbrevBuffer.hasRemaining()) {
+							debug_abbrevBuffer.get();
+						}
+						System.out.println(Integer.toHexString(b.position()) + "-" + baseOffset + "=" + (b.position() - baseOffset));
 						break;
+					} else if (atValue == CompileUnit.DW_FORM_string) {
+						int stringOffset = b.getInt();
+					} else if (atValue == CompileUnit.DW_FORM_addr) {
+						if (cu.addr_size == 4) {
+							int address = b.getInt();
+						} else {
+							System.out.println("not support address size");
+							System.exit(1);
+						}
+					} else if (atValue == CompileUnit.DW_FORM_strp) {
+						int stringOffset = b.getInt();
+					} else if (atValue == CompileUnit.DW_FORM_data1) {
+						byte data = b.get();
+					} else if (atValue == CompileUnit.DW_FORM_data2) {
+						short data = b.getShort();
+					} else if (atValue == CompileUnit.DW_FORM_data4) {
+						int data = b.getInt();
+					} else if (atValue == CompileUnit.DW_FORM_data8) {
+						long data = b.getLong();
+					} else if (atValue == CompileUnit.DW_FORM_ref1) {
+						byte data = b.get();
+					} else if (atValue == CompileUnit.DW_FORM_ref2) {
+						short data = b.getShort();
+					} else if (atValue == CompileUnit.DW_FORM_ref4) {
+						int data = b.getInt();
+					} else if (atValue == CompileUnit.DW_FORM_ref8) {
+						long data = b.getLong();
+					} else if (atValue == CompileUnit.DW_FORM_block) {
+						long size = DwarfLib.getUleb128(b);
+						//						for (int x = 0; x < size; x++) {
+						//							b.get();
+						//						}
+					} else if (atValue == CompileUnit.DW_FORM_block1) {
+						byte size = b.get();
+						b.get();
+						//						b.get();
+						System.out.println(size);
+						//						for (int x = 0; x < size; x++) {
+						//							b.get();
+						//						}
+					} else if (atValue == CompileUnit.DW_FORM_block2) {
+						short size = b.getShort();
+						//						for (int x = 0; x < size; x++) {
+						//							b.get();
+						//						}
+					} else if (atValue == CompileUnit.DW_FORM_block4) {
+						int size = b.getInt();
+						//						for (int x = 0; x < size; x++) {
+						//							b.get();
+						//						}
+					} else if (atValue == CompileUnit.DW_FORM_ref_udata) {
+						long data = DwarfLib.getUleb128(b);
+					} else if (atValue == CompileUnit.DW_FORM_flag) {
+						byte flag = b.get();
+					} else {
+						System.out.println("unsupport DW_FORM_? = " + atValue);
+						System.exit(1);
 					}
+
+					//					System.out.println("                  -----------" + Integer.toHexString(b.position()));
 				}
-				System.out.println("-----------" + debug_abbrevBuffer.position());
+				//				System.out.println("                  >>>>>>>>>>>" + Integer.toHexString(b.position()));
 			}
+			b.get();
+			System.out.println();
+			System.out.println("======================================" + b.position());
+			System.out.println();
+			baseOffset += b.position();
 			System.out.println("end");
 		}
 	}
