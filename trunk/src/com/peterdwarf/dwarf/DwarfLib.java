@@ -78,6 +78,33 @@ public class DwarfLib {
 		return val;
 	}
 
+	public static String getString(ByteBuffer buf, int offset) {
+		//		int matchIndex = 0;
+		buf.position(offset);
+
+		byte temp;
+//		while (matchIndex < index && buf.hasRemaining()) {
+//			temp = buf.get();
+//			System.out.println("temp=" + temp);
+//			if (temp == 0) {
+//				matchIndex++;
+//			}
+//		}
+//		if (matchIndex != index) {
+//			System.out.println("Error read string, offset=" + index);
+//		}
+//		System.out.println("m=" + matchIndex);
+		String r = "";
+		while (buf.hasRemaining()) {
+			temp = buf.get();
+			r += (char) temp;
+			if (temp == 0) {
+				break;
+			}
+		}
+		return r;
+	}
+
 	public void printHeader(DwarfHeader header) {
 		System.out.println("total_length: " + header.total_length);
 		System.out.println("version: " + header.version);

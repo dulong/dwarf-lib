@@ -12,6 +12,7 @@ import com.peterdwarf.elf.SectionFinder;
 public class Dwarf {
 	public MappedByteBuffer byteBuffer;
 	public MappedByteBuffer debug_abbrevBuffer;
+	public MappedByteBuffer debug_str;
 	public Vector<DwarfHeader> headers = new Vector<DwarfHeader>();
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	private File file;
@@ -26,6 +27,10 @@ public class Dwarf {
 		compileUnits.clear();
 
 		try {
+			debug_str = SectionFinder.findSection(file, ".debug_str");
+			DwarfLib.printMappedByteBuffer(debug_str);
+			System.out.println();
+
 			debug_abbrevBuffer = SectionFinder.findSection(file, ".debug_abbrev");
 			DwarfLib.printMappedByteBuffer(debug_abbrevBuffer);
 			System.out.println();
@@ -58,13 +63,13 @@ public class Dwarf {
 			debug_abbrevBuffer.position(cu.abbrev_offset + 3);
 			System.out.println("baseOffset=" + baseOffset);
 			while (b.position() < cu.length + baseOffset) {
-				System.out.println("PPPPPP = " + Integer.toHexString(b.position()));
+				//				System.out.println("PPPPPP = " + Integer.toHexString(b.position()));
 				int abbrevNo = b.get();
-				System.out.println("abbrevNo=" + abbrevNo + ", offset=" + debug_abbrevBuffer.position());
+				//				System.out.println("abbrevNo=" + abbrevNo + ", offset=" + debug_abbrevBuffer.position());
 				while (true) {
 					int atTag = debug_abbrevBuffer.get();
 					int atValue = debug_abbrevBuffer.get();
-					System.out.println("AT:" + Integer.toHexString(atTag) + ", " + CompileUnit.getATname(atTag) + ",\tvalue=" + CompileUnit.getFormName(atValue));
+					System.out.print("AT:" + Integer.toHexString(atTag) + ", " + CompileUnit.getATname(atTag) + ",\tvalue=" + CompileUnit.getFormName(atValue));
 
 					if (atTag == 0) {
 						if (debug_abbrevBuffer.hasRemaining()) {
@@ -79,24 +84,40 @@ public class Dwarf {
 						System.out.println(Integer.toHexString(b.position()) + "-" + baseOffset + "=" + (b.position() - baseOffset));
 						break;
 					} else if (atValue == CompileUnit.DW_FORM_string) {
-						int stringOffset = b.getInt();
+						//						long stringOffset = DwarfLib.getUleb128(b);
+						//						String s = DwarfLib.getString(debug_str, (int) stringOffset);
+						//						System.out.print("\t" + stringOffset + "=" + s);
+						//						int stringOffset = b.getInt();
+						byte temp;
+						System.out.print("\t");
+						while ((temp = b.get()) != 0) {
+							System.out.print((char) temp);
+						}
+						//						System.out.print(Integer.toHexString(stringOffset));
 					} else if (atValue == CompileUnit.DW_FORM_addr) {
 						if (cu.addr_size == 4) {
 							int address = b.getInt();
+							System.out.print("\t0x" + Integer.toHexString(address));
 						} else {
 							System.out.println("not support address size");
 							System.exit(1);
 						}
 					} else if (atValue == CompileUnit.DW_FORM_strp) {
 						int stringOffset = b.getInt();
+						String s = DwarfLib.getString(debug_str, stringOffset);
+						System.out.print("\t(offset : 0x" + Integer.toHexString(stringOffset) + ") " + s);
 					} else if (atValue == CompileUnit.DW_FORM_data1) {
 						byte data = b.get();
+						System.out.print("\t0x" + Integer.toHexString(data));
 					} else if (atValue == CompileUnit.DW_FORM_data2) {
 						short data = b.getShort();
+						System.out.print("\t0x" + Integer.toHexString(data));
 					} else if (atValue == CompileUnit.DW_FORM_data4) {
 						int data = b.getInt();
+						System.out.print("\t0x" + Integer.toHexString(data));
 					} else if (atValue == CompileUnit.DW_FORM_data8) {
 						long data = b.getLong();
+						System.out.print("\t0x" + Long.toHexString(data));
 					} else if (atValue == CompileUnit.DW_FORM_ref1) {
 						byte data = b.get();
 					} else if (atValue == CompileUnit.DW_FORM_ref2) {
@@ -132,10 +153,13 @@ public class Dwarf {
 						long data = DwarfLib.getUleb128(b);
 					} else if (atValue == CompileUnit.DW_FORM_flag) {
 						byte flag = b.get();
+						System.out.print("\t0x" + Integer.toHexString(flag));
 					} else {
 						System.out.println("unsupport DW_FORM_? = " + atValue);
 						System.exit(1);
 					}
+
+					System.out.println();
 
 					//					System.out.println("                  -----------" + Integer.toHexString(b.position()));
 				}
