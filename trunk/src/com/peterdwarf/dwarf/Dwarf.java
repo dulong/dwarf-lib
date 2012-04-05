@@ -60,29 +60,36 @@ public class Dwarf {
 			cu.addr_size = b.get();
 			compileUnits.add(cu);
 
-			debug_abbrevBuffer.position(cu.abbrev_offset + 3);
+			debug_abbrevBuffer.position(cu.abbrev_offset);
+			byte byte1 = debug_abbrevBuffer.get();
+			byte byte2 = debug_abbrevBuffer.get();
+			byte byte3 = debug_abbrevBuffer.get();
+			//			debug_abbrevBuffer.position(cu.abbrev_offset + 3);
 			System.out.println("baseOffset=" + baseOffset);
 			while (b.position() < cu.length + baseOffset) {
 				//				System.out.println("PPPPPP = " + Integer.toHexString(b.position()));
+
+				System.out.println(CompileUnit.getTagName(byte2) + " = " + byte1 + ",," + byte2 + ",," + byte3);
 				int abbrevNo = b.get();
 				//				System.out.println("abbrevNo=" + abbrevNo + ", offset=" + debug_abbrevBuffer.position());
 				while (true) {
 					int atTag = debug_abbrevBuffer.get();
 					int atValue = debug_abbrevBuffer.get();
-					System.out.print("AT:" + Integer.toHexString(atTag) + ", " + CompileUnit.getATname(atTag) + ",\tvalue=" + atValue + ", value name="
-							+ CompileUnit.getFormName(atValue));
-
+					if (atTag != 0) {
+						System.out.print("AT:" + Integer.toHexString(atTag) + ", " + CompileUnit.getATname(atTag) + ",\tvalue=" + atValue + ", value name="
+								+ CompileUnit.getFormName(atValue));
+					}
 					if (atTag == 0) {
 						if (debug_abbrevBuffer.hasRemaining()) {
-							debug_abbrevBuffer.get();
+							byte1 = debug_abbrevBuffer.get();
 						}
 						if (debug_abbrevBuffer.hasRemaining()) {
-							debug_abbrevBuffer.get();
+							byte2 = debug_abbrevBuffer.get();
 						}
 						if (debug_abbrevBuffer.hasRemaining()) {
-							debug_abbrevBuffer.get();
+							byte3 = debug_abbrevBuffer.get();
 						}
-						System.out.println(Integer.toHexString(b.position()) + "-" + baseOffset + "=" + (b.position() - baseOffset));
+						//System.out.println(Integer.toHexString(b.position()) + "-" + baseOffset + "=" + (b.position() - baseOffset));
 						break;
 					} else if (atValue == CompileUnit.DW_FORM_string) {
 						//						long stringOffset = DwarfLib.getUleb128(b);
