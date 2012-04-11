@@ -28,14 +28,17 @@ public class Dwarf {
 
 		try {
 			debug_str = SectionFinder.findSection(file, ".debug_str");
+			System.out.println(".debug_str:");
 			DwarfLib.printMappedByteBuffer(debug_str);
 			System.out.println();
 
 			debug_abbrevBuffer = SectionFinder.findSection(file, ".debug_abbrev");
+			System.out.println(".debug_abbrev:");
 			DwarfLib.printMappedByteBuffer(debug_abbrevBuffer);
 			System.out.println();
 
 			byteBuffer = SectionFinder.findSection(file, ".debug_info");
+			System.out.println(".debug_info:");
 			DwarfLib.printMappedByteBuffer(byteBuffer);
 			parseDebugInfo(byteBuffer);
 
@@ -76,7 +79,7 @@ public class Dwarf {
 					int atTag = debug_abbrevBuffer.get();
 					int atValue = debug_abbrevBuffer.get();
 					if (atTag != 0) {
-						System.out.print("AT:" + Integer.toHexString(atTag) + ", " + CompileUnit.getATname(atTag) + ",\tvalue=" + atValue + ", value name="
+						System.out.print("AT:\t" + Integer.toHexString(atTag) + ",\t" + CompileUnit.getATname(atTag) + ",\tvalue=" + atValue + ",\tvalue name="
 								+ CompileUnit.getFormName(atValue));
 					}
 					if (atTag == 0) {
@@ -134,7 +137,10 @@ public class Dwarf {
 						System.out.print("\t0x" + Integer.toHexString(data));
 					} else if (atValue == CompileUnit.DW_FORM_ref4) {
 						int data = b.getInt();
-						System.out.print("\t0x" + Integer.toHexString(data));
+						int orip=debug_abbrevBuffer.position();
+						debug_abbrevBuffer.position(cu.abbrev_offset+data);
+						System.out.print("\t0x" + Integer.toHexString(debug_abbrevBuffer.get()));
+						debug_abbrevBuffer.position(orip);
 					} else if (atValue == CompileUnit.DW_FORM_ref8) {
 						long data = b.getLong();
 						System.out.print("\t0x" + Long.toHexString(data));

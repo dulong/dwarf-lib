@@ -11,7 +11,7 @@ import com.peterdwarf.dwarf.DwarfLine;
 public class Test {
 	public static void main(String[] args) {
 		Dwarf dwarf = new Dwarf();
-		File file = new File("/Users/peter/a.out");
+		File file = new File(args[0]);
 
 		if (!dwarf.init(file)) {
 			System.out.println("dwarf init fail");
