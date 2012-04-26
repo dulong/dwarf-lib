@@ -55,8 +55,10 @@ public class Dwarf {
 
 	public void parseDebugInfo(ByteBuffer b) {
 		int baseOffset = 0;
+		int fuck;
 		while (b.hasRemaining()) {
 			CompileUnit cu = new CompileUnit();
+			fuck = b.position();
 			cu.length = b.getInt();
 			cu.version = b.getShort();
 			cu.abbrev_offset = b.getInt();
@@ -70,17 +72,21 @@ public class Dwarf {
 			//			debug_abbrevBuffer.position(cu.abbrev_offset + 3);
 			System.out.println("baseOffset=" + baseOffset);
 			while (b.position() < cu.length + baseOffset) {
+				Tag tag = new Tag();
 				//				System.out.println("PPPPPP = " + Integer.toHexString(b.position()));
 
-				System.out.println(CompileUnit.getTagName(byte2) + " = " + byte1 + ",," + byte2 + ",," + byte3);
+				System.out.println("<" + Integer.toHexString(b.position()) + "> " + Definition.getTagName(byte2) + " = " + byte1 + ",," + byte2 + ",," + byte3);
 				int abbrevNo = b.get();
-				//				System.out.println("abbrevNo=" + abbrevNo + ", offset=" + debug_abbrevBuffer.position());
+				tag.abbrevNo = abbrevNo;
+				System.out.println("abbrevNo=" + abbrevNo + ", offset=" + debug_abbrevBuffer.position());
 				while (true) {
 					int atTag = debug_abbrevBuffer.get();
 					int atValue = debug_abbrevBuffer.get();
+					tag.atTag = atTag;
+					tag.atValue = atValue;
+
 					if (atTag != 0) {
-						System.out.print("AT:\t" + Integer.toHexString(atTag) + ",\t" + CompileUnit.getATname(atTag) + ",\tvalue=" + atValue + ",\tvalue name="
-								+ CompileUnit.getFormName(atValue));
+						System.out.printf("<%x>\tAT: %5x %-20s %5d %10s", b.position(), atTag, Definition.getATname(atTag), atValue, Definition.getFormName(atValue));
 					}
 					if (atTag == 0) {
 						if (debug_abbrevBuffer.hasRemaining()) {
@@ -94,7 +100,7 @@ public class Dwarf {
 						}
 						//System.out.println(Integer.toHexString(b.position()) + "-" + baseOffset + "=" + (b.position() - baseOffset));
 						break;
-					} else if (atValue == CompileUnit.DW_FORM_string) {
+					} else if (atValue == Definition.DW_FORM_string) {
 						//						long stringOffset = DwarfLib.getUleb128(b);
 						//						String s = DwarfLib.getString(debug_str, (int) stringOffset);
 						//						System.out.print("\t" + stringOffset + "=" + s);
@@ -105,7 +111,7 @@ public class Dwarf {
 							System.out.print((char) temp);
 						}
 						//						System.out.print(Integer.toHexString(stringOffset));
-					} else if (atValue == CompileUnit.DW_FORM_addr) {
+					} else if (atValue == Definition.DW_FORM_addr) {
 						if (cu.addr_size == 4) {
 							int address = b.getInt();
 							System.out.print("\t0x" + Integer.toHexString(address));
@@ -113,63 +119,65 @@ public class Dwarf {
 							System.out.println("not support address size");
 							System.exit(1);
 						}
-					} else if (atValue == CompileUnit.DW_FORM_strp) {
+					} else if (atValue == Definition.DW_FORM_strp) {
 						int stringOffset = b.getInt();
 						String s = DwarfLib.getString(debug_str, stringOffset);
 						System.out.print("\t(offset : 0x" + Integer.toHexString(stringOffset) + ") " + s);
-					} else if (atValue == CompileUnit.DW_FORM_data1) {
+					} else if (atValue == Definition.DW_FORM_data1) {
 						byte data = b.get();
 						System.out.print("\t0x" + Integer.toHexString(data));
-					} else if (atValue == CompileUnit.DW_FORM_data2) {
+					} else if (atValue == Definition.DW_FORM_data2) {
 						short data = b.getShort();
 						System.out.print("\t0x" + Integer.toHexString(data));
-					} else if (atValue == CompileUnit.DW_FORM_data4) {
+					} else if (atValue == Definition.DW_FORM_data4) {
 						int data = b.getInt();
 						System.out.print("\t0x" + Integer.toHexString(data));
-					} else if (atValue == CompileUnit.DW_FORM_data8) {
+					} else if (atValue == Definition.DW_FORM_data8) {
 						long data = b.getLong();
 						System.out.print("\t0x" + Long.toHexString(data));
-					} else if (atValue == CompileUnit.DW_FORM_ref1) {
+					} else if (atValue == Definition.DW_FORM_ref1) {
 						byte data = b.get();
 						System.out.print("\t0x" + Integer.toHexString(data));
-					} else if (atValue == CompileUnit.DW_FORM_ref2) {
+					} else if (atValue == Definition.DW_FORM_ref2) {
 						short data = b.getShort();
 						System.out.print("\t0x" + Integer.toHexString(data));
-					} else if (atValue == CompileUnit.DW_FORM_ref4) {
+					} else if (atValue == Definition.DW_FORM_ref4) {
 						int data = b.getInt();
-						int orip=debug_abbrevBuffer.position();
-						debug_abbrevBuffer.position(cu.abbrev_offset+data);
-						System.out.print("\t0x" + Integer.toHexString(debug_abbrevBuffer.get()));
-						debug_abbrevBuffer.position(orip);
-					} else if (atValue == CompileUnit.DW_FORM_ref8) {
+						int orip = b.position();
+						System.out.println("\tf=" + fuck + "," + cu.abbrev_offset);
+						b.position(fuck + data);
+						System.out.print("\tdata=" + Integer.toHexString(data) + "\t0x" + Integer.toHexString(b.get()));
+						b.position(orip);
+					} else if (atValue == Definition.DW_FORM_ref8) {
 						long data = b.getLong();
 						System.out.print("\t0x" + Long.toHexString(data));
-					} else if (atValue == CompileUnit.DW_FORM_block) {
+					} else if (atValue == Definition.DW_FORM_block) {
 						long size = DwarfLib.getUleb128(b);
 						System.out.print("\t" + size + " : ");
 						for (int z = 0; z < size; z++) {
 							System.out.print(Integer.toHexString(b.get()) + " ");
 						}
 						System.out.println();
-					} else if (atValue == CompileUnit.DW_FORM_block1) {
+					} else if (atValue == Definition.DW_FORM_block1) {
 						int size = b.get();
 						System.out.print("\t" + size + " : ");
 						for (int z = 0; z < size; z++) {
 							System.out.print(Integer.toHexString(b.get()) + " ");
 						}
-						System.out.println();
-					} else if (atValue == CompileUnit.DW_FORM_block2) {
+						System.out.print(Integer.toHexString(b.get()) + " ");
+
+					} else if (atValue == Definition.DW_FORM_block2) {
 						short size = b.getShort();
 						System.out.print("\t" + size + " : ");
 						for (int z = 0; z < size; z++) {
 							System.out.print(Integer.toHexString(b.get()) + " ");
 						}
 						System.out.println();
-					} else if (atValue == CompileUnit.DW_FORM_block4) {
+					} else if (atValue == Definition.DW_FORM_block4) {
 						int size = b.getInt();
-					} else if (atValue == CompileUnit.DW_FORM_ref_udata) {
+					} else if (atValue == Definition.DW_FORM_ref_udata) {
 						long data = DwarfLib.getUleb128(b);
-					} else if (atValue == CompileUnit.DW_FORM_flag) {
+					} else if (atValue == Definition.DW_FORM_flag) {
 						byte flag = b.get();
 						System.out.print("\t0x" + Integer.toHexString(flag));
 					} else {
