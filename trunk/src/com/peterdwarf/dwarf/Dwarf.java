@@ -75,10 +75,11 @@ public class Dwarf {
 				Tag tag = new Tag();
 				//				System.out.println("PPPPPP = " + Integer.toHexString(b.position()));
 
-				System.out.println("<" + Integer.toHexString(b.position()) + "> " + Definition.getTagName(byte2) + " = " + byte1 + ",," + byte2 + ",," + byte3);
+				System.out.print("<" + Integer.toHexString(b.position()) + "> " + Definition.getTagName(byte2) + " = " + byte1 + ",," + byte2 + ",," + byte3);
 				int abbrevNo = b.get();
 				tag.abbrevNo = abbrevNo;
-				System.out.println("abbrevNo=" + abbrevNo + ", offset=" + debug_abbrevBuffer.position());
+				System.out.print("  abbrevNo=" + abbrevNo + ", offset=" + debug_abbrevBuffer.position());
+				System.out.println();
 				while (true) {
 					int atTag = debug_abbrevBuffer.get();
 					int atValue = debug_abbrevBuffer.get();
@@ -110,6 +111,10 @@ public class Dwarf {
 						while ((temp = b.get()) != 0) {
 							System.out.print((char) temp);
 						}
+						
+//						int stringOffset = b.getInt();
+//						String s = DwarfLib.getString(debug_str, stringOffset);
+//						System.out.print("\t(offset : 0x" + Integer.toHexString(stringOffset) + ") " + s);
 						//						System.out.print(Integer.toHexString(stringOffset));
 					} else if (atValue == Definition.DW_FORM_addr) {
 						if (cu.addr_size == 4) {
