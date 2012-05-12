@@ -547,7 +547,7 @@ public class Definition {
 		}
 	}
 
-	public static String getATname(int x) {
+	public static String getATName(int x) {
 		switch (x) {
 		case DW_AT_sibling:
 			return "DW_AT_sibling";
@@ -971,4 +971,7 @@ public class Definition {
 			return null;
 		}
 	}
+
+	public static final int DW_CHILDREN_no = 0;
+	public static final int DW_CHILDREN_yes = 1;
 }

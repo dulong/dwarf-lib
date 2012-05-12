@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.MappedByteBuffer;
 
 public class DwarfLib {
 	private static final boolean WORDS_BIGENDIAN = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
@@ -31,11 +32,25 @@ public class DwarfLib {
 		}
 	}
 
+	public static void printByteBuffer(byte[] bytes) {
+		for (int x = 0; x < bytes.length; x++) {
+			System.out.printf("%02x ", bytes[x]);
+			if (x == 7) {
+				System.out.print(" - ");
+			} else if (x == 15) {
+				System.out.println();
+				x = 0;
+				continue;
+			}
+		}
+	}
+
 	public static void printMappedByteBuffer(ByteBuffer byteBuffer) {
 		int position = byteBuffer.position();
 		int x = 0;
 		while (byteBuffer.hasRemaining()) {
 			System.out.printf("%02x ", byteBuffer.get());
+			//			System.out.printf("%c", byteBuffer.get());
 			if (x == 7) {
 				System.out.print(" - ");
 			} else if (x == 15) {
@@ -79,30 +94,35 @@ public class DwarfLib {
 	}
 
 	public static String getString(ByteBuffer buf, int offset) {
-		//		int matchIndex = 0;
-		buf.position(offset);
+		try {
+			//		int matchIndex = 0;
+			buf.position(offset);
 
-		byte temp;
-//		while (matchIndex < index && buf.hasRemaining()) {
-//			temp = buf.get();
-//			System.out.println("temp=" + temp);
-//			if (temp == 0) {
-//				matchIndex++;
-//			}
-//		}
-//		if (matchIndex != index) {
-//			System.out.println("Error read string, offset=" + index);
-//		}
-//		System.out.println("m=" + matchIndex);
-		String r = "";
-		while (buf.hasRemaining()) {
-			temp = buf.get();
-			r += (char) temp;
-			if (temp == 0) {
-				break;
+			byte temp;
+			//		while (matchIndex < index && buf.hasRemaining()) {
+			//			temp = buf.get();
+			//			System.out.println("temp=" + temp);
+			//			if (temp == 0) {
+			//				matchIndex++;
+			//			}
+			//		}
+			//		if (matchIndex != index) {
+			//			System.out.println("Error read string, offset=" + index);
+			//		}
+			//		System.out.println("m=" + matchIndex);
+			String r = "";
+			while (buf.hasRemaining()) {
+				temp = buf.get();
+				r += (char) temp;
+				if (temp == 0) {
+					break;
+				}
 			}
+			return r;
+		} catch (Exception ex) {
+			//			ex.printStackTrace();
+			return null;
 		}
-		return r;
 	}
 
 	public void printHeader(DwarfHeader header) {
@@ -129,4 +149,5 @@ public class DwarfLib {
 		System.out.print(header.standard_opcode_lengths[11]);
 		System.out.println(" }");
 	}
+
 }
