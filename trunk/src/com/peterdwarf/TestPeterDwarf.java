@@ -8,7 +8,7 @@ import com.peterdwarf.dwarf.DwarfHeader;
 import com.peterdwarf.dwarf.DwarfHeader_filename;
 import com.peterdwarf.dwarf.DwarfLine;
 
-public class Test {
+public class TestPeterDwarf {
 	public static void main(String[] args) {
 		Dwarf dwarf = new Dwarf();
 		File file = new File(args[0]);
