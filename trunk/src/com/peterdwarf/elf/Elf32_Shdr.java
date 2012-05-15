@@ -6,7 +6,9 @@ import java.io.RandomAccessFile;
 import com.peterdwarf.dwarf.DwarfLib;
 
 public class Elf32_Shdr {
+	public int number;
 	public long sh_name;
+	public String section_name;
 	public int sh_type;
 	public int sh_flags;
 	public long sh_addr;
@@ -24,7 +26,8 @@ public class Elf32_Shdr {
 		return 40;
 	}
 
-	public void read(RandomAccessFile f) throws IOException {
+	public void read(int number, RandomAccessFile f) throws IOException {
+		this.number = number;
 		sh_name = DwarfLib.readUWord(f);
 		sh_type = DwarfLib.readWord(f);
 		sh_flags = DwarfLib.readWord(f);
@@ -38,8 +41,11 @@ public class Elf32_Shdr {
 	}
 
 	public String toString() {
-		java.lang.StringBuffer str = new java.lang.StringBuffer(super.toString());
-		str.append(" [ sh_name: ").append(sh_name);
+		// StringBuffer str = new StringBuffer(super.toString());
+		StringBuffer str = new StringBuffer();
+		str.append("[ number: ").append(number);
+		str.append("; sh_name: ").append(sh_name);
+		str.append("; section_name: ").append(section_name);
 		str.append("; sh_type: ").append(sh_type);
 		str.append("; sh_flags: 0x").append(Long.toHexString(sh_flags));
 		str.append("; sh_addr: 0x").append(Long.toHexString(sh_addr));

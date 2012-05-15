@@ -15,14 +15,16 @@ public class SectionFinder {
 	private static final byte ELFMAG2 = (byte) 'L';
 	private static final byte ELFMAG3 = (byte) 'F';
 
-	public static Vector<String> getAllSection(File file) throws IOException {
-		Vector<String> vector = new Vector<String>();
+	public static Vector<Elf32_Shdr> getAllSection(File file)
+			throws IOException {
+		Vector<Elf32_Shdr> vector = new Vector<Elf32_Shdr>();
 		RandomAccessFile f = new RandomAccessFile(file, "r");
 
 		/** Read the ELF header. */
 		Elf32_Ehdr ehdr = new Elf32_Ehdr();
 		ehdr.read(f);
-		if (ehdr.e_ident[0] != ELFMAG0 || ehdr.e_ident[1] != ELFMAG1 || ehdr.e_ident[2] != ELFMAG2 || ehdr.e_ident[3] != ELFMAG3) {
+		if (ehdr.e_ident[0] != ELFMAG0 || ehdr.e_ident[1] != ELFMAG1
+				|| ehdr.e_ident[2] != ELFMAG2 || ehdr.e_ident[3] != ELFMAG3) {
 			f.close();
 			throw new IOException(file + ": not an ELF file");
 		}
@@ -30,14 +32,13 @@ public class SectionFinder {
 		/* Read the string table section header. */
 		Elf32_Shdr strtabhdr = new Elf32_Shdr();
 		f.seek(ehdr.e_shoff + (ehdr.e_shstrndx * Elf32_Shdr.sizeof()));
-		strtabhdr.read(f);
-
-		Elf32_Shdr shdr = new Elf32_Shdr();
+		strtabhdr.read(ehdr.e_shstrndx, f);
 
 		for (int i = 0; i < ehdr.e_shnum; i++) {
+			Elf32_Shdr shdr = new Elf32_Shdr();
 			// Read information about this section.
 			f.seek(ehdr.e_shoff + (i * Elf32_Shdr.sizeof()));
-			shdr.read(f);
+			shdr.read(i, f);
 
 			// Read the section name from the string table.
 			f.seek(strtabhdr.sh_offset + shdr.sh_name);
@@ -46,18 +47,37 @@ public class SectionFinder {
 			while ((bb = f.read()) != 0) {
 				sectionName += (char) bb;
 			}
-			vector.add(sectionName);
+			shdr.section_name = sectionName;
+			vector.add(shdr);
 		}
 		return vector;
 	}
 
-	public static MappedByteBuffer findSection(File file, String section) throws IOException {
+	public static Vector<Elf32_Shdr> getAllRelocationSection(File file) {
+		Vector<Elf32_Shdr> temp = new Vector<Elf32_Shdr>();
+		Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
+		try {
+			temp = getAllSection(file);
+			for (Elf32_Shdr s : temp) {
+				if (s.sh_type == 4 || s.sh_type == 9) {
+					sections.add(s);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return sections;
+	}
+
+	public static MappedByteBuffer findSectionByte(File file, String section)
+			throws IOException {
 		RandomAccessFile f = new RandomAccessFile(file, "r");
 
 		/** Read the ELF header. */
 		Elf32_Ehdr ehdr = new Elf32_Ehdr();
 		ehdr.read(f);
-		if (ehdr.e_ident[0] != ELFMAG0 || ehdr.e_ident[1] != ELFMAG1 || ehdr.e_ident[2] != ELFMAG2 || ehdr.e_ident[3] != ELFMAG3) {
+		if (ehdr.e_ident[0] != ELFMAG0 || ehdr.e_ident[1] != ELFMAG1
+				|| ehdr.e_ident[2] != ELFMAG2 || ehdr.e_ident[3] != ELFMAG3) {
 			f.close();
 			throw new IOException(file + ": not an ELF file");
 		}
@@ -65,7 +85,7 @@ public class SectionFinder {
 		/* Read the string table section header. */
 		Elf32_Shdr strtabhdr = new Elf32_Shdr();
 		f.seek(ehdr.e_shoff + (ehdr.e_shstrndx * Elf32_Shdr.sizeof()));
-		strtabhdr.read(f);
+		strtabhdr.read(ehdr.e_shstrndx, f);
 
 		Elf32_Shdr shdr = new Elf32_Shdr();
 		byte[] target_bytes = section.getBytes("ISO8859-1");
@@ -75,13 +95,14 @@ public class SectionFinder {
 		outer: for (int i = 0; i < ehdr.e_shnum; i++) {
 			// Read information about this section.
 			f.seek(ehdr.e_shoff + (i * Elf32_Shdr.sizeof()));
-			shdr.read(f);
+			shdr.read(i, f);
 
 			// Read the section name from the string table.
 			f.seek(strtabhdr.sh_offset + shdr.sh_name);
 			f.readFully(buf);
 
-			if (!Arrays.equals(target_bytes, Arrays.copyOf(buf, target_bytes.length))) {
+			if (!Arrays.equals(target_bytes,
+					Arrays.copyOf(buf, target_bytes.length))) {
 				continue outer;
 			}
 			if (buf[buf.length - 1] != '\0') {
@@ -98,8 +119,11 @@ public class SectionFinder {
 
 		try {
 			FileChannel chan = f.getChannel();
-			System.out.println(section + " : " + Long.toHexString(shdr.sh_offset) + " : " + Long.toHexString(shdr.sh_size));
-			MappedByteBuffer buffer = chan.map(FileChannel.MapMode.READ_ONLY, shdr.sh_offset, shdr.sh_size);
+			System.out.println(section + " : "
+					+ Long.toHexString(shdr.sh_offset) + " : "
+					+ Long.toHexString(shdr.sh_size));
+			MappedByteBuffer buffer = chan.map(FileChannel.MapMode.READ_ONLY,
+					shdr.sh_offset, shdr.sh_size);
 			buffer.order(ByteOrder.nativeOrder());
 			chan.close();
 			return buffer;
