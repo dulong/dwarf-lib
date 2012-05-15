@@ -119,9 +119,9 @@ public class SectionFinder {
 
 		try {
 			FileChannel chan = f.getChannel();
-			System.out.println(section + " : "
-					+ Long.toHexString(shdr.sh_offset) + " : "
-					+ Long.toHexString(shdr.sh_size));
+			// System.out.println(section + " : "
+			// + Long.toHexString(shdr.sh_offset) + " : "
+			// + Long.toHexString(shdr.sh_size));
 			MappedByteBuffer buffer = chan.map(FileChannel.MapMode.READ_ONLY,
 					shdr.sh_offset, shdr.sh_size);
 			buffer.order(ByteOrder.nativeOrder());
