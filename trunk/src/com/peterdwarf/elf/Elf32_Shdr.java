@@ -6,6 +6,19 @@ import java.io.RandomAccessFile;
 import com.peterdwarf.dwarf.DwarfLib;
 
 public class Elf32_Shdr {
+	public static int SHT_NULL = 0; /* Section header table entry unused */
+	public static int SHT_PROGBITS = 1; /* Program specific (private) data */
+	public static int SHT_SYMTAB = 2; /* Link editing symbol table */
+	public static int SHT_STRTAB = 3; /* A string table */
+	public static int SHT_RELA = 4; /* Relocation entries with addends */
+	public static int SHT_HASH = 5; /* A symbol hash table */
+	public static int SHT_DYNAMIC = 6; /* Information for dynamic linking */
+	public static int SHT_NOTE = 7; /* Information that marks file */
+	public static int SHT_NOBITS = 8; /* Section occupies no space in file */
+	public static int SHT_REL = 9; /* Relocation entries, no addends */
+	public static int SHT_SHLIB = 10; /* Reserved, unspecified semantics */
+	public static int SHT_DYNSYM = 11; /* Dynamic linking symbol table */
+
 	public int number;
 	public long sh_name;
 	public String section_name;

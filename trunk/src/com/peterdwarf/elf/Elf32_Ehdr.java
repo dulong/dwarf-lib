@@ -8,8 +8,7 @@ import com.peterdwarf.dwarf.DwarfLib;
 public class Elf32_Ehdr {
 	public static final int EI_NIDENT = 16;
 
-	public final byte[] e_ident /* Magic number and other info. */
-	= new byte[EI_NIDENT];
+	public final byte[] e_ident = new byte[EI_NIDENT];/* Magic number and other info. */
 	public int e_type; /* Object file type. */
 	public int e_machine; /* Architecture type. */
 	public int e_version; /* Object file version. */

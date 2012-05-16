@@ -18,14 +18,10 @@ public class Dwarf {
 	public Vector<DwarfHeader> headers = new Vector<DwarfHeader>();
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	private Hashtable<Integer, Abbrev> abbrevList;
-	private File file;
-
-	public File getFile() {
-		return file;
-	}
+	public static File file;
 
 	public boolean init(File file) {
-		this.file = file;
+		Dwarf.file = file;
 		headers.clear();
 		compileUnits.clear();
 
@@ -246,8 +242,26 @@ public class Dwarf {
 			}
 		}
 		if (debugInfoRelSection != null) {
-
+			try {
+				//				MappedByteBuffer byteBuffer = SectionFinder.findSectionByte(Dwarf.file, debugInfoRelSection.section_name);
+				MappedByteBuffer byteBuffer = SectionFinder.findSectionByte(Dwarf.file, ".rel.debug_info");
+				DwarfLib.printMappedByteBuffer(byteBuffer);
+				if (debugInfoRelSection.sh_type == Elf32_Shdr.SHT_RELA) {
+					while (byteBuffer.remaining() >= 12) {
+						System.out.printf("%x\t%x\t%x\n", byteBuffer.getInt(), byteBuffer.getInt(), byteBuffer.getInt());
+					}
+				} else if (debugInfoRelSection.sh_type == Elf32_Shdr.SHT_REL) {
+					while (byteBuffer.remaining() >= 8) {
+						System.out.printf("%x\t%x\n", byteBuffer.getInt(), byteBuffer.getInt());
+					}
+				} else {
+					throw new IllegalArgumentException("debugInfoRelSection.sh_type=" + debugInfoRelSection.sh_type + " error");
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
+		System.exit(2);
 	}
 
 	public void parseHeader(ByteBuffer b) {
