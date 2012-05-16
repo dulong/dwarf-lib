@@ -246,17 +246,29 @@ public class Dwarf {
 				//				MappedByteBuffer byteBuffer = SectionFinder.findSectionByte(Dwarf.file, debugInfoRelSection.section_name);
 				MappedByteBuffer byteBuffer = SectionFinder.findSectionByte(Dwarf.file, ".rel.debug_info");
 				DwarfLib.printMappedByteBuffer(byteBuffer);
+				int size = 99999999;
 				if (debugInfoRelSection.sh_type == Elf32_Shdr.SHT_RELA) {
-					while (byteBuffer.remaining() >= 12) {
-						System.out.printf("%x\t%x\t%x\n", byteBuffer.getInt(), byteBuffer.getInt(), byteBuffer.getInt());
-					}
+					size = 12;
 				} else if (debugInfoRelSection.sh_type == Elf32_Shdr.SHT_REL) {
-					while (byteBuffer.remaining() >= 8) {
-						System.out.printf("%x\t%x\n", byteBuffer.getInt(), byteBuffer.getInt());
-					}
-				} else {
-					throw new IllegalArgumentException("debugInfoRelSection.sh_type=" + debugInfoRelSection.sh_type + " error");
+					size = 8;
 				}
+				while (byteBuffer.remaining() >= size) {
+					int offset = byteBuffer.getInt();
+					int info = byteBuffer.getInt();
+					int addend = 0;
+					if (debugInfoRelSection.sh_type == Elf32_Shdr.SHT_RELA) {
+						addend = byteBuffer.getInt();
+					}
+					int type = Elf32_Shdr.ELF32_R_TYPE(info);
+					System.out.printf("%x\t", offset);
+					System.out.printf("%x\t", info);
+					if (debugInfoRelSection.sh_type == Elf32_Shdr.SHT_RELA) {
+						System.out.printf("%x\t", addend);
+					}
+					System.out.printf("%x\t", type);
+					System.out.printf("\n");
+				}
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

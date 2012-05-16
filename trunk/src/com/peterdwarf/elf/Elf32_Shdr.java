@@ -71,4 +71,16 @@ public class Elf32_Shdr {
 		str.append(" ]");
 		return str.toString();
 	}
+
+	public static int ELF32_R_SYM(int i) {
+		return i >> 8;
+	}
+
+	public static int ELF32_R_TYPE(int i) {
+		return i & 0xff;
+	}
+
+	public static int ELF32_R_INFO(int s, int t) {
+		return (s << 8) + (t & 0xff);
+	}
 }
