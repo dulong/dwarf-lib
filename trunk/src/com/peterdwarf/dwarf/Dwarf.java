@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import com.peterdwarf.Global;
 import com.peterdwarf.elf.Elf32_Shdr;
+import com.peterdwarf.elf.Elf_Common;
 import com.peterdwarf.elf.SectionFinder;
 
 public class Dwarf {
@@ -247,25 +248,26 @@ public class Dwarf {
 				MappedByteBuffer byteBuffer = SectionFinder.findSectionByte(Dwarf.file, ".rel.debug_info");
 				DwarfLib.printMappedByteBuffer(byteBuffer);
 				int size = 99999999;
-				if (debugInfoRelSection.sh_type == Elf32_Shdr.SHT_RELA) {
+				if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
 					size = 12;
-				} else if (debugInfoRelSection.sh_type == Elf32_Shdr.SHT_REL) {
+				} else if (debugInfoRelSection.sh_type == Elf_Common.SHT_REL) {
 					size = 8;
 				}
 				while (byteBuffer.remaining() >= size) {
 					int offset = byteBuffer.getInt();
 					int info = byteBuffer.getInt();
 					int addend = 0;
-					if (debugInfoRelSection.sh_type == Elf32_Shdr.SHT_RELA) {
+					if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
 						addend = byteBuffer.getInt();
 					}
-					int type = Elf32_Shdr.ELF32_R_TYPE(info);
+					int relocationType = Elf_Common.ELF32_R_TYPE(info);
 					System.out.printf("%x\t", offset);
 					System.out.printf("%x\t", info);
-					if (debugInfoRelSection.sh_type == Elf32_Shdr.SHT_RELA) {
+					if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
 						System.out.printf("%x\t", addend);
 					}
-					System.out.printf("%x\t", type);
+					System.out.printf("%s\t", Elf_Common.getRelocationTypeName(relocationType));
+					System.out.printf("%x\t", Elf_Common.ELF32_R_SYM(info));
 					System.out.printf("\n");
 				}
 
