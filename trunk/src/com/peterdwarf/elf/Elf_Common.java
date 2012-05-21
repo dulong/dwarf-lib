@@ -158,6 +158,113 @@ public class Elf_Common {
 		return (s << 8) + (t & 0xff);
 	}
 
+	public static int STT_NOTYPE = 0;
+	public static int STT_OBJECT = 1;
+	public static int STT_FUNC = 2;
+	public static int STT_SECTION = 3;
+	public static int STT_FILE = 4;
+	public static int STT_LOPROC = 13;
+	public static int STT_HIPROC = 15;
+
+	public static String getSTTypeName(int x) {
+		if (x == STT_NOTYPE) {
+			return "STT_NOTYPE";
+		} else if (x == STT_OBJECT) {
+			return "STT_OBJECT";
+		} else if (x == STT_FUNC) {
+			return "STT_FUNC";
+		} else if (x == STT_SECTION) {
+			return "STT_SECTION";
+		} else if (x == STT_FILE) {
+			return "STT_FILE";
+		} else if (x == STT_LOPROC) {
+			return "STT_LOPROC";
+		} else if (x == STT_HIPROC) {
+			return "STT_HIPROC";
+		} else {
+			return null;
+		}
+	}
+
+	public static int STB_LOCAL = 0;
+	public static int STB_GLOBAL = 1;
+	public static int STB_WEAK = 2;
+	public static int STB_LOPROC = 13;
+	public static int STB_HIPROC = 15;
+
+	public static String getSTBindName(int x) {
+		if (x == STB_LOCAL) {
+			return "STB_LOCAL";
+		} else if (x == STB_GLOBAL) {
+			return "STB_GLOBAL";
+		} else if (x == STB_WEAK) {
+			return "STB_WEAK";
+		} else if (x == STB_LOPROC) {
+			return "STB_LOPROC";
+		} else if (x == STB_HIPROC) {
+			return "STB_HIPROC";
+		} else {
+			return null;
+		}
+	}
+
+	public static int ELF32_ST_BIND(int i) {
+		return ((i) >> 4);
+	}
+
+	public static int ELF32_ST_TYPE(int i) {
+		return ((i) & 0xf);
+	}
+
+	public static int ELF32_ST_INFO(int b, int t) {
+		return (((b) << 4) + ((t) & 0xf));
+	}
+
+	public static int ELF_ST_VISIBILITY(int i) {
+		return i & 0x3;
+	}
+
+	public static final int SHN_UNDEF = 0;
+	public static final int SHN_LORESERVE = 0xff00;
+	public static final int SHN_LOPROC = 0xff00;
+	public static final int SHN_HIPROC = 0xff1f;
+	public static final int SHN_ABS = 0xff0f1;
+	public static final int SHN_COMMON = 0xfff2;
+	public static final int SHN_HIRESERVE = 0xffff;
+
+	public static String get_symbol_index_type(byte type) {
+		switch (type) {
+		case SHN_UNDEF:
+			return "UND";
+		case (byte) SHN_ABS:
+			return "ABS";
+		case (byte) SHN_COMMON:
+			return "COM";
+		default:
+			return String.valueOf(type);
+		}
+	}
+
+	public static final int STV_DEFAULT = 0; /* Visibility is specified by binding type */
+	public static final int STV_INTERNAL = 1; /* OS specific version of STV_HIDDEN */
+	public static final int STV_HIDDEN = 2; /* Can only be seen inside currect component */
+	public static final int STV_PROTECTED = 3; /* Treat as STB_LOCAL inside current component */
+
+	public static String get_symbol_visibility(int visibility) {
+		switch (visibility) {
+		case STV_DEFAULT:
+			return "DEFAULT";
+		case STV_INTERNAL:
+			return "INTERNAL";
+		case STV_HIDDEN:
+			return "HIDDEN";
+		case STV_PROTECTED:
+			return "PROTECTED";
+		default:
+			return null;
+		}
+	}
+
 	public static int SHT_NULL = 0; /* Section header table entry unused */
 	public static int SHT_PROGBITS = 1; /* Program specific (private) data */
 	public static int SHT_SYMTAB = 2; /* Link editing symbol table */

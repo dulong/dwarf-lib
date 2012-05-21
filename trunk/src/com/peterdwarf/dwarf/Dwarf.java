@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import com.peterdwarf.Global;
 import com.peterdwarf.elf.Elf32_Shdr;
+import com.peterdwarf.elf.Elf32_Sym;
 import com.peterdwarf.elf.Elf_Common;
 import com.peterdwarf.elf.SectionFinder;
 
@@ -16,8 +17,10 @@ public class Dwarf {
 	public MappedByteBuffer byteBuffer;
 	public MappedByteBuffer debug_abbrevBuffer;
 	public MappedByteBuffer debug_str;
+	public MappedByteBuffer symtab_str;
 	public Vector<DwarfHeader> headers = new Vector<DwarfHeader>();
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
+	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 	private Hashtable<Integer, Abbrev> abbrevList;
 	public static File file;
 
@@ -31,6 +34,20 @@ public class Dwarf {
 			System.out.println(".debug_str:");
 			// DwarfLib.printMappedByteBuffer(debug_str);
 			System.out.println();
+
+			symtab_str = SectionFinder.findSectionByte(file, ".symtab");
+			System.out.println(".symtab:");
+			symbols = parseSymtab(symtab_str);
+			System.out.printf("Num:\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\n", "Value", "Size", "Type", "Bind", "Vis", "Ndx", "Name");
+			int x = 0;
+			for (Elf32_Sym symbol : symbols) {
+				System.out.printf("%d:\t%08x\t%8d\t%s\t%s\t%s\t%s\t\n", x, symbol.st_value, symbol.st_size, Elf_Common.getSTTypeName(Elf_Common.ELF32_ST_TYPE(symbol.st_info)),
+						Elf_Common.getSTBindName(Elf_Common.ELF32_ST_BIND(symbol.st_info)), Elf_Common.get_symbol_visibility(Elf_Common.ELF_ST_VISIBILITY(symbol.st_other)),
+						Elf_Common.get_symbol_index_type((byte) symbol.st_shndx));
+				x++;
+			}
+			System.out.println();
+			System.exit(-2);
 
 			debug_abbrevBuffer = SectionFinder.findSectionByte(file, ".debug_abbrev");
 			System.out.println(".debug_abbrev:");
@@ -71,6 +88,21 @@ public class Dwarf {
 			return false;
 		}
 		return true;
+	}
+
+	public Vector<Elf32_Sym> parseSymtab(ByteBuffer symtab) {
+		Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
+		while (symtab.remaining() >= 16) {
+			Elf32_Sym symbol = new Elf32_Sym();
+			symbol.st_name = symtab.getInt();
+			symbol.st_value = symtab.getInt();
+			symbol.st_size = symtab.getInt();
+			symbol.st_info = symtab.get();
+			symbol.st_other = symtab.get();
+			symbol.st_shndx = symtab.getShort();
+			symbols.add(symbol);
+		}
+		return symbols;
 	}
 
 	public Hashtable<Integer, Abbrev> parseDebugAbbrev(ByteBuffer debug_abbrev_bytes) {
