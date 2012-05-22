@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -18,9 +19,11 @@ public class Dwarf {
 	public MappedByteBuffer debug_abbrevBuffer;
 	public MappedByteBuffer debug_str;
 	public MappedByteBuffer symtab_str;
+	public MappedByteBuffer strtab_str;
 	public Vector<DwarfHeader> headers = new Vector<DwarfHeader>();
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
+	public String allStrings[];
 	private Hashtable<Integer, Abbrev> abbrevList;
 	public static File file;
 
@@ -35,15 +38,20 @@ public class Dwarf {
 			// DwarfLib.printMappedByteBuffer(debug_str);
 			System.out.println();
 
+			strtab_str = SectionFinder.findSectionByte(file, ".strtab");
+			allStrings = Charset.forName("ASCII").decode(strtab_str).toString().split("\0");
+
 			symtab_str = SectionFinder.findSectionByte(file, ".symtab");
 			System.out.println(".symtab:");
 			symbols = parseSymtab(symtab_str);
 			System.out.printf("Num:\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\n", "Value", "Size", "Type", "Bind", "Vis", "Ndx", "Name");
 			int x = 0;
 			for (Elf32_Sym symbol : symbols) {
-				System.out.printf("%d:\t%08x\t%8d\t%s\t%s\t%s\t%s\t\n", x, symbol.st_value, symbol.st_size, Elf_Common.getSTTypeName(Elf_Common.ELF32_ST_TYPE(symbol.st_info)),
+				System.out.printf("%d:\t%08x\t%8d\t%s\t%s\t%s\t\t%s\t", x, symbol.st_value, symbol.st_size, Elf_Common.getSTTypeName(Elf_Common.ELF32_ST_TYPE(symbol.st_info)),
 						Elf_Common.getSTBindName(Elf_Common.ELF32_ST_BIND(symbol.st_info)), Elf_Common.get_symbol_visibility(Elf_Common.ELF_ST_VISIBILITY(symbol.st_other)),
 						Elf_Common.get_symbol_index_type((byte) symbol.st_shndx));
+				System.out.printf("%s", DwarfLib.getString(strtab_str, symbol.st_name));
+				System.out.println();
 				x++;
 			}
 			System.out.println();
