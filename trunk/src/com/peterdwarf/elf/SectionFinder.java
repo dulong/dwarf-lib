@@ -71,7 +71,7 @@ public class SectionFinder {
 
 	public static MappedByteBuffer findSectionByte(File file, String section)
 			throws IOException {
-		RandomAccessFile f = new RandomAccessFile(file, "r");
+		RandomAccessFile f = new RandomAccessFile(file, "rw");
 
 		/** Read the ELF header. */
 		Elf32_Ehdr ehdr = new Elf32_Ehdr();
@@ -122,7 +122,7 @@ public class SectionFinder {
 			// System.out.println(section + " : "
 			// + Long.toHexString(shdr.sh_offset) + " : "
 			// + Long.toHexString(shdr.sh_size));
-			MappedByteBuffer buffer = chan.map(FileChannel.MapMode.READ_ONLY,
+			MappedByteBuffer buffer = chan.map(FileChannel.MapMode.READ_WRITE,
 					shdr.sh_offset, shdr.sh_size);
 			buffer.order(ByteOrder.nativeOrder());
 			chan.close();

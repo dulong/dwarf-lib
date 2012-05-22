@@ -1,8 +1,11 @@
 package com.peterdwarf;
 
 import java.io.File;
+import java.util.Vector;
 
 import com.peterdwarf.dwarf.CompileUnit;
+import com.peterdwarf.dwarf.DebugInfoAbbrevEntry;
+import com.peterdwarf.dwarf.DebugInfoEntry;
 import com.peterdwarf.dwarf.Dwarf;
 import com.peterdwarf.dwarf.DwarfHeader;
 import com.peterdwarf.dwarf.DwarfHeader_filename;
@@ -16,14 +19,7 @@ public class TestPeterDwarf {
 		if (!dwarf.init(file)) {
 			System.out.println("dwarf init fail");
 		} else {
-			for (CompileUnit cu : dwarf.compileUnits) {
-				System.out.println("compile unit");
-				System.out.println("  length=0x" + Integer.toHexString(cu.length));
-				System.out.println("  version=" + cu.version);
-				System.out.println("  abbrev_offset=" + cu.abbrev_offset);
-				System.out.println("  addr_size=" + cu.addr_size);
-			}
-			System.out.println();
+			System.out.println(".debug_line:");
 			for (DwarfHeader header : dwarf.headers) {
 				System.out.println("length: " + header.total_length);
 				System.out.println("dwarf version: " + header.version);
@@ -47,10 +43,39 @@ public class TestPeterDwarf {
 				}
 				System.out.println();
 			}
+
+			System.out.println();
+			System.out.println(".debug_info:");
+			for (CompileUnit compileUnit : dwarf.compileUnits) {
+				System.out.printf("Compilation Unit @ offset 0x%x\n", compileUnit.offset);
+				System.out.printf("Length: 0x%x\n", compileUnit.length);
+				System.out.println("Version: " + compileUnit.version);
+				System.out.printf("Abbrev Offset: 0x%x\n", compileUnit.offset);
+				System.out.println("Pointer Size: " + compileUnit.addr_size);
+
+				for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntry) {
+					System.out.println("<" + debugInfoEntry.position + "> Abbrev Number: " + debugInfoEntry.abbrevNo + " (" + debugInfoEntry.name + ")");
+					for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : debugInfoEntry.debugInfoAbbrevEntry) {
+						if (debugInfoAbbrevEntry.value instanceof String) {
+							System.out.printf("<%x>\t%s\t%s\n", debugInfoAbbrevEntry.position, debugInfoAbbrevEntry.name, debugInfoAbbrevEntry.value);
+						} else if (debugInfoAbbrevEntry.value instanceof Byte || debugInfoAbbrevEntry.value instanceof Integer || debugInfoAbbrevEntry.value instanceof Long) {
+							System.out.printf("<%x>\t%s\t%x\n", debugInfoAbbrevEntry.position, debugInfoAbbrevEntry.name, debugInfoAbbrevEntry.value);
+						} else if (debugInfoAbbrevEntry.value instanceof byte[]) {
+							byte[] bytes = (byte[]) debugInfoAbbrevEntry.value;
+							System.out.printf("<%x>\t%s\t", debugInfoAbbrevEntry.position, debugInfoAbbrevEntry.name);
+							for (byte b : bytes) {
+								System.out.printf("%x ", b);
+							}
+							System.out.println();
+						} else {
+							System.out.println("not support value format : " + debugInfoAbbrevEntry.value.getClass().toString());
+						}
+					}
+				}
+			}
 		}
 		// DwarfLib.printMappedByteBuffer(dwarf.byteBuffer);
 
 		// dwarf.printHeader();
 	}
-
 }
