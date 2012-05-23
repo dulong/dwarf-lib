@@ -130,6 +130,7 @@ public class Dwarf {
 				if (tag == 0 && form == 0) {
 					break;
 				}
+				System.out.println(Integer.toHexString(tag) + ", " + Integer.toHexString(form));
 				abbrevEntry.at = tag;
 				abbrevEntry.form = form;
 				abbrev.entries.add(abbrevEntry);
@@ -251,8 +252,21 @@ public class Dwarf {
 					} else if (entry.form == Definition.DW_FORM_flag) {
 						byte flag = debugInfoBytes.get();
 						debugInfoAbbrevEntry.value = flag;
+					} else if (entry.form == Definition.DW_FORM_sec_offset) {
+						int value = debugInfoBytes.getInt();
+						debugInfoAbbrevEntry.value = value;
+					} else if (entry.form == Definition.DW_FORM_flag_present) {
+						byte value = debugInfoBytes.get();
+						debugInfoAbbrevEntry.value = value;
+					} else if (entry.form == Definition.DW_FORM_exprloc) {
+						long size = DwarfLib.getUleb128(debugInfoBytes);
+//						byte bytes[] = new byte[(int) size];
+//						for (int z = 0; z < size; z++) {
+//							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
+//						}
+//						debugInfoAbbrevEntry.value = bytes;
 					} else {
-						System.out.println("unsupport DW_FORM_? = " + entry.at);
+						System.out.println("unsupport DW_FORM_? = 0x" + Integer.toHexString(entry.form));
 						System.exit(1);
 					}
 				}
@@ -289,14 +303,14 @@ public class Dwarf {
 						addend = byteBuffer.getInt();
 					}
 					int relocationType = Elf_Common.ELF32_R_TYPE(info);
-//					System.out.printf("%x\t", offset);
-//					System.out.printf("%x\t", info);
-//					if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
-//						System.out.printf("%x\t", addend);
-//					}
-//					System.out.printf("%s\t", Elf_Common.getRelocationTypeName(relocationType));
-//					System.out.printf("%d\t", Elf_Common.ELF32_R_SYM(info));
-//					System.out.printf("%08x\t", symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
+					//					System.out.printf("%x\t", offset);
+					//					System.out.printf("%x\t", info);
+					//					if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
+					//						System.out.printf("%x\t", addend);
+					//					}
+					//					System.out.printf("%s\t", Elf_Common.getRelocationTypeName(relocationType));
+					//					System.out.printf("%d\t", Elf_Common.ELF32_R_SYM(info));
+					//					System.out.printf("%08x\t", symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
 
 					//relocation
 					int temp = debugInfoBytes.position();
@@ -305,8 +319,8 @@ public class Dwarf {
 						debugInfoBytes.putInt(symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
 					}
 					debugInfoBytes.position(temp);
-//					System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
-//					System.out.printf("\n");
+					//					System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
+					//					System.out.printf("\n");
 				}
 
 			} catch (Exception e) {

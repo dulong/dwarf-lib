@@ -7,6 +7,6 @@ public class DebugInfoAbbrevEntry {
 	public int position;
 
 	public String toString() {
-		return "name=" + name + ", form" + form + ", value=" + value + ", position=" + position;
+		return "position=" + Integer.toHexString(position) + ", name=" + name + ", form=" + form + ", value=" + value;
 	}
 }
