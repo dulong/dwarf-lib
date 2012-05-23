@@ -32,7 +32,7 @@ public class DwarfLib {
 		}
 	}
 
-	public static void printByteBuffer(byte[] bytes) {
+	public static void printBytes(byte[] bytes) {
 		for (int x = 0; x < bytes.length; x++) {
 			System.out.printf("%02x ", bytes[x]);
 			if (x == 7) {
@@ -45,7 +45,7 @@ public class DwarfLib {
 		}
 	}
 
-	public static void printMappedByteBuffer(ByteBuffer byteBuffer) {
+	public static void printByteBuffer(ByteBuffer byteBuffer) {
 		int position = byteBuffer.position();
 		int x = 0;
 		while (byteBuffer.hasRemaining()) {

@@ -3,7 +3,6 @@ package com.peterdwarf.dwarf;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -15,11 +14,11 @@ import com.peterdwarf.elf.Elf_Common;
 import com.peterdwarf.elf.SectionFinder;
 
 public class Dwarf {
-	public MappedByteBuffer byteBuffer;
-	public MappedByteBuffer debug_abbrevBuffer;
-	public MappedByteBuffer debug_str;
-	public MappedByteBuffer symtab_str;
-	public MappedByteBuffer strtab_str;
+	public ByteBuffer byteBuffer;
+	public ByteBuffer debug_abbrevBuffer;
+	public ByteBuffer debug_str;
+	public ByteBuffer symtab_str;
+	public ByteBuffer strtab_str;
 	public Vector<DwarfHeader> headers = new Vector<DwarfHeader>();
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
@@ -144,7 +143,6 @@ public class Dwarf {
 		if (abbrevList == null) {
 			throw new IllegalArgumentException("abbrevList is null, please call parseDebugAbbrev() first");
 		}
-
 		calculationRelocation(debugInfoSection, debugInfoBytes);
 
 		while (debugInfoBytes.remaining() > 11) {
@@ -175,6 +173,8 @@ public class Dwarf {
 					debugInfoAbbrevEntry.name = Definition.getATName(entry.at);
 					debugInfoAbbrevEntry.form = entry.form;
 					debugInfoAbbrevEntry.position = debugInfoBytes.position();
+
+					System.out.println(debugInfoAbbrevEntry);
 					if (entry.form == Definition.DW_FORM_string) {
 						byte temp;
 						String value = "";
@@ -273,9 +273,9 @@ public class Dwarf {
 		if (debugInfoRelSection != null) {
 			try {
 				//				MappedByteBuffer byteBuffer = SectionFinder.findSectionByte(Dwarf.file, debugInfoRelSection.section_name);
-				MappedByteBuffer byteBuffer = SectionFinder.findSectionByte(Dwarf.file, ".rel.debug_info");
-				DwarfLib.printMappedByteBuffer(byteBuffer);
-				int size = 99999999;
+				ByteBuffer byteBuffer = SectionFinder.findSectionByte(Dwarf.file, ".rel.debug_info");
+				DwarfLib.printByteBuffer(byteBuffer);
+				int size = Integer.MAX_VALUE;
 				if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
 					size = 12;
 				} else if (debugInfoRelSection.sh_type == Elf_Common.SHT_REL) {
@@ -305,9 +305,9 @@ public class Dwarf {
 					//relocation
 					int temp = debugInfoBytes.position();
 					debugInfoBytes.position(offset);
-					//					if (byteBuffer.remaining() >= 4) {
-					debugInfoBytes.putInt(symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
-					//					}
+					if (debugInfoBytes.remaining() >= 4) {
+						debugInfoBytes.putInt(symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
+					}
 					debugInfoBytes.position(temp);
 					System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
 					System.out.printf("\n");
@@ -317,7 +317,6 @@ public class Dwarf {
 				e.printStackTrace();
 			}
 		}
-		//		System.exit(-1);
 	}
 
 	public void parseHeader(ByteBuffer b) {

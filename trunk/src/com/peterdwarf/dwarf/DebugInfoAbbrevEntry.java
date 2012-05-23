@@ -5,4 +5,8 @@ public class DebugInfoAbbrevEntry {
 	public int form;
 	public Object value;
 	public int position;
+
+	public String toString() {
+		return "name=" + name + ", form" + form + ", value=" + value + ", position=" + position;
+	}
 }
