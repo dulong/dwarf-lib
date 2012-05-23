@@ -289,18 +289,14 @@ public class Dwarf {
 						addend = byteBuffer.getInt();
 					}
 					int relocationType = Elf_Common.ELF32_R_TYPE(info);
-					System.out.printf("%x\t", offset);
-					System.out.printf("%x\t", info);
-					if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
-						System.out.printf("%x\t", addend);
-					}
-					System.out.printf("%s\t", Elf_Common.getRelocationTypeName(relocationType));
-					System.out.printf("%d\t", Elf_Common.ELF32_R_SYM(info));
-					System.out.printf("%08x\t", symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
-					//					int temp = byteBuffer.position();
-					//					System.out.print("\t=" + offset + "\t");
-					//
-					//					System.out.println(byteBuffer.limit());
+//					System.out.printf("%x\t", offset);
+//					System.out.printf("%x\t", info);
+//					if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
+//						System.out.printf("%x\t", addend);
+//					}
+//					System.out.printf("%s\t", Elf_Common.getRelocationTypeName(relocationType));
+//					System.out.printf("%d\t", Elf_Common.ELF32_R_SYM(info));
+//					System.out.printf("%08x\t", symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
 
 					//relocation
 					int temp = debugInfoBytes.position();
@@ -309,8 +305,8 @@ public class Dwarf {
 						debugInfoBytes.putInt(symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
 					}
 					debugInfoBytes.position(temp);
-					System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
-					System.out.printf("\n");
+//					System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
+//					System.out.printf("\n");
 				}
 
 			} catch (Exception e) {
