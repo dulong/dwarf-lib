@@ -2,7 +2,7 @@ package com.peterdwarf.dwarf;
 
 import java.util.Vector;
 
-public class DwarfHeader {
+public class DwarfDebugLineHeader {
 	public long total_length;
 	public int version;
 	public long header_length;
@@ -13,6 +13,6 @@ public class DwarfHeader {
 	public int opcode_base;
 	public final byte[] standard_opcode_lengths = new byte[12];
 	public Vector<String> dirnames = new Vector<String>();
-	public Vector<DwarfHeader_filename> filenames = new Vector<DwarfHeader_filename>();
+	public Vector<DwarfHeaderFilename> filenames = new Vector<DwarfHeaderFilename>();
 	public Vector<DwarfLine> lines = new Vector<DwarfLine>();
 }

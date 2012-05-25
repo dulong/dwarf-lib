@@ -7,8 +7,8 @@ import com.peterdwarf.dwarf.CompileUnit;
 import com.peterdwarf.dwarf.DebugInfoAbbrevEntry;
 import com.peterdwarf.dwarf.DebugInfoEntry;
 import com.peterdwarf.dwarf.Dwarf;
-import com.peterdwarf.dwarf.DwarfHeader;
-import com.peterdwarf.dwarf.DwarfHeader_filename;
+import com.peterdwarf.dwarf.DwarfDebugLineHeader;
+import com.peterdwarf.dwarf.DwarfHeaderFilename;
 import com.peterdwarf.dwarf.DwarfLine;
 
 public class TestPeterDwarf {
@@ -20,7 +20,7 @@ public class TestPeterDwarf {
 			System.out.println("dwarf init fail");
 		} else {
 			System.out.println(".debug_line:");
-			for (DwarfHeader header : dwarf.headers) {
+			for (DwarfDebugLineHeader header : dwarf.headers) {
 				System.out.println("length: " + header.total_length);
 				System.out.println("dwarf version: " + header.version);
 				System.out.println("header length: " + header.header_length);
@@ -31,15 +31,15 @@ public class TestPeterDwarf {
 				System.out.println("opcode base: " + header.opcode_base);
 				System.out.println();
 
-				System.out.println("dir\ttime\tlen\tfilename");
-				for (DwarfHeader_filename filename : header.filenames) {
-					System.out.println(filename.dir + "\t" + filename.time + "\t" + filename.len + "\t" + filename.filename);
+				System.out.println("entry\tdir\ttime\tlen\tfilename");
+				for (DwarfHeaderFilename filename : header.filenames) {
+					System.out.println(filename.entryNo + "\t" + filename.dir + "\t" + filename.time + "\t" + filename.len + "\t" + filename.filename);
 				}
 				System.out.println();
 
-				System.out.println("file no.\tline no.\tcolumn no.\taddress");
+				System.out.println("address\tfile no.\tline no.\tcolumn no.\taddress");
 				for (DwarfLine line : header.lines) {
-					System.out.println(line.file_num + "\t" + line.line_num + "\t" + line.column_num + "\t" + Long.toHexString(line.address));
+					System.out.println("\t" + line.file_num + "\t\t" + line.line_num + "\t\t" + line.column_num + "\t\t" + Long.toHexString(line.address));
 				}
 				System.out.println();
 			}

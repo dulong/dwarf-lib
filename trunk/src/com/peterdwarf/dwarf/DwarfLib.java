@@ -125,7 +125,7 @@ public class DwarfLib {
 		}
 	}
 
-	public void printHeader(DwarfHeader header) {
+	public void printHeader(DwarfDebugLineHeader header) {
 		System.out.println("total_length: " + header.total_length);
 		System.out.println("version: " + header.version);
 		System.out.println("prologue_length: " + header.header_length);
