@@ -19,6 +19,7 @@ public class TestPeterDwarf {
 		if (!dwarf.init(file)) {
 			System.out.println("dwarf init fail");
 		} else {
+			System.out.println();
 			System.out.println(".debug_line:");
 			for (DwarfDebugLineHeader header : dwarf.headers) {
 				System.out.println("length: " + header.total_length);
@@ -31,9 +32,15 @@ public class TestPeterDwarf {
 				System.out.println("opcode base: " + header.opcode_base);
 				System.out.println();
 
+				System.out.println("dirnames:");
+				for (String s : header.dirnames) {
+					System.out.println(s);
+				}
+				System.out.println();
+
 				System.out.println("entry\tdir\ttime\tlen\tfilename");
 				for (DwarfHeaderFilename filename : header.filenames) {
-					System.out.println(filename.entryNo + "\t" + filename.dir + "\t" + filename.time + "\t" + filename.len + "\t" + filename.filename);
+					System.out.println(filename.entryNo + "\t" + filename.dir + "\t" + filename.time + "\t" + filename.len + "\t" + filename.file.getAbsolutePath());
 				}
 				System.out.println();
 
@@ -42,6 +49,7 @@ public class TestPeterDwarf {
 					System.out.println("\t" + line.file_num + "\t\t" + line.line_num + "\t\t" + line.column_num + "\t\t" + Long.toHexString(line.address));
 				}
 				System.out.println();
+
 			}
 
 			System.out.println();
