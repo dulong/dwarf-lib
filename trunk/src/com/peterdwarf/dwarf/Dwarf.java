@@ -191,6 +191,7 @@ public class Dwarf {
 							debugInfoAbbrevEntry.value = address;
 						} else {
 							debugInfoAbbrevEntry.value = null;
+							System.err.println("debugInfoAbbrevEntry.value = null");
 							System.exit(-1);
 						}
 					} else if (entry.form == Definition.DW_FORM_strp) {
@@ -263,6 +264,7 @@ public class Dwarf {
 						debugInfoAbbrevEntry.value = value;
 					} else if (entry.form == Definition.DW_FORM_exprloc) {
 						long size = DwarfLib.getUleb128(debugInfoBytes);
+						System.err.println("entry.form == Definition.DW_FORM_exprloc");
 						System.exit(1);
 						//						byte bytes[] = new byte[(int) size];
 						//						for (int z = 0; z < size; z++) {
