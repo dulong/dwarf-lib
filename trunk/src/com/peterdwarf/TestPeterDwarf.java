@@ -1,18 +1,20 @@
 package com.peterdwarf;
 
 import java.io.File;
-import java.util.Vector;
 
 import com.peterdwarf.dwarf.CompileUnit;
 import com.peterdwarf.dwarf.DebugInfoAbbrevEntry;
 import com.peterdwarf.dwarf.DebugInfoEntry;
 import com.peterdwarf.dwarf.Dwarf;
-import com.peterdwarf.dwarf.DwarfDebugLineHeader;
 import com.peterdwarf.dwarf.DwarfHeaderFilename;
 import com.peterdwarf.dwarf.DwarfLine;
 
 public class TestPeterDwarf {
 	public static void main(String[] args) {
+		if (args.length == 0) {
+			System.out.println("java -jar peter-dwarf.jar <your elf file path>");
+			System.exit(-1);
+		}
 		Dwarf dwarf = new Dwarf();
 		File file = new File(args[0]);
 
@@ -21,36 +23,33 @@ public class TestPeterDwarf {
 		} else {
 			System.out.println();
 			System.out.println(".debug_line:");
-			for (DwarfDebugLineHeader header : dwarf.headers) {
-				System.out.println("length: " + header.total_length);
-				System.out.println("dwarf version: " + header.version);
-				System.out.println("header length: " + header.header_length);
-				System.out.println("minimum instruction length: " + header.minimum_instruction_length);
-				System.out.println("default is_stmt: " + header.default_is_stmt);
-				System.out.println("line base: " + header.line_base);
-				System.out.println("line range: " + header.line_range);
-				System.out.println("opcode base: " + header.opcode_base);
-				System.out.println();
+			System.out.println("length: " + dwarf.header.total_length);
+			System.out.println("dwarf version: " + dwarf.header.version);
+			System.out.println("header length: " + dwarf.header.header_length);
+			System.out.println("minimum instruction length: " + dwarf.header.minimum_instruction_length);
+			System.out.println("default is_stmt: " + dwarf.header.default_is_stmt);
+			System.out.println("line base: " + dwarf.header.line_base);
+			System.out.println("line range: " + dwarf.header.line_range);
+			System.out.println("opcode base: " + dwarf.header.opcode_base);
+			System.out.println();
 
-				System.out.println("dirnames:");
-				for (String s : header.dirnames) {
-					System.out.println(s);
-				}
-				System.out.println();
-
-				System.out.println("entry\tdir\ttime\tlen\tfilename");
-				for (DwarfHeaderFilename filename : header.filenames) {
-					System.out.println(filename.entryNo + "\t" + filename.dir + "\t" + filename.time + "\t" + filename.len + "\t" + filename.file.getAbsolutePath());
-				}
-				System.out.println();
-
-				System.out.println("address\tfile no.\tline no.\tcolumn no.\taddress");
-				for (DwarfLine line : header.lines) {
-					System.out.println("\t" + line.file_num + "\t\t" + line.line_num + "\t\t" + line.column_num + "\t\t" + Long.toHexString(line.address));
-				}
-				System.out.println();
-
+			System.out.println("dirnames:");
+			for (String s : dwarf.header.dirnames) {
+				System.out.println(s);
 			}
+			System.out.println();
+
+			System.out.println("entry\tdir\ttime\tlen\tfilename");
+			for (DwarfHeaderFilename filename : dwarf.header.filenames) {
+				System.out.println(filename.entryNo + "\t" + filename.dir + "\t" + filename.time + "\t" + filename.len + "\t" + filename.file.getAbsolutePath());
+			}
+			System.out.println();
+
+			System.out.println("address\tfile no.\tline no.\tcolumn no.\taddress");
+			for (DwarfLine line : dwarf.header.lines) {
+				System.out.println("\t" + line.file_num + "\t\t" + line.line_num + "\t\t" + line.column_num + "\t\t" + Long.toHexString(line.address));
+			}
+			System.out.println();
 
 			System.out.println();
 			System.out.println(".debug_info:");

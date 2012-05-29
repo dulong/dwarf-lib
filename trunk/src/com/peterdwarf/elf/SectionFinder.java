@@ -110,7 +110,8 @@ public class SectionFinder {
 
 		if (!found) {
 			f.close();
-			throw new IOException("no section " + section + " found in " + file);
+			System.err.println("no section " + section + " found in " + file);
+			return null;
 		}
 
 		try {

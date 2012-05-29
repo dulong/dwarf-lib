@@ -19,7 +19,7 @@ public class Dwarf {
 	public ByteBuffer debug_str;
 	public ByteBuffer symtab_str;
 	public ByteBuffer strtab_str;
-	public Vector<DwarfDebugLineHeader> headers = new Vector<DwarfDebugLineHeader>();
+	public DwarfDebugLineHeader header;
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 	public String allStrings[];
@@ -28,11 +28,13 @@ public class Dwarf {
 
 	public boolean init(File file) {
 		Dwarf.file = file;
-		headers.clear();
 		compileUnits.clear();
 
 		try {
 			debug_str = SectionFinder.findSectionByte(file, ".debug_str");
+			if (debug_str == null) {
+				return false;
+			}
 			//			System.out.println(".debug_str:");
 			// DwarfLib.printMappedByteBuffer(debug_str);
 			//			System.out.println();
@@ -166,6 +168,7 @@ public class Dwarf {
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
 				cu.debugInfoEntry.add(debugInfoEntry);
 
+				//				System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
 				for (AbbrevEntry entry : abbrev.entries) {
 					DebugInfoAbbrevEntry debugInfoAbbrevEntry = new DebugInfoAbbrevEntry();
 					debugInfoEntry.debugInfoAbbrevEntry.add(debugInfoAbbrevEntry);
@@ -173,6 +176,7 @@ public class Dwarf {
 					debugInfoAbbrevEntry.name = Definition.getATName(entry.at);
 					debugInfoAbbrevEntry.form = entry.form;
 					debugInfoAbbrevEntry.position = debugInfoBytes.position();
+					//					System.out.println("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + debugInfoAbbrevEntry.name);
 
 					if (entry.form == Definition.DW_FORM_string) {
 						byte temp;
@@ -187,6 +191,7 @@ public class Dwarf {
 							debugInfoAbbrevEntry.value = address;
 						} else {
 							debugInfoAbbrevEntry.value = null;
+							System.exit(-1);
 						}
 					} else if (entry.form == Definition.DW_FORM_strp) {
 						int stringOffset = debugInfoBytes.getInt();
@@ -258,6 +263,7 @@ public class Dwarf {
 						debugInfoAbbrevEntry.value = value;
 					} else if (entry.form == Definition.DW_FORM_exprloc) {
 						long size = DwarfLib.getUleb128(debugInfoBytes);
+						System.exit(1);
 						//						byte bytes[] = new byte[(int) size];
 						//						for (int z = 0; z < size; z++) {
 						//							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
@@ -479,7 +485,7 @@ public class Dwarf {
 			}
 			DwarfLine dwarfLine = new DwarfLine();
 			dwarfLine.address = address;
-			dwarfLine.file_num = file_num;
+			dwarfLine.file_num = file_num - 1;
 			dwarfLine.line_num = line_num;
 			dwarfLine.column_num = column_num;
 			dwarfLine.is_stmt = is_stmt;
@@ -488,6 +494,6 @@ public class Dwarf {
 		}
 		debugLineBytes.position(end);
 
-		headers.add(dwarfDebugLineHeader);
+		header = dwarfDebugLineHeader;
 	}
 }
