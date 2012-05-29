@@ -22,7 +22,7 @@ public class Dwarf {
 	public DwarfDebugLineHeader header;
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
-	public String allStrings[];
+	//	public String allStrings[];
 	private Hashtable<Integer, Abbrev> abbrevList;
 	public static File file;
 
@@ -40,7 +40,7 @@ public class Dwarf {
 			//			System.out.println();
 
 			strtab_str = SectionFinder.findSectionByte(file, ".strtab");
-			allStrings = Charset.forName("ASCII").decode(strtab_str).toString().split("\0");
+			//			allStrings = Charset.forName("ASCII").decode(strtab_str).toString().split("\0");
 
 			symtab_str = SectionFinder.findSectionByte(file, ".symtab");
 			//			System.out.println(".symtab:");
@@ -92,7 +92,7 @@ public class Dwarf {
 		return true;
 	}
 
-	public Vector<Elf32_Sym> parseSymtab(ByteBuffer symtab) {
+	public static Vector<Elf32_Sym> parseSymtab(ByteBuffer symtab) {
 		Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 		while (symtab.remaining() >= 16) {
 			Elf32_Sym symbol = new Elf32_Sym();

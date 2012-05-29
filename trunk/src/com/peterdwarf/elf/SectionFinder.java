@@ -76,7 +76,7 @@ public class SectionFinder {
 		ehdr.read(f);
 		if (ehdr.e_ident[0] != ELFMAG0 || ehdr.e_ident[1] != ELFMAG1 || ehdr.e_ident[2] != ELFMAG2 || ehdr.e_ident[3] != ELFMAG3) {
 			f.close();
-			throw new IOException(file + ": not an ELF file");
+			return null;
 		}
 
 		/* Read the string table section header. */
