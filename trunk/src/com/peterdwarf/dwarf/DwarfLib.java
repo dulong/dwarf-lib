@@ -95,21 +95,9 @@ public class DwarfLib {
 
 	public static String getString(ByteBuffer buf, int offset) {
 		try {
-			//		int matchIndex = 0;
 			buf.position(offset);
 
 			byte temp;
-			//		while (matchIndex < index && buf.hasRemaining()) {
-			//			temp = buf.get();
-			//			System.out.println("temp=" + temp);
-			//			if (temp == 0) {
-			//				matchIndex++;
-			//			}
-			//		}
-			//		if (matchIndex != index) {
-			//			System.out.println("Error read string, offset=" + index);
-			//		}
-			//		System.out.println("m=" + matchIndex);
 			String r = "";
 			while (buf.hasRemaining()) {
 				temp = buf.get();

@@ -168,7 +168,7 @@ public class Dwarf {
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
 				cu.debugInfoEntry.add(debugInfoEntry);
 
-				//				System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
+				System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
 				for (AbbrevEntry entry : abbrev.entries) {
 					DebugInfoAbbrevEntry debugInfoAbbrevEntry = new DebugInfoAbbrevEntry();
 					debugInfoEntry.debugInfoAbbrevEntry.add(debugInfoAbbrevEntry);
@@ -176,7 +176,7 @@ public class Dwarf {
 					debugInfoAbbrevEntry.name = Definition.getATName(entry.at);
 					debugInfoAbbrevEntry.form = entry.form;
 					debugInfoAbbrevEntry.position = debugInfoBytes.position();
-					//					System.out.println("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + debugInfoAbbrevEntry.name);
+									System.out.println("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + debugInfoAbbrevEntry.name);
 
 					if (entry.form == Definition.DW_FORM_string) {
 						byte temp;
@@ -260,12 +260,16 @@ public class Dwarf {
 						int value = debugInfoBytes.getInt();
 						debugInfoAbbrevEntry.value = value;
 					} else if (entry.form == Definition.DW_FORM_flag_present) {
-						byte value = debugInfoBytes.get();
-						debugInfoAbbrevEntry.value = value;
+//						byte value = debugInfoBytes.get();
+						debugInfoAbbrevEntry.value = 1;
 					} else if (entry.form == Definition.DW_FORM_exprloc) {
 						long size = DwarfLib.getUleb128(debugInfoBytes);
-						System.err.println("entry.form == Definition.DW_FORM_exprloc");
-						System.exit(1);
+						byte bytes[] = new byte[(int) size];
+						for (int z = 0; z < size; z++) {
+							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
+						}
+						//System.err.println("entry.form == Definition.DW_FORM_exprloc");
+						//System.exit(1);
 						//						byte bytes[] = new byte[(int) size];
 						//						for (int z = 0; z < size; z++) {
 						//							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
