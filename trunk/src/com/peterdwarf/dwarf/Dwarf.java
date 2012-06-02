@@ -168,7 +168,7 @@ public class Dwarf {
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
 				cu.debugInfoEntry.add(debugInfoEntry);
 
-				System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
+//				System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
 				for (AbbrevEntry entry : abbrev.entries) {
 					DebugInfoAbbrevEntry debugInfoAbbrevEntry = new DebugInfoAbbrevEntry();
 					debugInfoEntry.debugInfoAbbrevEntry.add(debugInfoAbbrevEntry);
@@ -176,7 +176,7 @@ public class Dwarf {
 					debugInfoAbbrevEntry.name = Definition.getATName(entry.at);
 					debugInfoAbbrevEntry.form = entry.form;
 					debugInfoAbbrevEntry.position = debugInfoBytes.position();
-									System.out.println("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + debugInfoAbbrevEntry.name);
+//					System.out.println("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + debugInfoAbbrevEntry.name);
 
 					if (entry.form == Definition.DW_FORM_string) {
 						byte temp;
