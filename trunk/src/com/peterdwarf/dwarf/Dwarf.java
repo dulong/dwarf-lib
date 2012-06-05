@@ -192,7 +192,7 @@ public class Dwarf {
 						} else {
 							debugInfoAbbrevEntry.value = null;
 							System.err.println("debugInfoAbbrevEntry.value = null");
-							System.exit(-1);
+							//System.exit(-1);
 						}
 					} else if (entry.form == Definition.DW_FORM_strp) {
 						int stringOffset = debugInfoBytes.getInt();
@@ -277,7 +277,7 @@ public class Dwarf {
 						//						debugInfoAbbrevEntry.value = bytes;
 					} else {
 						System.out.println("unsupport DW_FORM_? = 0x" + Integer.toHexString(entry.form));
-						System.exit(1);
+						//System.exit(1);
 					}
 				}
 
