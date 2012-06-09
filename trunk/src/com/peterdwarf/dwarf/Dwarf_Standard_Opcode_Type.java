@@ -1,6 +1,7 @@
 package com.peterdwarf.dwarf;
 
 public class Dwarf_Standard_Opcode_Type {
+	public static int DW_LNS_extended_op = 0x0000;
 	public static int DW_LNS_copy = 0x0001;
 	public static int DW_LNS_advance_pc = 0x0002;
 	public static int DW_LNS_advance_line = 0x0003;

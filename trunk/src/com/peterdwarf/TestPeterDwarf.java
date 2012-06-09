@@ -25,7 +25,7 @@ public class TestPeterDwarf {
 			System.out.println(".debug_line:");
 			System.out.println("length: " + dwarf.header.total_length);
 			System.out.println("dwarf version: " + dwarf.header.version);
-			System.out.println("header length: " + dwarf.header.header_length);
+			System.out.println("header length: " + dwarf.header.prologue_length);
 			System.out.println("minimum instruction length: " + dwarf.header.minimum_instruction_length);
 			System.out.println("default is_stmt: " + dwarf.header.default_is_stmt);
 			System.out.println("line base: " + dwarf.header.line_base);

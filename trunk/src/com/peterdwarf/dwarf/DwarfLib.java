@@ -101,10 +101,10 @@ public class DwarfLib {
 			String r = "";
 			while (buf.hasRemaining()) {
 				temp = buf.get();
-				r += (char) temp;
 				if (temp == 0) {
 					break;
 				}
+				r += (char) temp;
 			}
 			return r;
 		} catch (Exception ex) {
@@ -116,7 +116,7 @@ public class DwarfLib {
 	public void printHeader(DwarfDebugLineHeader header) {
 		System.out.println("total_length: " + header.total_length);
 		System.out.println("version: " + header.version);
-		System.out.println("prologue_length: " + header.header_length);
+		System.out.println("prologue_length: " + header.prologue_length);
 		System.out.println("minimum_instruction_length: " + header.minimum_instruction_length);
 		System.out.println("default_is_stmt: " + header.default_is_stmt);
 		System.out.println("line_base: " + header.line_base);
