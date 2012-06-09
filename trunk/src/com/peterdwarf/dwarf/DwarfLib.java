@@ -93,6 +93,20 @@ public class DwarfLib {
 		return val;
 	}
 
+	public static int getSLEB128(ByteBuffer buffer) {
+		int result = 0;
+		for (int i = 0; i < 5; i++) {
+			byte b = buffer.get();
+			result |= ((b & 0x7f) << (7 * i));
+			if ((b & 0x80) == 0) {
+				int s = 32 - (7 * (i + 1));
+				result = (result << s) >> s;
+				break;
+			}
+		}
+		return result;
+	}
+
 	public static String getString(ByteBuffer buf, int offset) {
 		try {
 			buf.position(offset);

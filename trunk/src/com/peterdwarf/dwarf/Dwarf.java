@@ -419,11 +419,10 @@ public class Dwarf {
 				int advance_line = ((opcode % dwarfDebugLineHeader.line_range) + dwarfDebugLineHeader.line_base);
 				line_num += advance_line;
 				if (Global.debug) {
-					System.out.println("Special  opcode:" + opcode + ",\tadvance address by " + advance_address + " to " + Long.toHexString(address) + ", line by " + advance_line
+					System.out.println("Special opcode:" + opcode + ",\tadvance address by " + advance_address + " to " + Long.toHexString(address) + ", line by " + advance_line
 							+ " to " + line_num);
 				}
-			}
-			if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_extended_op) {
+			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_extended_op) {
 				long size = DwarfLib.getUleb128(debugLineBytes);
 				if (size == 0) {
 					System.out.println("Error: DW_LNS_extended_op size=0");
@@ -447,7 +446,7 @@ public class Dwarf {
 					address = debugLineBytes.getInt();
 					op_index = 0;
 					if (Global.debug) {
-						System.out.println("Extended opcode:" + code + "\t,address=" + Long.toHexString(address));
+						System.out.println("Extended opcode:" + code + ": set Address to 0x" + Long.toHexString(address));
 					}
 				} else if (code == Dwarf_line_number_x_ops.DW_LNE_define_file) {
 					int dir_index = 0;
@@ -465,9 +464,10 @@ public class Dwarf {
 					// System.exit(1);
 				}
 				for (int x = 0; x < size; x++) {
-//					debugLineBytes.get();
+					//					debugLineBytes.get();
 				}
 			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_copy) {
+				System.out.println("Copy");
 				is_stmt = false;
 				continue;
 			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_pc) {
@@ -477,11 +477,11 @@ public class Dwarf {
 					System.out.println("advance pc, address=" + Long.toHexString(address));
 				}
 			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_line) {
-				long advance_line = DwarfLib.getUleb128(debugLineBytes);
-				line_num += advance_line;
+				long advance_line = DwarfLib.getSLEB128(debugLineBytes);
 				if (Global.debug) {
-					System.out.println("advence line, line=" + line_num);
+					System.out.println("Advance Line by " + advance_line + " to " + (line_num + advance_line));
 				}
+				line_num += advance_line;
 			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_file) {
 				long fileno = DwarfLib.getUleb128(debugLineBytes);
 				file_num = fileno;
@@ -514,7 +514,7 @@ public class Dwarf {
 				int advance_address = (dwarfDebugLineHeader.minimum_instruction_length * ((255 - dwarfDebugLineHeader.opcode_base) / dwarfDebugLineHeader.line_range));
 				address += advance_address;
 				if (Global.debug) {
-					System.out.println("add pc, address=" + Long.toHexString(address));
+					System.out.println("Advance PC by constant " + advance_address + " to 0x" + Long.toHexString(address));
 				}
 			} else {
 				if (Global.debug) {
