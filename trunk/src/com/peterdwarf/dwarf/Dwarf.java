@@ -168,7 +168,9 @@ public class Dwarf {
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
 				cu.debugInfoEntry.add(debugInfoEntry);
 
-				//				System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
+				if (Global.debug) {
+					System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
+				}
 				for (AbbrevEntry entry : abbrev.entries) {
 					DebugInfoAbbrevEntry debugInfoAbbrevEntry = new DebugInfoAbbrevEntry();
 					debugInfoEntry.debugInfoAbbrevEntry.add(debugInfoAbbrevEntry);
