@@ -198,7 +198,7 @@ public class Dwarf {
 							value += ((char) temp);
 						}
 						if (Global.debug) {
-							System.out.println("\t" + value);
+							System.out.print("\t" + value);
 						}
 						debugInfoAbbrevEntry.value = value;
 					} else if (entry.form == Definition.DW_FORM_addr) {
@@ -207,14 +207,14 @@ public class Dwarf {
 							debugInfoAbbrevEntry.value = address;
 						} else {
 							debugInfoAbbrevEntry.value = null;
-							System.err.println("debugInfoAbbrevEntry.value = null");
+							System.err.print("debugInfoAbbrevEntry.value = null");
 							// System.exit(-1);
 						}
 					} else if (entry.form == Definition.DW_FORM_strp) {
 						int stringOffset = debugInfoBytes.getInt();
 						String s = DwarfLib.getString(debug_str, stringOffset);
 						if (Global.debug) {
-							System.out.println("\t" + s);
+							System.out.print("\t" + s);
 						}
 						debugInfoAbbrevEntry.value = s;
 					} else if (entry.form == Definition.DW_FORM_data1) {
