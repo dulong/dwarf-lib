@@ -198,7 +198,7 @@ public class Dwarf {
 							value += ((char) temp);
 						}
 						if (Global.debug) {
-							System.out.print("\t" + value);
+							System.out.print("\t:\t" + value);
 						}
 						debugInfoAbbrevEntry.value = value;
 					} else if (entry.form == Definition.DW_FORM_addr) {
@@ -214,89 +214,147 @@ public class Dwarf {
 						int stringOffset = debugInfoBytes.getInt();
 						String s = DwarfLib.getString(debug_str, stringOffset);
 						if (Global.debug) {
-							System.out.print("\t" + s);
+							System.out.print("\t:\t" + s);
 						}
 						debugInfoAbbrevEntry.value = s;
 					} else if (entry.form == Definition.DW_FORM_data1) {
 						int data = debugInfoBytes.get() & 0xff;
 						debugInfoAbbrevEntry.value = data;
+						if (Global.debug) {
+							System.out.print("\t:\t" + data);
+						}
 					} else if (entry.form == Definition.DW_FORM_data2) {
 						short data = debugInfoBytes.getShort();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
+						if (Global.debug) {
+							System.out.print("\t:\t" + data);
+						}
 					} else if (entry.form == Definition.DW_FORM_data4) {
 						int data = debugInfoBytes.getInt();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
+						if (Global.debug) {
+							System.out.print("\t:\t" + data);
+						}
 					} else if (entry.form == Definition.DW_FORM_data8) {
 						long data = debugInfoBytes.getLong();
 						debugInfoAbbrevEntry.value = Long.toHexString(data);
+						if (Global.debug) {
+							System.out.print("\t:\t" + data);
+						}
 					} else if (entry.form == Definition.DW_FORM_ref1) {
 						byte data = debugInfoBytes.get();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
+						if (Global.debug) {
+							System.out.print("\t:\t" + data);
+						}
 					} else if (entry.form == Definition.DW_FORM_ref2) {
 						short data = debugInfoBytes.getShort();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
+						if (Global.debug) {
+							System.out.print("\t:\t" + data);
+						}
 					} else if (entry.form == Definition.DW_FORM_ref4) {
 						int data = debugInfoBytes.getInt();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
+						if (Global.debug) {
+							System.out.print("\t:\t" + data);
+						}
 					} else if (entry.form == Definition.DW_FORM_ref8) {
 						long data = debugInfoBytes.getLong();
 						debugInfoAbbrevEntry.value = Long.toHexString(data);
+						if (Global.debug) {
+							System.out.print("\t:\t" + data);
+						}
 					} else if (entry.form == Definition.DW_FORM_block) {
 						long size = DwarfLib.getUleb128(debugInfoBytes);
 						byte bytes[] = new byte[(int) size];
+						if (Global.debug) {
+							System.out.print("\t:\t");
+						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
+							if (Global.debug) {
+								System.out.print(bytes[z] + "\t");
+							}
 						}
 						debugInfoAbbrevEntry.value = bytes;
 					} else if (entry.form == Definition.DW_FORM_block1) {
 						int size = debugInfoBytes.get();
 						byte bytes[] = new byte[(int) size];
+						if (Global.debug) {
+							System.out.print("\t:\t");
+						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
+							if (Global.debug) {
+								System.out.print(bytes[z] + "\t");
+							}
 						}
 						debugInfoAbbrevEntry.value = bytes;
 					} else if (entry.form == Definition.DW_FORM_block2) {
 						short size = debugInfoBytes.getShort();
 						byte bytes[] = new byte[(int) size];
+						if (Global.debug) {
+							System.out.print("\t:\t");
+						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
+							if (Global.debug) {
+								System.out.print(bytes[z] + "\t");
+							}
 						}
 						debugInfoAbbrevEntry.value = bytes;
 					} else if (entry.form == Definition.DW_FORM_block4) {
 						int size = debugInfoBytes.getInt();
 						byte bytes[] = new byte[(int) size];
+						if (Global.debug) {
+							System.out.print("\t:\t");
+						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
+							if (Global.debug) {
+								System.out.print(bytes[z] + "\t");
+							}
 						}
 						debugInfoAbbrevEntry.value = bytes;
 					} else if (entry.form == Definition.DW_FORM_ref_udata) {
 						long data = DwarfLib.getUleb128(debugInfoBytes);
 						debugInfoAbbrevEntry.value = data;
+						if (Global.debug) {
+							System.out.print("\t:\t" + data);
+						}
 					} else if (entry.form == Definition.DW_FORM_flag) {
 						byte flag = debugInfoBytes.get();
 						debugInfoAbbrevEntry.value = flag;
+						if (Global.debug) {
+							System.out.print("\t:\t" + flag);
+						}
 					} else if (entry.form == Definition.DW_FORM_sec_offset) {
 						int value = debugInfoBytes.getInt();
 						debugInfoAbbrevEntry.value = value;
+						if (Global.debug) {
+							System.out.print("\t:\t" + value);
+						}
 					} else if (entry.form == Definition.DW_FORM_flag_present) {
 						// byte value = debugInfoBytes.get();
 						debugInfoAbbrevEntry.value = 1;
+						if (Global.debug) {
+							System.out.print("\t:\t1");
+						}
 					} else if (entry.form == Definition.DW_FORM_exprloc) {
 						long size = DwarfLib.getUleb128(debugInfoBytes);
 						byte bytes[] = new byte[(int) size];
+						if (Global.debug) {
+							System.out.print("\t:\t");
+						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
+							if (Global.debug) {
+								System.out.print(bytes[z] + "\t");
+							}
 						}
-						// System.err.println("entry.form == Definition.DW_FORM_exprloc");
-						// System.exit(1);
-						// byte bytes[] = new byte[(int) size];
-						// for (int z = 0; z < size; z++) {
-						// bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
-						// }
-						// debugInfoAbbrevEntry.value = bytes;
 					} else {
 						System.out.println("unsupport DW_FORM_? = 0x" + Integer.toHexString(entry.form));
-						// System.exit(1);
 					}
 
 					if (Global.debug) {
