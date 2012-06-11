@@ -1,12 +1,12 @@
 #Fat Jar Configuration File
-#Thu Apr 05 21:24:10 HKT 2012
+#Mon Jun 11 21:17:40 HKT 2012
 onejar.license.required=true
 manifest.classpath=
 manifest.removesigners=true
 onejar.checkbox=false
 jarname=peter-dwarf.jar
 manifest.mergeall=true
-manifest.mainclass=com.peterdwarf.Test
+manifest.mainclass=com.peterdwarf.TestPeterDwarf
 manifest.file=<createnew>
 jarname.isextern=false
 onejar.expand=
