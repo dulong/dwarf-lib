@@ -50,6 +50,7 @@ public class TestPeterDwarf {
 				System.out.println("\t" + line.file_num + "\t\t" + line.line_num + "\t\t" + line.column_num + "\t\t" + Long.toHexString(line.address));
 			}
 			System.out.println();
+			System.exit(0);
 
 			System.out.println();
 			System.out.println(".debug_info:");
