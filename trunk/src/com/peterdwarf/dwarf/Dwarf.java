@@ -19,7 +19,7 @@ public class Dwarf {
 	public ByteBuffer debug_str;
 	public ByteBuffer symtab_str;
 	public ByteBuffer strtab_str;
-	public DwarfDebugLineHeader header;
+	public Vector<DwarfDebugLineHeader> headers = new Vector<DwarfDebugLineHeader>();
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 	// public String allStrings[];
@@ -635,7 +635,7 @@ public class Dwarf {
 		}
 		debugLineBytes.position(end);
 
-		header = dwarfDebugLineHeader;
+		headers.add(dwarfDebugLineHeader);
 	}
 
 }
