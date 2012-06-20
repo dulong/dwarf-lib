@@ -23,7 +23,7 @@ public class Dwarf {
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 	// public String allStrings[];
-	private Vector<Hashtable<Integer, Abbrev>> abbrevList;
+	private Hashtable<Integer, Hashtable<Integer, Abbrev>> abbrevList;
 	public static File file;
 
 	public boolean init(File file) {
@@ -66,9 +66,11 @@ public class Dwarf {
 			debug_abbrevBuffer = SectionFinder.findSectionByte(file, ".debug_abbrev");
 			// System.out.println(".debug_abbrev:");
 			abbrevList = parseDebugAbbrev(debug_abbrevBuffer);
-			for (Hashtable<Integer, Abbrev> abbrevListEntry : abbrevList) {
-				for (Integer abbrevNo : abbrevListEntry.keySet()) {
-					Abbrev abbrev = abbrevListEntry.get(abbrevNo);
+			for (Integer abbrevOffset : abbrevList.keySet()) {
+				System.out.println("Abbrev offset=" + abbrevOffset);
+				Hashtable<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
+				for (Integer abbrevNo : abbrevHashtable.keySet()) {
+					Abbrev abbrev = abbrevHashtable.get(abbrevNo);
 					if (Global.debug) {
 						System.out.printf("%d\t%s\t%s\n", abbrev.number, Definition.getTagName(abbrev.tag), abbrev.has_children ? "has children" : "no children");
 					}
@@ -121,15 +123,18 @@ public class Dwarf {
 		return symbols;
 	}
 
-	public Vector<Hashtable<Integer, Abbrev>> parseDebugAbbrev(ByteBuffer debug_abbrev_bytes) {
-		Vector<Hashtable<Integer, Abbrev>> vector = new Vector<Hashtable<Integer, Abbrev>>();
+	public Hashtable<Integer, Hashtable<Integer, Abbrev>> parseDebugAbbrev(ByteBuffer debug_abbrev_bytes) {
+		Hashtable<Integer, Hashtable<Integer, Abbrev>> vector = new Hashtable<Integer, Hashtable<Integer, Abbrev>>();
 		Hashtable<Integer, Abbrev> abbrevList = new Hashtable<Integer, Abbrev>();
+
+		int acumalateOffset = debug_abbrev_bytes.position();
 		while (debug_abbrev_bytes.hasRemaining()) {
 			Abbrev abbrev = new Abbrev();
 			int number = (int) DwarfLib.getUleb128(debug_abbrev_bytes);
 			if (number == 0) {
-				vector.add(abbrevList);
+				vector.put(acumalateOffset, abbrevList);
 				abbrevList = new Hashtable<Integer, Abbrev>();
+				acumalateOffset = debug_abbrev_bytes.position();
 				continue;
 			}
 			int tag = (int) DwarfLib.getUleb128(debug_abbrev_bytes);
@@ -163,10 +168,8 @@ public class Dwarf {
 			throw new IllegalArgumentException("abbrevList is null, please call parseDebugAbbrev() first");
 		}
 		calculationRelocation(debugInfoSection, debugInfoBytes);
-		int abbrevListNo = -1;
 
 		while (debugInfoBytes.remaining() > 11) {
-			System.out.printf("----+++++++--- %x\n", debugInfoBytes.position());
 			CompileUnit cu = new CompileUnit();
 			cu.offset = debugInfoBytes.position();
 			cu.length = debugInfoBytes.getInt();
@@ -174,15 +177,13 @@ public class Dwarf {
 			cu.abbrev_offset = debugInfoBytes.getInt();
 			cu.addr_size = debugInfoBytes.get();
 			compileUnits.add(cu);
-			abbrevListNo++;
 
-			while (debugInfoBytes.position() < cu.length) {
-				System.out.printf("-------- %x == %x\n", debugInfoBytes.position(), cu.length);
+			while (debugInfoBytes.position() < cu.offset + cu.length) {
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
 				debugInfoEntry.position = debugInfoBytes.position();
 				debugInfoEntry.abbrevNo = (int) DwarfLib.getUleb128(debugInfoBytes);
 
-				Abbrev abbrev = abbrevList.get(abbrevListNo).get(debugInfoEntry.abbrevNo);
+				Abbrev abbrev = abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo);
 				if (abbrev == null) {
 					continue;
 				}
@@ -251,25 +252,25 @@ public class Dwarf {
 						long data = debugInfoBytes.getLong();
 						debugInfoAbbrevEntry.value = Long.toHexString(data);
 						if (Global.debug) {
-							System.out.print("\t:\t" + data);
+							System.out.print("\t:\t" + data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref1) {
 						byte data = debugInfoBytes.get();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
 						if (Global.debug) {
-							System.out.print("\t:\t" + data);
+							System.out.print("\t:\t" + data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref2) {
 						short data = debugInfoBytes.getShort();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
 						if (Global.debug) {
-							System.out.print("\t:\t" + data);
+							System.out.print("\t:\t" + data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref4) {
 						int data = debugInfoBytes.getInt();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
 						if (Global.debug) {
-							System.out.printf("\t:\t%x", data);
+							System.out.printf("\t:\t%x %x", data, data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref8) {
 						long data = debugInfoBytes.getLong();
@@ -508,7 +509,7 @@ public class Dwarf {
 		boolean end_sequence = false;
 		int last_file_entry = 0;
 
-		while (debugLineBytes.hasRemaining()) {
+		while (debugLineBytes.hasRemaining() && debugLineBytes.position() < end) {
 			int opcode = debugLineBytes.get() & 0xff;
 
 			if (opcode > dwarfDebugLineHeader.opcode_base) {
