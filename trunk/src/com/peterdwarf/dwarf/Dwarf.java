@@ -169,6 +169,8 @@ public class Dwarf {
 		}
 		calculationRelocation(debugInfoSection, debugInfoBytes);
 
+		int start = 0;
+		int initial_length_size = 0;
 		while (debugInfoBytes.remaining() > 11) {
 			CompileUnit cu = new CompileUnit();
 			cu.offset = debugInfoBytes.position();
@@ -177,6 +179,13 @@ public class Dwarf {
 			cu.abbrev_offset = debugInfoBytes.getInt();
 			cu.addr_size = debugInfoBytes.get();
 			compileUnits.add(cu);
+
+			if (cu.length == 0xffffffff) {
+				cu.length = (int) debugInfoBytes.getLong();
+				initial_length_size = 12;
+			} else {
+				initial_length_size = 4;
+			}
 
 			while (debugInfoBytes.position() < cu.offset + cu.length) {
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
@@ -376,7 +385,10 @@ public class Dwarf {
 				}
 
 			}
-			debugInfoBytes.get();
+
+			start += cu.length + initial_length_size;
+			debugInfoBytes.position(start);
+			//			debugInfoBytes.get();
 		}
 
 	}
