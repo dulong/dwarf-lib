@@ -75,9 +75,7 @@ public class Dwarf {
 						System.out.printf("%d\t%s\t%s\n", abbrev.number, Definition.getTagName(abbrev.tag), abbrev.has_children ? "has children" : "no children");
 
 						for (AbbrevEntry entry : abbrev.entries) {
-
 							System.out.printf("\t%s\t%s\n", Definition.getATName(entry.at), Definition.getFormName(entry.form));
-
 						}
 					}
 				}
