@@ -3,8 +3,8 @@ package com.peterdwarf.dwarf;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
 import java.util.Vector;
 
 import com.peterdwarf.Global;
@@ -23,7 +23,7 @@ public class Dwarf {
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 	// public String allStrings[];
-	private Hashtable<Integer, Hashtable<Integer, Abbrev>> abbrevList;
+	private LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
 	public static File file;
 
 	public boolean init(File file) {
@@ -66,17 +66,18 @@ public class Dwarf {
 			debug_abbrevBuffer = SectionFinder.findSectionByte(file, ".debug_abbrev");
 			// System.out.println(".debug_abbrev:");
 			abbrevList = parseDebugAbbrev(debug_abbrevBuffer);
-			for (Integer abbrevOffset : abbrevList.keySet()) {
-				System.out.println("Abbrev offset=" + abbrevOffset);
-				Hashtable<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
-				for (Integer abbrevNo : abbrevHashtable.keySet()) {
-					Abbrev abbrev = abbrevHashtable.get(abbrevNo);
-					if (Global.debug) {
+			if (Global.debug) {
+				for (Integer abbrevOffset : abbrevList.keySet()) {
+					System.out.println("Abbrev offset=" + abbrevOffset);
+					LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
+					for (Integer abbrevNo : abbrevHashtable.keySet()) {
+						Abbrev abbrev = abbrevHashtable.get(abbrevNo);
 						System.out.printf("%d\t%s\t%s\n", abbrev.number, Definition.getTagName(abbrev.tag), abbrev.has_children ? "has children" : "no children");
-					}
-					for (AbbrevEntry entry : abbrev.entries) {
-						if (Global.debug) {
+
+						for (AbbrevEntry entry : abbrev.entries) {
+
 							System.out.printf("\t%s\t%s\n", Definition.getATName(entry.at), Definition.getFormName(entry.form));
+
 						}
 					}
 				}
@@ -123,9 +124,9 @@ public class Dwarf {
 		return symbols;
 	}
 
-	public Hashtable<Integer, Hashtable<Integer, Abbrev>> parseDebugAbbrev(ByteBuffer debug_abbrev_bytes) {
-		Hashtable<Integer, Hashtable<Integer, Abbrev>> vector = new Hashtable<Integer, Hashtable<Integer, Abbrev>>();
-		Hashtable<Integer, Abbrev> abbrevList = new Hashtable<Integer, Abbrev>();
+	public LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> parseDebugAbbrev(ByteBuffer debug_abbrev_bytes) {
+		LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> vector = new LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>>();
+		LinkedHashMap<Integer, Abbrev> abbrevList = new LinkedHashMap<Integer, Abbrev>();
 
 		int acumalateOffset = debug_abbrev_bytes.position();
 		while (debug_abbrev_bytes.hasRemaining()) {
@@ -133,7 +134,7 @@ public class Dwarf {
 			int number = (int) DwarfLib.getUleb128(debug_abbrev_bytes);
 			if (number == 0) {
 				vector.put(acumalateOffset, abbrevList);
-				abbrevList = new Hashtable<Integer, Abbrev>();
+				abbrevList = new LinkedHashMap<Integer, Abbrev>();
 				acumalateOffset = debug_abbrev_bytes.position();
 				continue;
 			}
