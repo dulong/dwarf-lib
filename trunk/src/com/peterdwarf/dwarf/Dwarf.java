@@ -14,15 +14,46 @@ import com.peterdwarf.elf.Elf_Common;
 import com.peterdwarf.elf.SectionFinder;
 
 public class Dwarf {
+	/**
+	 * @uml.property  name="byteBuffer"
+	 */
 	public ByteBuffer byteBuffer;
+	/**
+	 * @uml.property  name="debug_abbrevBuffer"
+	 */
 	public ByteBuffer debug_abbrevBuffer;
+	/**
+	 * @uml.property  name="debug_str"
+	 */
 	public ByteBuffer debug_str;
+	/**
+	 * @uml.property  name="symtab_str"
+	 */
 	public ByteBuffer symtab_str;
+	/**
+	 * @uml.property  name="strtab_str"
+	 */
 	public ByteBuffer strtab_str;
+	/**
+	 * @uml.property  name="headers"
+	 * @uml.associationEnd  multiplicity="(0 -1)" elementType="com.peterdwarf.dwarf.DwarfDebugLineHeader"
+	 */
 	public Vector<DwarfDebugLineHeader> headers = new Vector<DwarfDebugLineHeader>();
+	/**
+	 * @uml.property  name="compileUnits"
+	 * @uml.associationEnd  multiplicity="(0 -1)" elementType="com.peterdwarf.dwarf.CompileUnit"
+	 */
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
+	/**
+	 * @uml.property  name="symbols"
+	 * @uml.associationEnd  multiplicity="(0 -1)" elementType="com.peterdwarf.elf.Elf32_Sym"
+	 */
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 	// public String allStrings[];
+	/**
+	 * @uml.property  name="abbrevList"
+	 * @uml.associationEnd  qualifier="abbrevOffset:java.lang.Integer com.peterdwarf.dwarf.Abbrev"
+	 */
 	private LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
 	public static File file;
 
@@ -75,7 +106,7 @@ public class Dwarf {
 						System.out.printf("%d\t%s\t%s\n", abbrev.number, Definition.getTagName(abbrev.tag), abbrev.has_children ? "has children" : "no children");
 
 						for (AbbrevEntry entry : abbrev.entries) {
-							System.out.printf("\t%s\t%s\n", Definition.getATName(entry.at), Definition.getFormName(entry.form));
+							System.out.printf("\t%x\t%x\t%s\t%s\n", entry.at, entry.form, Definition.getATName(entry.at), Definition.getFormName(entry.form));
 						}
 					}
 				}
@@ -148,8 +179,10 @@ public class Dwarf {
 
 			while (true) {
 				AbbrevEntry abbrevEntry = new AbbrevEntry();
-				tag = debug_abbrev_bytes.get();
-				int form = debug_abbrev_bytes.get();
+//				tag = debug_abbrev_bytes.get();
+				tag = (int) DwarfLib.getUleb128(debug_abbrev_bytes);
+				int form=(int) DwarfLib.getUleb128(debug_abbrev_bytes);
+//				int form = debug_abbrev_bytes.get();
 				if (tag == 0 && form == 0) {
 					break;
 				}
@@ -357,7 +390,7 @@ public class Dwarf {
 							System.out.print("\t:\t" + value);
 						}
 					} else if (entry.form == Definition.DW_FORM_flag_present) {
-						// byte value = debugInfoBytes.get();
+						//						byte value = debugInfoBytes.get();
 						debugInfoAbbrevEntry.value = 1;
 						if (Global.debug) {
 							System.out.print("\t:\t1");

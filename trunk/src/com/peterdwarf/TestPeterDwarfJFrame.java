@@ -29,8 +29,20 @@ import com.peterdwarf.dwarf.DwarfLine;
  * ANY CORPORATE OR COMMERCIAL PURPOSE.
  */
 public class TestPeterDwarfJFrame extends javax.swing.JFrame {
+	/**
+	 * @uml.property  name="jToolBar1"
+	 * @uml.associationEnd  multiplicity="(1 1)"
+	 */
 	private JToolBar jToolBar1;
+	/**
+	 * @uml.property  name="jOpenButton"
+	 * @uml.associationEnd  multiplicity="(1 1)"
+	 */
 	private JButton jOpenButton;
+	/**
+	 * @uml.property  name="peterDwarfPanel1"
+	 * @uml.associationEnd  multiplicity="(1 1)"
+	 */
 	private PeterDwarfPanel peterDwarfPanel1;
 
 	/**

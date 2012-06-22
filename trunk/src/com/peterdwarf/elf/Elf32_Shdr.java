@@ -6,17 +6,53 @@ import java.io.RandomAccessFile;
 import com.peterdwarf.dwarf.DwarfLib;
 
 public class Elf32_Shdr {
+	/**
+	 * @uml.property  name="number"
+	 */
 	public int number;
+	/**
+	 * @uml.property  name="sh_name"
+	 */
 	public long sh_name;
+	/**
+	 * @uml.property  name="section_name"
+	 */
 	public String section_name;
+	/**
+	 * @uml.property  name="sh_type"
+	 */
 	public int sh_type;
+	/**
+	 * @uml.property  name="sh_flags"
+	 */
 	public int sh_flags;
+	/**
+	 * @uml.property  name="sh_addr"
+	 */
 	public long sh_addr;
+	/**
+	 * @uml.property  name="sh_offset"
+	 */
 	public long sh_offset;
+	/**
+	 * @uml.property  name="sh_size"
+	 */
 	public long sh_size;
+	/**
+	 * @uml.property  name="sh_link"
+	 */
 	public int sh_link;
+	/**
+	 * @uml.property  name="sh_info"
+	 */
 	public int sh_info;
+	/**
+	 * @uml.property  name="sh_addralign"
+	 */
 	public int sh_addralign;
+	/**
+	 * @uml.property  name="sh_entsize"
+	 */
 	public long sh_entsize;
 
 	public Elf32_Shdr() {

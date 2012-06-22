@@ -29,9 +29,25 @@ import com.peterdwarf.dwarf.DwarfLine;
  * ANY CORPORATE OR COMMERCIAL PURPOSE.
  */
 public class PeterDwarfPanel extends javax.swing.JPanel {
+	/**
+	 * @uml.property  name="jScrollPane1"
+	 * @uml.associationEnd  multiplicity="(1 1)"
+	 */
 	private JScrollPane jScrollPane1;
+	/**
+	 * @uml.property  name="jTree1"
+	 * @uml.associationEnd  multiplicity="(1 1)"
+	 */
 	private JTree jTree1;
+	/**
+	 * @uml.property  name="root"
+	 * @uml.associationEnd  multiplicity="(1 1)"
+	 */
 	DefaultMutableTreeNode root = new DefaultMutableTreeNode("dwarf");
+	/**
+	 * @uml.property  name="model"
+	 * @uml.associationEnd  multiplicity="(1 1)"
+	 */
 	DefaultTreeModel model = new DefaultTreeModel(root);
 
 	/**

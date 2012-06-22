@@ -8,19 +8,61 @@ import com.peterdwarf.dwarf.DwarfLib;
 public class Elf32_Ehdr {
 	public static final int EI_NIDENT = 16;
 
+	/**
+	 * @uml.property  name="e_ident" multiplicity="(0 -1)" dimension="1"
+	 */
 	public final byte[] e_ident = new byte[EI_NIDENT];/* Magic number and other info. */
+	/**
+	 * @uml.property  name="e_type"
+	 */
 	public int e_type; /* Object file type. */
+	/**
+	 * @uml.property  name="e_machine"
+	 */
 	public int e_machine; /* Architecture type. */
+	/**
+	 * @uml.property  name="e_version"
+	 */
 	public int e_version; /* Object file version. */
+	/**
+	 * @uml.property  name="e_entry"
+	 */
 	public long e_entry; /* Entry point virtual address. */
+	/**
+	 * @uml.property  name="e_phoff"
+	 */
 	public long e_phoff; /* Program header table file offset. */
+	/**
+	 * @uml.property  name="e_shoff"
+	 */
 	public long e_shoff; /* Section header table file offset. */
+	/**
+	 * @uml.property  name="e_flags"
+	 */
 	public int e_flags; /* Processor-specific flags. */
+	/**
+	 * @uml.property  name="e_ehsize"
+	 */
 	public int e_ehsize; /* ELF header size in bytes. */
+	/**
+	 * @uml.property  name="e_phentsize"
+	 */
 	public int e_phentsize; /* Program header table entry size. */
+	/**
+	 * @uml.property  name="e_phentnum"
+	 */
 	public int e_phentnum; /* Program header table entry count. */
+	/**
+	 * @uml.property  name="e_shentsize"
+	 */
 	public int e_shentsize; /* Section header table entry size. */
+	/**
+	 * @uml.property  name="e_shnum"
+	 */
 	public int e_shnum; /* Section header table entry count. */
+	/**
+	 * @uml.property  name="e_shstrndx"
+	 */
 	public int e_shstrndx; /* Section header string table index. */
 
 	public Elf32_Ehdr() {
