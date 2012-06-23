@@ -14,46 +14,14 @@ import com.peterdwarf.elf.Elf_Common;
 import com.peterdwarf.elf.SectionFinder;
 
 public class Dwarf {
-	/**
-	 * @uml.property  name="byteBuffer"
-	 */
 	public ByteBuffer byteBuffer;
-	/**
-	 * @uml.property  name="debug_abbrevBuffer"
-	 */
 	public ByteBuffer debug_abbrevBuffer;
-	/**
-	 * @uml.property  name="debug_str"
-	 */
 	public ByteBuffer debug_str;
-	/**
-	 * @uml.property  name="symtab_str"
-	 */
 	public ByteBuffer symtab_str;
-	/**
-	 * @uml.property  name="strtab_str"
-	 */
 	public ByteBuffer strtab_str;
-	/**
-	 * @uml.property  name="headers"
-	 * @uml.associationEnd  multiplicity="(0 -1)" elementType="com.peterdwarf.dwarf.DwarfDebugLineHeader"
-	 */
 	public Vector<DwarfDebugLineHeader> headers = new Vector<DwarfDebugLineHeader>();
-	/**
-	 * @uml.property  name="compileUnits"
-	 * @uml.associationEnd  multiplicity="(0 -1)" elementType="com.peterdwarf.dwarf.CompileUnit"
-	 */
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
-	/**
-	 * @uml.property  name="symbols"
-	 * @uml.associationEnd  multiplicity="(0 -1)" elementType="com.peterdwarf.elf.Elf32_Sym"
-	 */
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
-	// public String allStrings[];
-	/**
-	 * @uml.property  name="abbrevList"
-	 * @uml.associationEnd  qualifier="abbrevOffset:java.lang.Integer com.peterdwarf.dwarf.Abbrev"
-	 */
 	private LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
 	public static File file;
 
