@@ -1,13 +1,15 @@
 package com.peterdwarf.dwarf;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 
 import com.peterdwarf.Global;
+import com.peterdwarf.elf.Elf32_Ehdr;
 import com.peterdwarf.elf.Elf32_Shdr;
 import com.peterdwarf.elf.Elf32_Sym;
 import com.peterdwarf.elf.Elf_Common;
@@ -24,9 +26,18 @@ public class Dwarf {
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 	private LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
 	public static File file;
+	public static Elf32_Ehdr ehdr = new Elf32_Ehdr();
 
 	public boolean init(File file) {
 		Dwarf.file = file;
+
+		try {
+			ehdr.read(new RandomAccessFile(file, "r"));
+		} catch (Exception e1) {
+			e1.printStackTrace();
+			System.exit(1);
+		}
+
 		compileUnits.clear();
 
 		try {
@@ -147,10 +158,10 @@ public class Dwarf {
 
 			while (true) {
 				AbbrevEntry abbrevEntry = new AbbrevEntry();
-//				tag = debug_abbrev_bytes.get();
+				//				tag = debug_abbrev_bytes.get();
 				tag = (int) DwarfLib.getUleb128(debug_abbrev_bytes);
-				int form=(int) DwarfLib.getUleb128(debug_abbrev_bytes);
-//				int form = debug_abbrev_bytes.get();
+				int form = (int) DwarfLib.getUleb128(debug_abbrev_bytes);
+				//				int form = debug_abbrev_bytes.get();
 				if (tag == 0 && form == 0) {
 					break;
 				}
@@ -179,6 +190,9 @@ public class Dwarf {
 			cu.abbrev_offset = debugInfoBytes.getInt();
 			cu.addr_size = debugInfoBytes.get();
 			compileUnits.add(cu);
+
+			System.out.println("l=" + cu.length);
+			System.out.println("o=" + cu.abbrev_offset);
 
 			if (cu.length == 0xffffffff) {
 				cu.length = (int) debugInfoBytes.getLong();
@@ -394,6 +408,10 @@ public class Dwarf {
 	}
 
 	private void calculationRelocation(Elf32_Shdr debugInfoSection, ByteBuffer debugInfoBytes) {
+		if (ehdr.e_type != Elf_Common.ET_REL) {
+			return;
+		}
+
 		Elf32_Shdr debugInfoRelSection = null;
 		for (Elf32_Shdr s : SectionFinder.getAllRelocationSection(file)) {
 			if (s.sh_info == debugInfoSection.number) {
@@ -402,6 +420,7 @@ public class Dwarf {
 			}
 		}
 		if (debugInfoRelSection != null) {
+			System.out.println("debugInfoRelSection");
 			try {
 				// MappedByteBuffer byteBuffer =
 				// SectionFinder.findSectionByte(Dwarf.file,
@@ -434,11 +453,16 @@ public class Dwarf {
 
 					// relocation
 					int temp = debugInfoBytes.position();
-					debugInfoBytes.position(offset);
+
 					if (debugInfoBytes.remaining() >= 4) {
+						debugInfoBytes.position(offset);
+						if (offset < 140) {
+							System.out.println(Integer.toHexString(offset) + "==" + symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value + addend);
+						}
 						debugInfoBytes.putInt(symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value + addend);
+						debugInfoBytes.position(temp);
 					}
-					debugInfoBytes.position(temp);
+
 					// System.out.printf("%s\t", DwarfLib.getString(strtab_str,
 					// symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
 					// System.out.printf("\n");
@@ -446,6 +470,7 @@ public class Dwarf {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				System.exit(-1);
 			}
 		}
 	}

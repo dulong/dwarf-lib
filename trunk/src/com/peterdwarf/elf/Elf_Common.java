@@ -1,6 +1,8 @@
 package com.peterdwarf.elf;
 
 public class Elf_Common {
+	public static int ET_REL = 1;
+
 	public static int R_386_NONE = 0; /* No reloc */
 	public static int R_386_32 = 1; /* Direct 32 bit  */
 	public static int R_386_PC32 = 2; /* PC relative 32 bit */

@@ -115,11 +115,7 @@ public class SectionFinder {
 		}
 
 		try {
-			//			FileChannel chan = f.getChannel();
-			// System.out.println(section + " : "
-			// + Long.toHexString(shdr.sh_offset) + " : "
-			// + Long.toHexString(shdr.sh_size));
-
+			System.out.println( shdr.sh_size);
 			byte bytes[] = new byte[(int) shdr.sh_size];
 			f = new RandomAccessFile(file, "r");
 
@@ -128,12 +124,12 @@ public class SectionFinder {
 			f.close();
 			ByteBuffer buffer = ByteBuffer.wrap(bytes);
 			buffer.order(ByteOrder.nativeOrder());
-
-			//			MappedByteBuffer buffer = chan.map(FileChannel.MapMode.READ_WRITE,
-			//					shdr.sh_offset, shdr.sh_size);
-			//			buffer.order(ByteOrder.nativeOrder());
-			//			chan.close();
 			return buffer;
+
+			//			FileChannel inChannel = new RandomAccessFile(file, "rw").getChannel();
+			//			MappedByteBuffer buffer = inChannel.map(FileChannel.MapMode.READ_WRITE, shdr.sh_offset, shdr.sh_size);
+			//			buffer.order(ByteOrder.nativeOrder());
+			//			return buffer;
 		} finally {
 			f.close();
 		}

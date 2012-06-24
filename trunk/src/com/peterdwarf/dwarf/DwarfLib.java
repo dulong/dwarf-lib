@@ -84,7 +84,7 @@ public class DwarfLib {
 
 		while (true) {
 			b = buf.get();
-			val |= (b & 0x7f) << shift;
+			val |= ((long) (b & 0x7f))  << shift;
 			if ((b & 0x80) == 0)
 				break;
 			shift += 7;
@@ -92,6 +92,32 @@ public class DwarfLib {
 
 		return val;
 	}
+	
+//	public static long getUleb128(ByteBuffer buf) {
+//		long result = 0;
+//		int num_read = 0;
+//		int shift = 0;
+//		int b;
+//
+//		int x = 0;
+//		do {
+//			b = buf.get();
+//			num_read++;
+//
+//			result |= ((long) (b & 0x7f)) << shift;
+//
+//			shift += 7;
+//
+//		} while ((b & 0x80) != 0);
+//
+////		length_return[0] = num_read;
+//
+////		if (sign != 0 && shift < 8 * 4 && (b & 0x40) != 0) {
+//			result |= -1L << shift;
+////		}
+//
+//		return result;
+//	}
 
 	public static int getSLEB128(ByteBuffer buffer) {
 		int result = 0;
