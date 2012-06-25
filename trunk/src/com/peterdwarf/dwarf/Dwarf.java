@@ -519,6 +519,7 @@ public class Dwarf {
 		final int begin = debugLineBytes.position();
 
 		DwarfDebugLineHeader dwarfDebugLineHeader = new DwarfDebugLineHeader();
+		dwarfDebugLineHeader.offset = debugLineBytes.position();
 		dwarfDebugLineHeader.total_length = (long) debugLineBytes.getInt() & 0xFFFFFFFFL;
 		dwarfDebugLineHeader.version = debugLineBytes.getShort() & 0xFFFF;
 		dwarfDebugLineHeader.prologue_length = (long) debugLineBytes.getInt() & 0xFFFFFFFFL;
@@ -545,9 +546,16 @@ public class Dwarf {
 
 		// Skip the directories; they end with a single null byte.
 		String s;
-		dwarfDebugLineHeader.dirnames.add(".");
+		dwarfDebugLineHeader.dirnames.add("..");
 		while ((s = DwarfLib.getString(debugLineBytes)).length() > 0) {
 			dwarfDebugLineHeader.dirnames.add(s);
+		}
+
+		if (Global.debug) {
+			System.out.println(dwarfDebugLineHeader);
+			for (String dir : dwarfDebugLineHeader.dirnames) {
+				System.out.println(dir);
+			}
 		}
 
 		// Read the file names.
@@ -559,8 +567,10 @@ public class Dwarf {
 			long u2 = DwarfLib.getULEB128(debugLineBytes);
 			long u3 = DwarfLib.getULEB128(debugLineBytes);
 			f.entryNo = entryNo;
-			if (new File(dwarfDebugLineHeader.dirnames.get((int) u1)).isAbsolute()) {
-				f.file = new File(dwarfDebugLineHeader.dirnames.get((int) u1) + File.separator + fname);
+			if (u1 == 0) {
+				f.file = new File(fname);
+			} else if (new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1)).isAbsolute()) {
+				f.file = new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1) + File.separator + fname);
 			} else {
 				f.file = new File(file.getParent() + File.separator + dwarfDebugLineHeader.dirnames.get((int) u1) + File.separator + fname);
 			}
@@ -569,6 +579,10 @@ public class Dwarf {
 			f.len = u3;
 			entryNo++;
 			dwarfDebugLineHeader.filenames.add(f);
+
+			if (Global.debug) {
+				System.out.println(f.dir + "\t" + f.time + "\t" + f.len + "\t" + f.file);
+			}
 		}
 		if (Global.debug) {
 			System.out.println("--" + debugLineBytes.position());
