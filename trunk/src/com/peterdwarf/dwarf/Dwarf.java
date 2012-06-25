@@ -1,7 +1,10 @@
 package com.peterdwarf.dwarf;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
@@ -27,19 +30,22 @@ public class Dwarf {
 	public static File file;
 	public static Elf32_Ehdr ehdr = new Elf32_Ehdr();
 
-	public boolean init(File file) {
+	public int init(File file) {
 		if (!file.isFile()) {
 			System.err.println(file.getAbsolutePath() + " is not a file!!!");
-			System.exit(100);
-			
+			return 100;
 		}
 		Dwarf.file = file;
+
+		if (!isELF(file)) {
+			return 101;
+		}
 
 		try {
 			ehdr.read(new RandomAccessFile(file, "r"));
 		} catch (Exception e1) {
 			e1.printStackTrace();
-			System.exit(1);
+			return 1;
 		}
 
 		compileUnits.clear();
@@ -47,7 +53,7 @@ public class Dwarf {
 		try {
 			debug_str = SectionFinder.findSectionByte(file, ".debug_str");
 			if (debug_str == null) {
-				return false;
+				return -8;
 			}
 			// System.out.println(".debug_str:");
 			// DwarfLib.printMappedByteBuffer(debug_str);
@@ -107,16 +113,42 @@ public class Dwarf {
 				}
 			}
 			if (debugInfoSection != null) {
-				parseDebugInfo(debugInfoSection, byteBuffer);
+				int r = parseDebugInfo(debugInfoSection, byteBuffer);
+				if (r > 0) {
+					return r;
+				}
 			}
 
 			byteBuffer = SectionFinder.findSectionByte(file, ".debug_line");
 			while (((ByteBuffer) byteBuffer).hasRemaining()) {
-				parseHeader(byteBuffer);
+				int r = parseHeader(byteBuffer);
+				if (r > 0) {
+					return r;
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.exit(2);
+			return 2;
+		}
+		return 0;
+	}
+
+	public boolean isELF(File file) {
+		InputStream is;
+		try {
+			is = new FileInputStream(file);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return false;
+		}
+		try {
+			is.skip(1);
+			if (is.read() != 0x45 || is.read() != 0x4c || is.read() != 0x46) {
+				System.err.println("not a ELF!!!");
+				return false;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 			return false;
 		}
 		return true;
@@ -179,11 +211,14 @@ public class Dwarf {
 		return vector;
 	}
 
-	public void parseDebugInfo(Elf32_Shdr debugInfoSection, ByteBuffer debugInfoBytes) {
+	public int parseDebugInfo(Elf32_Shdr debugInfoSection, ByteBuffer debugInfoBytes) {
 		if (abbrevList == null) {
 			throw new IllegalArgumentException("abbrevList is null, please call parseDebugAbbrev() first");
 		}
-		calculationRelocation(debugInfoSection, debugInfoBytes);
+		int r = calculationRelocation(debugInfoSection, debugInfoBytes);
+		if (r > 0) {
+			return r;
+		}
 
 		int start = 0;
 		int initial_length_size = 0;
@@ -398,7 +433,7 @@ public class Dwarf {
 						}
 					} else {
 						System.out.println("unsupport DW_FORM_? = 0x" + Integer.toHexString(entry.form));
-						System.exit(3);
+						return 3;
 					}
 
 					if (Global.debug) {
@@ -412,12 +447,12 @@ public class Dwarf {
 			debugInfoBytes.position(start);
 			//			debugInfoBytes.get();
 		}
-
+		return 0;
 	}
 
-	private void calculationRelocation(Elf32_Shdr debugInfoSection, ByteBuffer debugInfoBytes) {
+	private int calculationRelocation(Elf32_Shdr debugInfoSection, ByteBuffer debugInfoBytes) {
 		if (ehdr.e_type != Elf_Common.ET_REL) {
-			return;
+			return 0;
 		}
 
 		Elf32_Shdr debugInfoRelSection = null;
@@ -474,12 +509,13 @@ public class Dwarf {
 
 			} catch (Exception e) {
 				e.printStackTrace();
-				System.exit(4);
+				return 1;
 			}
 		}
+		return 0;
 	}
 
-	public void parseHeader(ByteBuffer debugLineBytes) {
+	public int parseHeader(ByteBuffer debugLineBytes) {
 		final int begin = debugLineBytes.position();
 
 		DwarfDebugLineHeader dwarfDebugLineHeader = new DwarfDebugLineHeader();
@@ -495,7 +531,7 @@ public class Dwarf {
 			dwarfDebugLineHeader.max_ops_per_insn = debugLineBytes.get();
 			if (dwarfDebugLineHeader.max_ops_per_insn == 0) {
 				System.out.println("Invalid maximum operations per insn.");
-				System.exit(5);
+				return 5;
 			}
 		} else {
 			dwarfDebugLineHeader.max_ops_per_insn = 1;
@@ -567,7 +603,7 @@ public class Dwarf {
 				long size = DwarfLib.getULEB128(debugLineBytes);
 				if (size == 0) {
 					System.out.println("Error: DW_LNS_extended_op size=0");
-					return;
+					return 11;
 				}
 				int code = debugLineBytes.get();
 				if (code == Dwarf_line_number_x_ops.DW_LNE_end_sequence) {
@@ -673,6 +709,7 @@ public class Dwarf {
 		debugLineBytes.position(end);
 
 		headers.add(dwarfDebugLineHeader);
+		return 0;
 	}
 
 }

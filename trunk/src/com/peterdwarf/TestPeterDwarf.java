@@ -30,8 +30,10 @@ public class TestPeterDwarf {
 		Dwarf dwarf = new Dwarf();
 		File file = new File(args[0]);
 
-		if (!dwarf.init(file)) {
+		int r = dwarf.init(file);
+		if (r > 0) {
 			System.out.println("dwarf init fail");
+			System.exit(r);
 		} else if (Global.debug) {
 			for (DwarfDebugLineHeader header : dwarf.headers) {
 				System.out.println();
