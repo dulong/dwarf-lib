@@ -77,7 +77,7 @@ public class DwarfLib {
 		return new String(bytes);
 	}
 
-	public static long getUleb128(ByteBuffer buf) {
+	public static long getULEB128(ByteBuffer buf) {
 		long val = 0;
 		byte b;
 		int shift = 0;

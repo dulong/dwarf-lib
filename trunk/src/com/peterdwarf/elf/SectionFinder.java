@@ -115,7 +115,6 @@ public class SectionFinder {
 		}
 
 		try {
-			System.out.println( shdr.sh_size);
 			byte bytes[] = new byte[(int) shdr.sh_size];
 			f = new RandomAccessFile(file, "r");
 
