@@ -18,7 +18,7 @@ public class TestPeterDwarf {
 	public static void main(String[] args) {
 		if (args.length == 0) {
 			System.out.println("java -jar peter-dwarf.jar <your elf file path>");
-			System.exit(-1);
+			System.exit(6);
 		}
 
 		for (String str : args) {
@@ -32,7 +32,7 @@ public class TestPeterDwarf {
 
 		if (!dwarf.init(file)) {
 			System.out.println("dwarf init fail");
-		} else {
+		} else if (Global.debug) {
 			for (DwarfDebugLineHeader header : dwarf.headers) {
 				System.out.println();
 				System.out.println(".debug_line:");
@@ -66,8 +66,6 @@ public class TestPeterDwarf {
 				System.out.println();
 				System.out.println();
 			}
-			System.out.println();
-			System.exit(0);
 
 			System.out.println();
 			System.out.println(".debug_info:");

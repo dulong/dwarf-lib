@@ -30,7 +30,8 @@ public class Dwarf {
 	public boolean init(File file) {
 		if (!file.isFile()) {
 			System.err.println(file.getAbsolutePath() + " is not a file!!!");
-			return false;
+			System.exit(100);
+			
 		}
 		Dwarf.file = file;
 
@@ -115,7 +116,7 @@ public class Dwarf {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.exit(-1);
+			System.exit(2);
 			return false;
 		}
 		return true;
@@ -245,7 +246,6 @@ public class Dwarf {
 						} else {
 							debugInfoAbbrevEntry.value = null;
 							System.err.println("debugInfoAbbrevEntry.value = null");
-							// System.exit(-1);
 						}
 					} else if (entry.form == Definition.DW_FORM_strp) {
 						int stringOffset = debugInfoBytes.getInt();
@@ -398,7 +398,7 @@ public class Dwarf {
 						}
 					} else {
 						System.out.println("unsupport DW_FORM_? = 0x" + Integer.toHexString(entry.form));
-						System.exit(-1);
+						System.exit(3);
 					}
 
 					if (Global.debug) {
@@ -474,7 +474,7 @@ public class Dwarf {
 
 			} catch (Exception e) {
 				e.printStackTrace();
-				System.exit(-1);
+				System.exit(4);
 			}
 		}
 	}
@@ -495,7 +495,7 @@ public class Dwarf {
 			dwarfDebugLineHeader.max_ops_per_insn = debugLineBytes.get();
 			if (dwarfDebugLineHeader.max_ops_per_insn == 0) {
 				System.out.println("Invalid maximum operations per insn.");
-				System.exit(-1);
+				System.exit(5);
 			}
 		} else {
 			dwarfDebugLineHeader.max_ops_per_insn = 1;
@@ -602,10 +602,6 @@ public class Dwarf {
 					if (Global.debug) {
 						System.out.println("error, wrong size in address,\topcode=" + opcode + ", code=" + code);
 					}
-					// System.exit(1);
-				}
-				for (int x = 0; x < size; x++) {
-					// debugLineBytes.get();
 				}
 			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_copy) {
 				if (Global.debug) {
