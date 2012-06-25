@@ -20,6 +20,13 @@ public class TestPeterDwarf {
 			System.out.println("java -jar peter-dwarf.jar <your elf file path>");
 			System.exit(-1);
 		}
+
+		for (String str : args) {
+			if (str.contains("-debug")) {
+				Global.debug = true;
+			}
+		}
+
 		Dwarf dwarf = new Dwarf();
 		File file = new File(args[0]);
 
