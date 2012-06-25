@@ -1,7 +1,6 @@
 package com.peterdwarf.dwarf;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -29,6 +28,10 @@ public class Dwarf {
 	public static Elf32_Ehdr ehdr = new Elf32_Ehdr();
 
 	public boolean init(File file) {
+		if (!file.isFile()) {
+			System.err.println(file.getAbsolutePath() + " is not a file!!!");
+			return false;
+		}
 		Dwarf.file = file;
 
 		try {
@@ -112,6 +115,7 @@ public class Dwarf {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			System.exit(-1);
 			return false;
 		}
 		return true;
