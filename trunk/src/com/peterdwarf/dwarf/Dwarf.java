@@ -587,6 +587,7 @@ public class Dwarf {
 			long u3 = DwarfLib.getULEB128(debugLineBytes);
 			f.entryNo = entryNo;
 
+			try{
 			if (u1 == 0) {
 				f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + fname);
 			} else if (new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1)).isAbsolute()) {
@@ -596,7 +597,11 @@ public class Dwarf {
 			}
 			if (!f.file.exists()) {
 				System.err.println(f.file.getAbsolutePath() + " is not exist");
-				return 16;
+//				return 16;
+			}
+			}catch(Exception ex){
+				ex.printStackTrace();
+				System.out.println(u1);
 			}
 			f.dir = u1;
 			f.time = u2;
