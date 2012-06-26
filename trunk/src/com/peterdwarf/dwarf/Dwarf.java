@@ -120,8 +120,10 @@ public class Dwarf {
 			}
 
 			byteBuffer = SectionFinder.findSectionByte(file, ".debug_line");
+			int x = 0;
 			while (((ByteBuffer) byteBuffer).hasRemaining()) {
-				int r = parseHeader(byteBuffer);
+				int r = parseHeader(byteBuffer, compileUnits.get(x));
+				x++;
 				if (r > 0) {
 					return r;
 				}
@@ -436,6 +438,24 @@ public class Dwarf {
 						return 3;
 					}
 
+					if (debugInfoEntry.name.equals("DW_TAG_compile_unit")) {
+						if (debugInfoAbbrevEntry.name.equals("DW_AT_producer")) {
+							cu.DW_AT_producer = (String) debugInfoAbbrevEntry.value;
+						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_language")) {
+							cu.DW_AT_language = (Integer) debugInfoAbbrevEntry.value;
+						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_name")) {
+							cu.DW_AT_name = (String) debugInfoAbbrevEntry.value;
+						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_comp_dir")) {
+							cu.DW_AT_comp_dir = (String) debugInfoAbbrevEntry.value;
+						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_low_pc")) {
+							cu.DW_AT_low_pc = (Integer) debugInfoAbbrevEntry.value;
+						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_high_pc")) {
+							cu.DW_AT_high_pc = (Integer) debugInfoAbbrevEntry.value;
+						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_stmt_list")) {
+							cu.DW_AT_stmt_list = (String) debugInfoAbbrevEntry.value;
+						}
+					}
+
 					if (Global.debug) {
 						System.out.println();
 					}
@@ -515,7 +535,7 @@ public class Dwarf {
 		return 0;
 	}
 
-	public int parseHeader(ByteBuffer debugLineBytes) {
+	public int parseHeader(ByteBuffer debugLineBytes, CompileUnit compileUnit) {
 		final int begin = debugLineBytes.position();
 
 		DwarfDebugLineHeader dwarfDebugLineHeader = new DwarfDebugLineHeader();
@@ -567,12 +587,13 @@ public class Dwarf {
 			long u2 = DwarfLib.getULEB128(debugLineBytes);
 			long u3 = DwarfLib.getULEB128(debugLineBytes);
 			f.entryNo = entryNo;
+
 			if (u1 == 0) {
-				f.file = new File(fname);
-			} else if (new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1)).isAbsolute()) {
-				f.file = new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1) + File.separator + fname);
+				f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + fname);
+			} else if (new File(dwarfDebugLineHeader.dirnames.get((int) u1)).isAbsolute()) {
+				f.file = new File(dwarfDebugLineHeader.dirnames.get((int) u1) + File.separator + fname);
 			} else {
-				f.file = new File(file.getParent() + File.separator + dwarfDebugLineHeader.dirnames.get((int) u1) + File.separator + fname);
+				f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + dwarfDebugLineHeader.dirnames.get((int) u1) + File.separator + fname);
 			}
 			f.dir = u1;
 			f.time = u2;
@@ -729,5 +750,4 @@ public class Dwarf {
 		headers.add(dwarfDebugLineHeader);
 		return 0;
 	}
-
 }
