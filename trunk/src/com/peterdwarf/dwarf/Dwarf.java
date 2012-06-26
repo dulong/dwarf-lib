@@ -562,6 +562,7 @@ public class Dwarf {
 		dwarfDebugLineHeader.line_base = debugLineBytes.get();
 		dwarfDebugLineHeader.line_range = debugLineBytes.get() & 0xFF;
 		dwarfDebugLineHeader.opcode_base = debugLineBytes.get() & 0xFF;
+		dwarfDebugLineHeader.standard_opcode_lengths = new byte[dwarfDebugLineHeader.opcode_base - 1];
 		debugLineBytes.get(dwarfDebugLineHeader.standard_opcode_lengths);
 
 		// Skip the directories; they end with a single null byte.
@@ -587,19 +588,18 @@ public class Dwarf {
 			long u3 = DwarfLib.getULEB128(debugLineBytes);
 			f.entryNo = entryNo;
 
-			try{
-			if (u1 == 0) {
-				f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + fname);
-			} else if (new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1)).isAbsolute()) {
-				f.file = new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1) + File.separator + fname);
-			} else {
-				f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + dwarfDebugLineHeader.dirnames.get((int) u1 - 1) + File.separator + fname);
-			}
-			if (!f.file.exists()) {
-				System.err.println(f.file.getAbsolutePath() + " is not exist");
-//				return 16;
-			}
-			}catch(Exception ex){
+			try {
+				if (u1 == 0) {
+					f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + fname);
+				} else if (new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1)).isAbsolute()) {
+					f.file = new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1) + File.separator + fname);
+				} else {
+					f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + dwarfDebugLineHeader.dirnames.get((int) u1 - 1) + File.separator + fname);
+				}
+				if (Global.debug && !f.file.exists()) {
+					System.err.println(f.file.getAbsolutePath() + " is not exist");
+				}
+			} catch (Exception ex) {
 				ex.printStackTrace();
 				System.out.println(u1);
 			}

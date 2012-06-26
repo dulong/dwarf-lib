@@ -13,7 +13,7 @@ public class DwarfDebugLineHeader {
 	public byte line_base;
 	public int line_range;
 	public int opcode_base;
-	public final byte[] standard_opcode_lengths = new byte[8+1];
+	public byte[] standard_opcode_lengths;
 	public Vector<String> dirnames = new Vector<String>();
 	public Vector<DwarfHeaderFilename> filenames = new Vector<DwarfHeaderFilename>();
 	public Vector<DwarfLine> lines = new Vector<DwarfLine>();
