@@ -665,12 +665,14 @@ public class Dwarf {
 				if (Global.debug) {
 					System.out.println("advance pc, address=" + Long.toHexString(address));
 				}
+				continue;
 			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_line) {
 				long advance_line = DwarfLib.getSLEB128(debugLineBytes);
 				if (Global.debug) {
 					System.out.println("Advance Line by " + advance_line + " to " + (line_num + advance_line));
 				}
 				line_num += advance_line;
+				continue;
 			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_file) {
 				long fileno = DwarfLib.getULEB128(debugLineBytes);
 				file_num = fileno;
@@ -705,9 +707,11 @@ public class Dwarf {
 				if (Global.debug) {
 					System.out.println("Advance PC by constant " + advance_address + " to 0x" + Long.toHexString(address));
 				}
+				continue;
 			} else {
 				if (Global.debug) {
 					System.out.println("error, what? opcode=" + opcode);
+					return 14;
 				}
 			}
 
