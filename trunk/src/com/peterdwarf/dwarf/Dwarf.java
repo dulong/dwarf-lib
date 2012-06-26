@@ -566,7 +566,6 @@ public class Dwarf {
 
 		// Skip the directories; they end with a single null byte.
 		String s;
-		dwarfDebugLineHeader.dirnames.add("..");
 		while ((s = DwarfLib.getString(debugLineBytes)).length() > 0) {
 			dwarfDebugLineHeader.dirnames.add(s);
 		}
@@ -590,10 +589,14 @@ public class Dwarf {
 
 			if (u1 == 0) {
 				f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + fname);
-			} else if (new File(dwarfDebugLineHeader.dirnames.get((int) u1)).isAbsolute()) {
-				f.file = new File(dwarfDebugLineHeader.dirnames.get((int) u1) + File.separator + fname);
+			} else if (new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1)).isAbsolute()) {
+				f.file = new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1) + File.separator + fname);
 			} else {
-				f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + dwarfDebugLineHeader.dirnames.get((int) u1) + File.separator + fname);
+				f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + dwarfDebugLineHeader.dirnames.get((int) u1 - 1) + File.separator + fname);
+			}
+			if (!f.file.exists()) {
+				System.err.println(f.file.getAbsolutePath() + " is not exist");
+				return 16;
 			}
 			f.dir = u1;
 			f.time = u2;
