@@ -440,19 +440,19 @@ public class Dwarf {
 
 					if (debugInfoEntry.name.equals("DW_TAG_compile_unit")) {
 						if (debugInfoAbbrevEntry.name.equals("DW_AT_producer")) {
-							cu.DW_AT_producer = (String) debugInfoAbbrevEntry.value;
+							cu.DW_AT_producer = String.valueOf(debugInfoAbbrevEntry.value);
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_language")) {
 							cu.DW_AT_language = (Integer) debugInfoAbbrevEntry.value;
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_name")) {
-							cu.DW_AT_name = (String) debugInfoAbbrevEntry.value;
+							cu.DW_AT_name = String.valueOf(debugInfoAbbrevEntry.value);
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_comp_dir")) {
-							cu.DW_AT_comp_dir = (String) debugInfoAbbrevEntry.value;
+							cu.DW_AT_comp_dir = String.valueOf(debugInfoAbbrevEntry.value);
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_low_pc")) {
 							cu.DW_AT_low_pc = (Integer) debugInfoAbbrevEntry.value;
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_high_pc")) {
 							cu.DW_AT_high_pc = (Integer) debugInfoAbbrevEntry.value;
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_stmt_list")) {
-							cu.DW_AT_stmt_list = (String) debugInfoAbbrevEntry.value;
+							cu.DW_AT_stmt_list = String.valueOf(debugInfoAbbrevEntry.value);
 						}
 					}
 
