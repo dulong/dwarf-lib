@@ -239,6 +239,9 @@ public class Dwarf {
 			} else {
 				initial_length_size = 4;
 			}
+			if (Global.debug) {
+				System.out.println(cu);
+			}
 
 			while (debugInfoBytes.position() < cu.offset + cu.length) {
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
@@ -502,29 +505,28 @@ public class Dwarf {
 						addend = byteBuffer.getInt();
 					}
 					int relocationType = Elf_Common.ELF32_R_TYPE(info);
-					// System.out.printf("%x\t", offset);
-					// System.out.printf("%x\t", info);
-					// if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
-					// System.out.printf("%x\t", addend);
-					// }
-					// System.out.printf("%s\t",
-					// Elf_Common.getRelocationTypeName(relocationType));
-					// System.out.printf("%d\t", Elf_Common.ELF32_R_SYM(info));
-					// System.out.printf("%08x\t",
-					// symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
+					System.out.printf("%x\t", offset);
+					System.out.printf("%x\t", info);
+					if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
+						System.out.printf("%x\t", addend);
+					}
+					System.out.printf("%s\t", Elf_Common.getRelocationTypeName(relocationType));
+					System.out.printf("%d\t", Elf_Common.ELF32_R_SYM(info));
+					System.out.printf("%08x\t", symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
 
 					// relocation
 					int temp = debugInfoBytes.position();
 
 					if (debugInfoBytes.remaining() >= 4) {
 						debugInfoBytes.position(offset);
-						debugInfoBytes.putInt(symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value + addend);
+						int value = symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value + addend;
+						debugInfoBytes.putInt(value);
 						debugInfoBytes.position(temp);
+						System.out.println("replace offset " + offset + " to " + value);
 					}
 
-					// System.out.printf("%s\t", DwarfLib.getString(strtab_str,
-					// symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
-					// System.out.printf("\n");
+					System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
+					System.out.printf("\n");
 				}
 
 			} catch (Exception e) {
