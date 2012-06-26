@@ -662,12 +662,14 @@ public class Dwarf {
 					basic_block = false;
 					end_sequence = false;
 					last_file_entry = 0;
+					continue;
 				} else if (code == Dwarf_line_number_x_ops.DW_LNE_set_address) {
 					address = debugLineBytes.getInt();
 					op_index = 0;
 					if (Global.debug) {
 						System.out.println("Extended opcode:" + code + ": set Address to 0x" + Long.toHexString(address));
 					}
+					continue;
 				} else if (code == Dwarf_line_number_x_ops.DW_LNE_define_file) {
 					int dir_index = 0;
 
@@ -677,6 +679,7 @@ public class Dwarf {
 					if (Global.debug) {
 						System.out.println("Extended opcode:" + code + ",\tset discriminator=" + discriminator);
 					}
+					continue;
 				} else {
 					if (Global.debug) {
 						System.out.println("error, wrong size in address,\topcode=" + opcode + ", code=" + code);
@@ -687,7 +690,6 @@ public class Dwarf {
 					System.out.println("Copy");
 				}
 				is_stmt = false;
-				continue;
 			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_pc) {
 				long advance_address = DwarfLib.getULEB128(debugLineBytes);
 				address += dwarfDebugLineHeader.minimum_instruction_length * advance_address;
