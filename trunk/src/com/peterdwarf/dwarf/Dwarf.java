@@ -121,7 +121,7 @@ public class Dwarf {
 
 			byteBuffer = SectionFinder.findSectionByte(file, ".debug_line");
 			int x = 0;
-			while (((ByteBuffer) byteBuffer).hasRemaining()) {
+			while (((ByteBuffer) byteBuffer).hasRemaining() && x < compileUnits.size()) {
 				int r = parseHeader(byteBuffer, compileUnits.get(x));
 				x++;
 				if (r > 0) {
@@ -222,6 +222,7 @@ public class Dwarf {
 			return r;
 		}
 
+		debugInfoBytes.position(0);
 		int start = 0;
 		int initial_length_size = 0;
 		while (debugInfoBytes.remaining() > 11) {
@@ -497,14 +498,27 @@ public class Dwarf {
 				} else if (debugInfoRelSection.sh_type == Elf_Common.SHT_REL) {
 					size = 8;
 				}
+				boolean is_rela;
+				if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
+					is_rela = true;
+				}
+				if (ehdr.e_machine == Definition.EM_SH) {
+					is_rela = false;
+				}
 				while (byteBuffer.remaining() >= size) {
 					int offset = byteBuffer.getInt();
 					int info = byteBuffer.getInt();
+
 					int addend = 0;
-					if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
-						addend = byteBuffer.getInt();
-					}
+
 					int relocationType = Elf_Common.ELF32_R_TYPE(info);
+
+					debugInfoBytes.position(offset);
+					if (debugInfoRelSection.sh_type != Elf_Common.SHT_RELA || (ehdr.e_machine == Definition.EM_XTENSA && relocationType == 1)
+							|| ((ehdr.e_machine == Definition.EM_PJ || ehdr.e_machine == Definition.EM_PJ_OLD) && relocationType == 1)
+							|| ((ehdr.e_machine == Definition.EM_D30V || ehdr.e_machine == Definition.EM_CYGNUS_D30V) && relocationType == 12)) {
+						addend = debugInfoBytes.getInt();
+					}
 					System.out.printf("%x\t", offset);
 					System.out.printf("%x\t", info);
 					if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
@@ -522,10 +536,10 @@ public class Dwarf {
 						int value = symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value + addend;
 						debugInfoBytes.putInt(value);
 						debugInfoBytes.position(temp);
-						System.out.println("replace offset " + offset + " to " + value);
+						System.out.print(",replace offset " + offset + " to " + value + ", addend=" + Integer.toHexString(addend) + ", ");
 					}
 
-					System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
+					//					System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
 					System.out.printf("\n");
 				}
 
