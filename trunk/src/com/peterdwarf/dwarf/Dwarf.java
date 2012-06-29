@@ -244,7 +244,7 @@ public class Dwarf {
 				System.out.println(cu);
 			}
 
-			while (debugInfoBytes.position() < cu.offset + cu.length) {
+			while (debugInfoBytes.position() <= cu.offset + cu.length + 1) {
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
 				debugInfoEntry.position = debugInfoBytes.position();
 				debugInfoEntry.abbrevNo = (int) DwarfLib.getULEB128(debugInfoBytes);
@@ -357,7 +357,8 @@ public class Dwarf {
 						}
 						debugInfoAbbrevEntry.value = bytes;
 					} else if (entry.form == Definition.DW_FORM_block1) {
-						int size = debugInfoBytes.get();
+						int size = debugInfoBytes.get() & 0xff;
+						System.out.println("size=" + size);
 						byte bytes[] = new byte[(int) size];
 						if (Global.debug) {
 							System.out.print("\t:\t");
@@ -464,7 +465,6 @@ public class Dwarf {
 						System.out.println();
 					}
 				}
-
 			}
 
 			start += cu.length + initial_length_size;
@@ -707,11 +707,20 @@ public class Dwarf {
 				}
 				is_stmt = false;
 			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_pc) {
-				long advance_address = DwarfLib.getULEB128(debugLineBytes);
-				address += dwarfDebugLineHeader.minimum_instruction_length * advance_address;
-				if (Global.debug) {
-					System.out.println("advance pc, address=" + Long.toHexString(address));
+				long adjust;
+				if (dwarfDebugLineHeader.max_ops_per_insn == 1) {
+					long advance_address = DwarfLib.getULEB128(debugLineBytes);
+					adjust = dwarfDebugLineHeader.minimum_instruction_length * advance_address;
+					address += adjust;
+				} else {
+					adjust = DwarfLib.getULEB128(debugLineBytes);
+					address = ((op_index + adjust) / dwarfDebugLineHeader.max_ops_per_insn) * dwarfDebugLineHeader.minimum_instruction_length;
+					op_index = (int) ((op_index + adjust) % dwarfDebugLineHeader.max_ops_per_insn);
 				}
+				if (Global.debug) {
+					System.out.println("advance pc by " + adjust + ", address=" + Long.toHexString(address));
+				}
+
 				continue;
 			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_line) {
 				long advance_line = DwarfLib.getSLEB128(debugLineBytes);
@@ -745,21 +754,33 @@ public class Dwarf {
 			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_fixed_advance_pc) {
 				int advance_address = debugLineBytes.getInt();
 				address += advance_address;
+				op_index = 0;
 				if (Global.debug) {
 					System.out.println("fixed advance pc, address=" + Long.toHexString(address));
 				}
 			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_const_add_pc) {
-				int advance_address = (dwarfDebugLineHeader.minimum_instruction_length * ((255 - dwarfDebugLineHeader.opcode_base) / dwarfDebugLineHeader.line_range));
-				address += advance_address;
+				long advance_address;
+
+				if (dwarfDebugLineHeader.max_ops_per_insn == 1) {
+					advance_address = (dwarfDebugLineHeader.minimum_instruction_length * ((255 - dwarfDebugLineHeader.opcode_base) / dwarfDebugLineHeader.line_range));
+					address += advance_address;
+				} else {
+					long adjust = ((255 - dwarfDebugLineHeader.opcode_base) / dwarfDebugLineHeader.line_range);
+					advance_address = dwarfDebugLineHeader.minimum_instruction_length * ((op_index + adjust) / dwarfDebugLineHeader.max_ops_per_insn);
+					address += advance_address;
+					op_index = (int) ((op_index + adjust) % dwarfDebugLineHeader.max_ops_per_insn);
+				}
+
 				if (Global.debug) {
 					System.out.println("Advance PC by constant " + advance_address + " to 0x" + Long.toHexString(address));
 				}
+
 				continue;
 			} else {
 				if (Global.debug) {
 					System.out.println("error, what? opcode=" + opcode);
-					return 14;
 				}
+				return 14;
 			}
 
 			DwarfLine dwarfLine = new DwarfLine();
