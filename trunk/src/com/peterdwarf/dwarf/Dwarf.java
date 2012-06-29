@@ -358,7 +358,6 @@ public class Dwarf {
 						debugInfoAbbrevEntry.value = bytes;
 					} else if (entry.form == Definition.DW_FORM_block1) {
 						int size = debugInfoBytes.get() & 0xff;
-						System.out.println("size=" + size);
 						byte bytes[] = new byte[(int) size];
 						if (Global.debug) {
 							System.out.print("\t:\t");
