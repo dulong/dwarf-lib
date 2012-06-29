@@ -684,7 +684,7 @@ public class Dwarf {
 					if (Global.debug) {
 						System.out.println("Extended opcode:" + code + ": set Address to 0x" + Long.toHexString(address));
 					}
-					continue;
+//					continue;
 				} else if (code == Dwarf_line_number_x_ops.DW_LNE_define_file) {
 					int dir_index = 0;
 

@@ -31,7 +31,7 @@ import com.peterdwarf.dwarf.DwarfLine;
 public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 	private JToolBar jToolBar1;
 	private JButton jOpenButton;
-	private PeterDwarfPanel peterDwarfPanel1;
+	private PeterDwarfPanelOld peterDwarfPanel1;
 
 	/**
 	 * Auto-generated main method to display this JFrame
@@ -70,7 +70,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 				}
 			}
 			{
-				peterDwarfPanel1 = new PeterDwarfPanel();
+				peterDwarfPanel1 = new PeterDwarfPanelOld();
 				getContentPane().add(peterDwarfPanel1, BorderLayout.CENTER);
 			}
 			pack();
