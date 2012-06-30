@@ -1,6 +1,7 @@
 package com.peterdwarf.elf;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -15,6 +16,43 @@ public class SectionFinder {
 	private static final byte ELFMAG1 = (byte) 'E';
 	private static final byte ELFMAG2 = (byte) 'L';
 	private static final byte ELFMAG3 = (byte) 'F';
+
+	public static Elf32_Shdr getSectionHeader(File file, String sectionName) throws IOException, FileNotFoundException {
+		RandomAccessFile f = new RandomAccessFile(file, "r");
+
+		/** Read the ELF header. */
+		Elf32_Ehdr ehdr = new Elf32_Ehdr();
+		ehdr.read(f);
+		if (ehdr.e_ident[0] != ELFMAG0 || ehdr.e_ident[1] != ELFMAG1 || ehdr.e_ident[2] != ELFMAG2 || ehdr.e_ident[3] != ELFMAG3) {
+			f.close();
+			throw new IOException(file + ": not an ELF file");
+		}
+
+		/* Read the string table section header. */
+		Elf32_Shdr strtabhdr = new Elf32_Shdr();
+		f.seek(ehdr.e_shoff + (ehdr.e_shstrndx * Elf32_Shdr.sizeof()));
+		strtabhdr.read(ehdr.e_shstrndx, f);
+
+		for (int i = 0; i < ehdr.e_shnum; i++) {
+			Elf32_Shdr shdr = new Elf32_Shdr();
+			// Read information about this section.
+			f.seek(ehdr.e_shoff + (i * Elf32_Shdr.sizeof()));
+			shdr.read(i, f);
+
+			// Read the section name from the string table.
+			f.seek(strtabhdr.sh_offset + shdr.sh_name);
+			int bb;
+			String sectionNameTemp = "";
+			while ((bb = f.read()) != 0) {
+				sectionNameTemp += (char) bb;
+			}
+			shdr.section_name = sectionNameTemp;
+			if (sectionName.equals(sectionNameTemp)) {
+				return shdr;
+			}
+		}
+		return null;
+	}
 
 	public static Vector<Elf32_Shdr> getAllSection(File file) throws IOException {
 		Vector<Elf32_Shdr> vector = new Vector<Elf32_Shdr>();

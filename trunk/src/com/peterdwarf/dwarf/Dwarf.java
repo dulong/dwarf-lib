@@ -119,7 +119,10 @@ public class Dwarf {
 				}
 			}
 
-			byteBuffer = SectionFinder.findSectionByte(file, ".debug_line");
+			Elf32_Shdr shdr = SectionFinder.getSectionHeader(file, ".debug_line");
+			byteBuffer = SectionFinder.findSectionByte(file, shdr.section_name);
+			calculationRelocation(shdr, byteBuffer);
+
 			int x = 0;
 			while (((ByteBuffer) byteBuffer).hasRemaining() && x < compileUnits.size()) {
 				int r = parseHeader(byteBuffer, compileUnits.get(x));
@@ -684,7 +687,7 @@ public class Dwarf {
 					if (Global.debug) {
 						System.out.println("Extended opcode:" + code + ": set Address to 0x" + Long.toHexString(address));
 					}
-//					continue;
+					//					continue;
 				} else if (code == Dwarf_line_number_x_ops.DW_LNE_define_file) {
 					int dir_index = 0;
 
