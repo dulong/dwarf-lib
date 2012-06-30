@@ -123,6 +123,9 @@ public class Dwarf {
 			byteBuffer = SectionFinder.findSectionByte(file, shdr.section_name);
 			calculationRelocation(shdr, byteBuffer);
 
+			byteBuffer.position(0x2390);
+			System.out.println(byteBuffer.get());
+
 			int x = 0;
 			while (((ByteBuffer) byteBuffer).hasRemaining() && x < compileUnits.size()) {
 				int r = parseHeader(byteBuffer, compileUnits.get(x));
@@ -224,8 +227,6 @@ public class Dwarf {
 		if (r > 0) {
 			return r;
 		}
-
-		debugInfoBytes.position(0);
 		int start = 0;
 		int initial_length_size = 0;
 		while (debugInfoBytes.remaining() > 11) {
@@ -648,8 +649,10 @@ public class Dwarf {
 		int last_file_entry = 0;
 
 		while (debugLineBytes.hasRemaining() && debugLineBytes.position() < end) {
+			if (Global.debug) {
+				System.out.print("> 0x" + Integer.toHexString(debugLineBytes.position()) + " ");
+			}
 			int opcode = debugLineBytes.get() & 0xff;
-
 			if (opcode > dwarfDebugLineHeader.opcode_base) {
 				opcode -= dwarfDebugLineHeader.opcode_base;
 				int advance_address = ((opcode / dwarfDebugLineHeader.line_range) * dwarfDebugLineHeader.minimum_instruction_length);
