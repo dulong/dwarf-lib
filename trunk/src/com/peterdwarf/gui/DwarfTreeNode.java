@@ -3,28 +3,28 @@ package com.peterdwarf.gui;
 import java.util.Enumeration;
 import java.util.Vector;
 
+import javax.swing.ImageIcon;
 import javax.swing.tree.TreeNode;
 
+import com.peterdwarf.dwarf.Dwarf;
+
 public class DwarfTreeNode implements TreeNode {
+	ImageIcon loadingIcon = new ImageIcon(DwarfTreeCellRenderer.class.getResource("/com/peterdwarf/gui/ajax-loader.gif"));
+
 	Vector<DwarfTreeNode> children = new Vector<DwarfTreeNode>();
 	boolean allowsChildren;
 	DwarfTreeNode parent;
-	private String text;
+	Dwarf dwarf;
+	String text;
 
-	private DwarfTreeNode() {
-
-	}
+	boolean addImageObserver;
 
 	public DwarfTreeNode(String text) {
 		this.text = text;
 	}
 
-	public String getText() {
-		return text;
-	}
-
-	public void setText(String text) {
-		this.text = text;
+	public DwarfTreeNode(Dwarf dwarf) {
+		this.dwarf = dwarf;
 	}
 
 	@Override
@@ -69,7 +69,20 @@ public class DwarfTreeNode implements TreeNode {
 		return children.size() == 0;
 	}
 
-	public String toString() {
+	public Dwarf getDwarf() {
+		return dwarf;
+	}
+
+	public void setDwarf(Dwarf dwarf) {
+		this.dwarf = dwarf;
+	}
+
+	public String getText() {
 		return text;
 	}
+
+	public void setText(String text) {
+		this.text = text;
+	}
+
 }

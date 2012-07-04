@@ -28,9 +28,12 @@ public class Dwarf {
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 	private LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
 	public File file;
-	public static Elf32_Ehdr ehdr = new Elf32_Ehdr();
+	public Elf32_Ehdr ehdr = new Elf32_Ehdr();
+	public boolean isLoading;
+	public String loadingMessage;
 
 	public int init(File file) {
+		isLoading = true;
 		if (!file.isFile()) {
 			System.err.println(file.getAbsolutePath() + " is not a file!!!");
 			return 100;
@@ -136,11 +139,15 @@ public class Dwarf {
 				}
 			}
 		} catch (OutOfMemoryError e) {
-			System.out.println("OOME .. Trying again with 10x less");
+			e.printStackTrace();
+			loadingMessage = file.getAbsolutePath() + " : out of memory error";
+			return 19;
 		} catch (IOException e) {
 			e.printStackTrace();
+			loadingMessage = file.getAbsolutePath() + " : IO exception";
 			return 2;
 		}
+		isLoading = false;
 		return 0;
 	}
 
@@ -233,6 +240,7 @@ public class Dwarf {
 		int start = 0;
 		int initial_length_size = 0;
 		while (debugInfoBytes.remaining() > 11) {
+			loadingMessage = "loading debugInfoBytes " + debugInfoBytes.position();
 			CompileUnit cu = new CompileUnit();
 			cu.offset = debugInfoBytes.position();
 			cu.length = debugInfoBytes.getInt();
