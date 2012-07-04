@@ -23,7 +23,7 @@ public class TestPeterDwarf {
 
 		for (String str : args) {
 			if (str.contains("-debug")) {
-				Global.debug = true;
+				DwarfGlobal.debug = true;
 			}
 		}
 
@@ -34,7 +34,7 @@ public class TestPeterDwarf {
 		if (r > 0) {
 			System.out.println("dwarf init fail");
 			System.exit(r);
-		} else if (Global.debug) {
+		} else if (DwarfGlobal.debug) {
 			System.out.println(".debug_info:");
 			for (CompileUnit compileUnit : dwarf.compileUnits) {
 				System.out.printf("Compilation Unit @ offset 0x%x\n", compileUnit.offset);

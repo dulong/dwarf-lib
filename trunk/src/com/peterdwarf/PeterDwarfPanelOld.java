@@ -57,7 +57,7 @@ public class PeterDwarfPanelOld extends javax.swing.JPanel {
 
 	public void init(File file) {
 		Dwarf dwarf = new Dwarf();
-		Global.debug = true;
+		DwarfGlobal.debug = true;
 		dwarf.init(file);
 
 	}

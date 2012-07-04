@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 
-import com.peterdwarf.Global;
+import com.peterdwarf.DwarfGlobal;
 import com.peterdwarf.elf.Elf32_Ehdr;
 import com.peterdwarf.elf.Elf32_Shdr;
 import com.peterdwarf.elf.Elf32_Sym;
@@ -27,7 +27,7 @@ public class Dwarf {
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 	private LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
-	public static File file;
+	public File file;
 	public static Elf32_Ehdr ehdr = new Elf32_Ehdr();
 
 	public int init(File file) {
@@ -35,7 +35,7 @@ public class Dwarf {
 			System.err.println(file.getAbsolutePath() + " is not a file!!!");
 			return 100;
 		}
-		Dwarf.file = file;
+		this.file = file;
 
 		if (!isELF(file)) {
 			return 101;
@@ -86,7 +86,7 @@ public class Dwarf {
 			debug_abbrevBuffer = SectionFinder.findSectionByte(file, ".debug_abbrev");
 			// System.out.println(".debug_abbrev:");
 			abbrevList = parseDebugAbbrev(debug_abbrevBuffer);
-			if (Global.debug) {
+			if (DwarfGlobal.debug) {
 				for (Integer abbrevOffset : abbrevList.keySet()) {
 					System.out.println("Abbrev offset=" + abbrevOffset);
 					LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
@@ -100,7 +100,7 @@ public class Dwarf {
 					}
 				}
 			}
-			if (Global.debug) {
+			if (DwarfGlobal.debug) {
 				System.out.println();
 			}
 
@@ -121,10 +121,11 @@ public class Dwarf {
 
 			Elf32_Shdr shdr = SectionFinder.getSectionHeader(file, ".debug_line");
 			byteBuffer = SectionFinder.findSectionByte(file, shdr.section_name);
-			calculationRelocation(shdr, byteBuffer);
-
-			byteBuffer.position(0x2390);
-			System.out.println(byteBuffer.get());
+			//			calculationRelocation(shdr, byteBuffer);
+			//
+			//			byteBuffer.position(0x2390);
+			//			System.out.println(byteBuffer.get());
+			//			byteBuffer.position(0);
 
 			int x = 0;
 			while (((ByteBuffer) byteBuffer).hasRemaining() && x < compileUnits.size()) {
@@ -134,6 +135,8 @@ public class Dwarf {
 					return r;
 				}
 			}
+		} catch (OutOfMemoryError e) {
+			System.out.println("OOME .. Trying again with 10x less");
 		} catch (IOException e) {
 			e.printStackTrace();
 			return 2;
@@ -219,7 +222,7 @@ public class Dwarf {
 		return vector;
 	}
 
-	public int parseDebugInfo(Elf32_Shdr debugInfoSection, ByteBuffer debugInfoBytes) {
+	public int parseDebugInfo(Elf32_Shdr debugInfoSection, ByteBuffer debugInfoBytes) throws OutOfMemoryError {
 		if (abbrevList == null) {
 			throw new IllegalArgumentException("abbrevList is null, please call parseDebugAbbrev() first");
 		}
@@ -244,7 +247,7 @@ public class Dwarf {
 			} else {
 				initial_length_size = 4;
 			}
-			if (Global.debug) {
+			if (DwarfGlobal.debug) {
 				System.out.println(cu);
 			}
 
@@ -260,7 +263,7 @@ public class Dwarf {
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
 				cu.debugInfoEntry.add(debugInfoEntry);
 
-				if (Global.debug) {
+				if (DwarfGlobal.debug) {
 					System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
 				}
 				for (AbbrevEntry entry : abbrev.entries) {
@@ -270,7 +273,7 @@ public class Dwarf {
 					debugInfoAbbrevEntry.name = Definition.getATName(entry.at);
 					debugInfoAbbrevEntry.form = entry.form;
 					debugInfoAbbrevEntry.position = debugInfoBytes.position();
-					if (Global.debug) {
+					if (DwarfGlobal.debug) {
 						System.out.print("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + debugInfoAbbrevEntry.name);
 					}
 
@@ -280,7 +283,7 @@ public class Dwarf {
 						while ((temp = debugInfoBytes.get()) != 0) {
 							value += ((char) temp);
 						}
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + value);
 						}
 						debugInfoAbbrevEntry.value = value;
@@ -295,67 +298,67 @@ public class Dwarf {
 					} else if (entry.form == Definition.DW_FORM_strp) {
 						int stringOffset = debugInfoBytes.getInt();
 						String s = DwarfLib.getString(debug_str, stringOffset);
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.printf("\t(indirect string, offset: %x):\t%s", stringOffset, s);
 						}
 						debugInfoAbbrevEntry.value = s;
 					} else if (entry.form == Definition.DW_FORM_data1) {
 						int data = debugInfoBytes.get() & 0xff;
 						debugInfoAbbrevEntry.value = data;
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data);
 						}
 					} else if (entry.form == Definition.DW_FORM_data2) {
 						short data = debugInfoBytes.getShort();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data);
 						}
 					} else if (entry.form == Definition.DW_FORM_data4) {
 						int data = debugInfoBytes.getInt();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data);
 						}
 					} else if (entry.form == Definition.DW_FORM_data8) {
 						long data = debugInfoBytes.getLong();
 						debugInfoAbbrevEntry.value = Long.toHexString(data);
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref1) {
 						byte data = debugInfoBytes.get();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref2) {
 						short data = debugInfoBytes.getShort();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref4) {
 						int data = debugInfoBytes.getInt();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.printf("\t:\t%x %x", data, data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref8) {
 						long data = debugInfoBytes.getLong();
 						debugInfoAbbrevEntry.value = Long.toHexString(data);
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data);
 						}
 					} else if (entry.form == Definition.DW_FORM_block) {
 						long size = DwarfLib.getULEB128(debugInfoBytes);
 						byte bytes[] = new byte[(int) size];
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t");
 						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
-							if (Global.debug) {
+							if (DwarfGlobal.debug) {
 								System.out.printf("%x\t", bytes[z]);
 							}
 						}
@@ -363,12 +366,12 @@ public class Dwarf {
 					} else if (entry.form == Definition.DW_FORM_block1) {
 						int size = debugInfoBytes.get() & 0xff;
 						byte bytes[] = new byte[(int) size];
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t");
 						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
-							if (Global.debug) {
+							if (DwarfGlobal.debug) {
 								System.out.printf("%x\t", bytes[z]);
 							}
 						}
@@ -376,12 +379,12 @@ public class Dwarf {
 					} else if (entry.form == Definition.DW_FORM_block2) {
 						short size = debugInfoBytes.getShort();
 						byte bytes[] = new byte[(int) size];
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t");
 						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
-							if (Global.debug) {
+							if (DwarfGlobal.debug) {
 								System.out.printf("%x\t", bytes[z]);
 							}
 						}
@@ -389,12 +392,12 @@ public class Dwarf {
 					} else if (entry.form == Definition.DW_FORM_block4) {
 						int size = debugInfoBytes.getInt();
 						byte bytes[] = new byte[(int) size];
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t");
 						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
-							if (Global.debug) {
+							if (DwarfGlobal.debug) {
 								System.out.printf("%x\t", bytes[z]);
 							}
 						}
@@ -402,43 +405,43 @@ public class Dwarf {
 					} else if (entry.form == Definition.DW_FORM_ref_udata) {
 						long data = DwarfLib.getULEB128(debugInfoBytes);
 						debugInfoAbbrevEntry.value = data;
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data);
 						}
 					} else if (entry.form == Definition.DW_FORM_flag) {
 						byte flag = debugInfoBytes.get();
 						debugInfoAbbrevEntry.value = flag;
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + flag);
 						}
 					} else if (entry.form == Definition.DW_FORM_sec_offset) {
 						int value = debugInfoBytes.getInt();
 						debugInfoAbbrevEntry.value = value;
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + value);
 						}
 					} else if (entry.form == Definition.DW_FORM_flag_present) {
 						//						byte value = debugInfoBytes.get();
 						debugInfoAbbrevEntry.value = 1;
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t1");
 						}
 					} else if (entry.form == Definition.DW_FORM_exprloc) {
 						long size = DwarfLib.getULEB128(debugInfoBytes);
 						byte bytes[] = new byte[(int) size];
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t");
 						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
-							if (Global.debug) {
+							if (DwarfGlobal.debug) {
 								System.out.print(bytes[z] + "\t");
 							}
 						}
 					} else if (entry.form == Definition.DW_FORM_sdata) {
 						long data = DwarfLib.getSLEB128(debugInfoBytes);
 						debugInfoAbbrevEntry.value = data;
-						if (Global.debug) {
+						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data);
 						}
 					} else {
@@ -464,7 +467,7 @@ public class Dwarf {
 						}
 					}
 
-					if (Global.debug) {
+					if (DwarfGlobal.debug) {
 						System.out.println();
 					}
 				}
@@ -494,7 +497,7 @@ public class Dwarf {
 				// MappedByteBuffer byteBuffer =
 				// SectionFinder.findSectionByte(Dwarf.file,
 				// debugInfoRelSection.section_name);
-				ByteBuffer byteBuffer = SectionFinder.findSectionByte(Dwarf.file, ".rel.debug_info");
+				ByteBuffer byteBuffer = SectionFinder.findSectionByte(file, ".rel.debug_info");
 				int size = Integer.MAX_VALUE;
 				if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
 					size = 12;
@@ -555,251 +558,255 @@ public class Dwarf {
 	}
 
 	public int parseHeader(ByteBuffer debugLineBytes, CompileUnit compileUnit) {
-		final int begin = debugLineBytes.position();
+		try {
+			final int begin = debugLineBytes.position();
 
-		DwarfDebugLineHeader dwarfDebugLineHeader = new DwarfDebugLineHeader();
-		dwarfDebugLineHeader.offset = debugLineBytes.position();
-		dwarfDebugLineHeader.total_length = (long) debugLineBytes.getInt() & 0xFFFFFFFFL;
-		dwarfDebugLineHeader.version = debugLineBytes.getShort() & 0xFFFF;
-		dwarfDebugLineHeader.prologue_length = (long) debugLineBytes.getInt() & 0xFFFFFFFFL;
-		dwarfDebugLineHeader.minimum_instruction_length = debugLineBytes.get() & 0xFF;
+			DwarfDebugLineHeader dwarfDebugLineHeader = new DwarfDebugLineHeader();
+			dwarfDebugLineHeader.offset = debugLineBytes.position();
+			dwarfDebugLineHeader.total_length = (long) debugLineBytes.getInt() & 0xFFFFFFFFL;
+			dwarfDebugLineHeader.version = debugLineBytes.getShort() & 0xFFFF;
+			dwarfDebugLineHeader.prologue_length = (long) debugLineBytes.getInt() & 0xFFFFFFFFL;
+			dwarfDebugLineHeader.minimum_instruction_length = debugLineBytes.get() & 0xFF;
 
-		final int end = (int) (begin + dwarfDebugLineHeader.total_length + 4);
-		final int prologue_end = (int) (begin + dwarfDebugLineHeader.prologue_length + 9);
+			final int end = (int) (begin + dwarfDebugLineHeader.total_length + 4);
+			final int prologue_end = (int) (begin + dwarfDebugLineHeader.prologue_length + 9);
 
-		if (dwarfDebugLineHeader.version >= 4) {
-			dwarfDebugLineHeader.max_ops_per_insn = debugLineBytes.get();
-			if (dwarfDebugLineHeader.max_ops_per_insn == 0) {
-				System.out.println("Invalid maximum operations per insn.");
-				return 5;
-			}
-		} else {
-			dwarfDebugLineHeader.max_ops_per_insn = 1;
-		}
-
-		dwarfDebugLineHeader.default_is_stmt = debugLineBytes.get() != 0;
-		dwarfDebugLineHeader.line_base = debugLineBytes.get();
-		dwarfDebugLineHeader.line_range = debugLineBytes.get() & 0xFF;
-		dwarfDebugLineHeader.opcode_base = debugLineBytes.get() & 0xFF;
-		dwarfDebugLineHeader.standard_opcode_lengths = new byte[dwarfDebugLineHeader.opcode_base - 1];
-		debugLineBytes.get(dwarfDebugLineHeader.standard_opcode_lengths);
-
-		// Skip the directories; they end with a single null byte.
-		String s;
-		while ((s = DwarfLib.getString(debugLineBytes)).length() > 0) {
-			dwarfDebugLineHeader.dirnames.add(s);
-		}
-
-		if (Global.debug) {
-			System.out.println(dwarfDebugLineHeader);
-			for (String dir : dwarfDebugLineHeader.dirnames) {
-				System.out.println(dir);
-			}
-		}
-
-		// Read the file names.
-		int entryNo = 1;
-		while (debugLineBytes.hasRemaining() && debugLineBytes.position() < prologue_end) {
-			DwarfHeaderFilename f = new DwarfHeaderFilename();
-			String fname = DwarfLib.getString(debugLineBytes);
-			long u1 = DwarfLib.getULEB128(debugLineBytes);
-			long u2 = DwarfLib.getULEB128(debugLineBytes);
-			long u3 = DwarfLib.getULEB128(debugLineBytes);
-			f.entryNo = entryNo;
-
-			try {
-				if (u1 == 0) {
-					f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + fname);
-				} else if (new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1)).isAbsolute()) {
-					f.file = new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1) + File.separator + fname);
-				} else {
-					f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + dwarfDebugLineHeader.dirnames.get((int) u1 - 1) + File.separator + fname);
+			if (dwarfDebugLineHeader.version >= 4) {
+				dwarfDebugLineHeader.max_ops_per_insn = debugLineBytes.get();
+				if (dwarfDebugLineHeader.max_ops_per_insn == 0) {
+					System.out.println("Invalid maximum operations per insn.");
+					return 5;
 				}
-				if (Global.debug && !f.file.exists()) {
-					System.err.println(f.file.getAbsolutePath() + " is not exist");
-				}
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				System.out.println(u1);
-			}
-			f.dir = u1;
-			f.time = u2;
-			f.len = u3;
-			entryNo++;
-			dwarfDebugLineHeader.filenames.add(f);
-
-			if (Global.debug) {
-				System.out.println(f.dir + "\t" + f.time + "\t" + f.len + "\t" + f.file);
-			}
-		}
-		if (Global.debug) {
-			System.out.println("--" + debugLineBytes.position());
-		}
-
-		debugLineBytes.get();
-
-		long address = 0;
-		long file_num = 1;
-		int line_num = 1;
-		long column_num = 0;
-		boolean is_stmt = dwarfDebugLineHeader.default_is_stmt;
-		boolean basic_block = false;
-		int op_index = 0;
-		boolean end_sequence = false;
-		int last_file_entry = 0;
-
-		while (debugLineBytes.hasRemaining() && debugLineBytes.position() < end) {
-			if (Global.debug) {
-				System.out.print("> 0x" + Integer.toHexString(debugLineBytes.position()) + " ");
-			}
-			int opcode = debugLineBytes.get() & 0xff;
-			if (opcode > dwarfDebugLineHeader.opcode_base) {
-				opcode -= dwarfDebugLineHeader.opcode_base;
-				int advance_address = ((opcode / dwarfDebugLineHeader.line_range) * dwarfDebugLineHeader.minimum_instruction_length);
-				address += advance_address;
-				int advance_line = ((opcode % dwarfDebugLineHeader.line_range) + dwarfDebugLineHeader.line_base);
-				line_num += advance_line;
-				if (Global.debug) {
-					System.out.println("Special opcode:" + opcode + ",\tadvance address by " + advance_address + " to " + Long.toHexString(address) + ", line by " + advance_line
-							+ " to " + line_num);
-				}
-			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_extended_op) {
-				long size = DwarfLib.getULEB128(debugLineBytes);
-				if (size == 0) {
-					System.out.println("Error: DW_LNS_extended_op size=0");
-					return 11;
-				}
-				int code = debugLineBytes.get();
-				if (code == Dwarf_line_number_x_ops.DW_LNE_end_sequence) {
-					if (Global.debug) {
-						System.out.println("Extended opcode:" + code + " End of sequence");
-					}
-					address = 0;
-					op_index = 0;
-					file_num = 1;
-					line_num = 1;
-					column_num = 0;
-					is_stmt = dwarfDebugLineHeader.default_is_stmt;
-					basic_block = false;
-					end_sequence = false;
-					last_file_entry = 0;
-					continue;
-				} else if (code == Dwarf_line_number_x_ops.DW_LNE_set_address) {
-					address = debugLineBytes.getInt();
-					op_index = 0;
-					if (Global.debug) {
-						System.out.println("Extended opcode:" + code + ": set Address to 0x" + Long.toHexString(address));
-					}
-					//					continue;
-				} else if (code == Dwarf_line_number_x_ops.DW_LNE_define_file) {
-					int dir_index = 0;
-
-					++last_file_entry;
-				} else if (code == Dwarf_line_number_x_ops.DW_LNE_set_discriminator) {
-					int discriminator = debugLineBytes.get();
-					if (Global.debug) {
-						System.out.println("Extended opcode:" + code + ",\tset discriminator=" + discriminator);
-					}
-					continue;
-				} else {
-					if (Global.debug) {
-						System.out.println("error, wrong size in address,\topcode=" + opcode + ", code=" + code);
-					}
-				}
-			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_copy) {
-				if (Global.debug) {
-					System.out.println("Copy");
-				}
-				is_stmt = false;
-			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_pc) {
-				long adjust;
-				if (dwarfDebugLineHeader.max_ops_per_insn == 1) {
-					long advance_address = DwarfLib.getULEB128(debugLineBytes);
-					adjust = dwarfDebugLineHeader.minimum_instruction_length * advance_address;
-					address += adjust;
-				} else {
-					adjust = DwarfLib.getULEB128(debugLineBytes);
-					address = ((op_index + adjust) / dwarfDebugLineHeader.max_ops_per_insn) * dwarfDebugLineHeader.minimum_instruction_length;
-					op_index = (int) ((op_index + adjust) % dwarfDebugLineHeader.max_ops_per_insn);
-				}
-				if (Global.debug) {
-					System.out.println("advance pc by " + adjust + ", address=" + Long.toHexString(address));
-				}
-
-				continue;
-			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_line) {
-				long advance_line = DwarfLib.getSLEB128(debugLineBytes);
-				if (Global.debug) {
-					System.out.println("Advance Line by " + advance_line + " to " + (line_num + advance_line));
-				}
-				line_num += advance_line;
-				continue;
-			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_file) {
-				long fileno = DwarfLib.getULEB128(debugLineBytes);
-				file_num = fileno;
-				if (Global.debug) {
-					System.out.println("set file, file=" + line_num);
-				}
-			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_column) {
-				long colno = DwarfLib.getULEB128(debugLineBytes);
-				column_num = colno;
-				if (Global.debug) {
-					System.out.println("set column, column=" + column_num);
-				}
-			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_negate_stmt) {
-				is_stmt = !is_stmt;
-				if (Global.debug) {
-					System.out.println("!stmt, stmt=" + is_stmt);
-				}
-			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_basic_block) {
-				basic_block = true;
-				if (Global.debug) {
-					System.out.println("set basic_block, basic_block=" + basic_block);
-				}
-			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_fixed_advance_pc) {
-				int advance_address = debugLineBytes.getInt();
-				address += advance_address;
-				op_index = 0;
-				if (Global.debug) {
-					System.out.println("fixed advance pc, address=" + Long.toHexString(address));
-				}
-			} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_const_add_pc) {
-				long advance_address;
-
-				if (dwarfDebugLineHeader.max_ops_per_insn == 1) {
-					advance_address = (dwarfDebugLineHeader.minimum_instruction_length * ((255 - dwarfDebugLineHeader.opcode_base) / dwarfDebugLineHeader.line_range));
-					address += advance_address;
-				} else {
-					long adjust = ((255 - dwarfDebugLineHeader.opcode_base) / dwarfDebugLineHeader.line_range);
-					advance_address = dwarfDebugLineHeader.minimum_instruction_length * ((op_index + adjust) / dwarfDebugLineHeader.max_ops_per_insn);
-					address += advance_address;
-					op_index = (int) ((op_index + adjust) % dwarfDebugLineHeader.max_ops_per_insn);
-				}
-
-				if (Global.debug) {
-					System.out.println("Advance PC by constant " + advance_address + " to 0x" + Long.toHexString(address));
-				}
-
-				continue;
 			} else {
-				if (Global.debug) {
-					System.out.println("error, what? opcode=" + opcode);
-				}
-				return 14;
+				dwarfDebugLineHeader.max_ops_per_insn = 1;
 			}
 
-			DwarfLine dwarfLine = new DwarfLine();
-			dwarfLine.address = address;
-			dwarfLine.file_num = file_num - 1;
-			dwarfLine.line_num = line_num;
-			dwarfLine.column_num = column_num;
-			dwarfLine.is_stmt = is_stmt;
-			dwarfLine.basic_block = basic_block;
-			dwarfDebugLineHeader.lines.add(dwarfLine);
-		}
-		debugLineBytes.position(end);
+			dwarfDebugLineHeader.default_is_stmt = debugLineBytes.get() != 0;
+			dwarfDebugLineHeader.line_base = debugLineBytes.get();
+			dwarfDebugLineHeader.line_range = debugLineBytes.get() & 0xFF;
+			dwarfDebugLineHeader.opcode_base = debugLineBytes.get() & 0xFF;
+			dwarfDebugLineHeader.standard_opcode_lengths = new byte[dwarfDebugLineHeader.opcode_base - 1];
+			debugLineBytes.get(dwarfDebugLineHeader.standard_opcode_lengths);
 
-		headers.add(dwarfDebugLineHeader);
-		return 0;
+			// Skip the directories; they end with a single null byte.
+			String s;
+			while ((s = DwarfLib.getString(debugLineBytes)).length() > 0) {
+				dwarfDebugLineHeader.dirnames.add(s);
+			}
+
+			if (DwarfGlobal.debug) {
+				System.out.println(dwarfDebugLineHeader);
+				for (String dir : dwarfDebugLineHeader.dirnames) {
+					System.out.println(dir);
+				}
+			}
+
+			// Read the file names.
+			int entryNo = 1;
+			while (debugLineBytes.hasRemaining() && debugLineBytes.position() < prologue_end) {
+				DwarfHeaderFilename f = new DwarfHeaderFilename();
+				String fname = DwarfLib.getString(debugLineBytes);
+				long u1 = DwarfLib.getULEB128(debugLineBytes);
+				long u2 = DwarfLib.getULEB128(debugLineBytes);
+				long u3 = DwarfLib.getULEB128(debugLineBytes);
+				f.entryNo = entryNo;
+
+				try {
+					if (u1 == 0) {
+						f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + fname);
+					} else if (new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1)).isAbsolute()) {
+						f.file = new File(dwarfDebugLineHeader.dirnames.get((int) u1 - 1) + File.separator + fname);
+					} else {
+						f.file = new File(compileUnit.DW_AT_comp_dir + File.separator + dwarfDebugLineHeader.dirnames.get((int) u1 - 1) + File.separator + fname);
+					}
+					if (DwarfGlobal.debug && !f.file.exists()) {
+						System.err.println(f.file.getAbsolutePath() + " is not exist");
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+					System.out.println(u1);
+				}
+				f.dir = u1;
+				f.time = u2;
+				f.len = u3;
+				entryNo++;
+				dwarfDebugLineHeader.filenames.add(f);
+
+				if (DwarfGlobal.debug) {
+					System.out.println(f.dir + "\t" + f.time + "\t" + f.len + "\t" + f.file);
+				}
+			}
+			if (DwarfGlobal.debug) {
+				System.out.println("--" + debugLineBytes.position());
+			}
+
+			debugLineBytes.get();
+
+			long address = 0;
+			long file_num = 1;
+			int line_num = 1;
+			long column_num = 0;
+			boolean is_stmt = dwarfDebugLineHeader.default_is_stmt;
+			boolean basic_block = false;
+			int op_index = 0;
+			boolean end_sequence = false;
+			int last_file_entry = 0;
+
+			while (debugLineBytes.hasRemaining() && debugLineBytes.position() < end) {
+				if (DwarfGlobal.debug) {
+					System.out.print("> 0x" + Integer.toHexString(debugLineBytes.position()) + " ");
+				}
+				int opcode = debugLineBytes.get() & 0xff;
+				if (opcode > dwarfDebugLineHeader.opcode_base) {
+					opcode -= dwarfDebugLineHeader.opcode_base;
+					int advance_address = ((opcode / dwarfDebugLineHeader.line_range) * dwarfDebugLineHeader.minimum_instruction_length);
+					address += advance_address;
+					int advance_line = ((opcode % dwarfDebugLineHeader.line_range) + dwarfDebugLineHeader.line_base);
+					line_num += advance_line;
+					if (DwarfGlobal.debug) {
+						System.out.println("Special opcode:" + opcode + ",\tadvance address by " + advance_address + " to " + Long.toHexString(address) + ", line by "
+								+ advance_line + " to " + line_num);
+					}
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_extended_op) {
+					long size = DwarfLib.getULEB128(debugLineBytes);
+					if (size == 0) {
+						System.out.println("Error: DW_LNS_extended_op size=0");
+						return 11;
+					}
+					int code = debugLineBytes.get();
+					if (code == Dwarf_line_number_x_ops.DW_LNE_end_sequence) {
+						if (DwarfGlobal.debug) {
+							System.out.println("Extended opcode:" + code + " End of sequence");
+						}
+						address = 0;
+						op_index = 0;
+						file_num = 1;
+						line_num = 1;
+						column_num = 0;
+						is_stmt = dwarfDebugLineHeader.default_is_stmt;
+						basic_block = false;
+						end_sequence = false;
+						last_file_entry = 0;
+						continue;
+					} else if (code == Dwarf_line_number_x_ops.DW_LNE_set_address) {
+						address = debugLineBytes.getInt();
+						op_index = 0;
+						if (DwarfGlobal.debug) {
+							System.out.println("Extended opcode:" + code + ": set Address to 0x" + Long.toHexString(address));
+						}
+						//					continue;
+					} else if (code == Dwarf_line_number_x_ops.DW_LNE_define_file) {
+						int dir_index = 0;
+
+						++last_file_entry;
+					} else if (code == Dwarf_line_number_x_ops.DW_LNE_set_discriminator) {
+						int discriminator = debugLineBytes.get();
+						if (DwarfGlobal.debug) {
+							System.out.println("Extended opcode:" + code + ",\tset discriminator=" + discriminator);
+						}
+						continue;
+					} else {
+						if (DwarfGlobal.debug) {
+							System.out.println("error, wrong size in address,\topcode=" + opcode + ", code=" + code);
+						}
+					}
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_copy) {
+					if (DwarfGlobal.debug) {
+						System.out.println("Copy");
+					}
+					is_stmt = false;
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_pc) {
+					long adjust;
+					if (dwarfDebugLineHeader.max_ops_per_insn == 1) {
+						long advance_address = DwarfLib.getULEB128(debugLineBytes);
+						adjust = dwarfDebugLineHeader.minimum_instruction_length * advance_address;
+						address += adjust;
+					} else {
+						adjust = DwarfLib.getULEB128(debugLineBytes);
+						address = ((op_index + adjust) / dwarfDebugLineHeader.max_ops_per_insn) * dwarfDebugLineHeader.minimum_instruction_length;
+						op_index = (int) ((op_index + adjust) % dwarfDebugLineHeader.max_ops_per_insn);
+					}
+					if (DwarfGlobal.debug) {
+						System.out.println("advance pc by " + adjust + ", address=" + Long.toHexString(address));
+					}
+
+					continue;
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_line) {
+					long advance_line = DwarfLib.getSLEB128(debugLineBytes);
+					if (DwarfGlobal.debug) {
+						System.out.println("Advance Line by " + advance_line + " to " + (line_num + advance_line));
+					}
+					line_num += advance_line;
+					continue;
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_file) {
+					long fileno = DwarfLib.getULEB128(debugLineBytes);
+					file_num = fileno;
+					if (DwarfGlobal.debug) {
+						System.out.println("set file, file=" + line_num);
+					}
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_column) {
+					long colno = DwarfLib.getULEB128(debugLineBytes);
+					column_num = colno;
+					if (DwarfGlobal.debug) {
+						System.out.println("set column, column=" + column_num);
+					}
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_negate_stmt) {
+					is_stmt = !is_stmt;
+					if (DwarfGlobal.debug) {
+						System.out.println("!stmt, stmt=" + is_stmt);
+					}
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_basic_block) {
+					basic_block = true;
+					if (DwarfGlobal.debug) {
+						System.out.println("set basic_block, basic_block=" + basic_block);
+					}
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_fixed_advance_pc) {
+					int advance_address = debugLineBytes.getInt();
+					address += advance_address;
+					op_index = 0;
+					if (DwarfGlobal.debug) {
+						System.out.println("fixed advance pc, address=" + Long.toHexString(address));
+					}
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_const_add_pc) {
+					long advance_address;
+
+					if (dwarfDebugLineHeader.max_ops_per_insn == 1) {
+						advance_address = (dwarfDebugLineHeader.minimum_instruction_length * ((255 - dwarfDebugLineHeader.opcode_base) / dwarfDebugLineHeader.line_range));
+						address += advance_address;
+					} else {
+						long adjust = ((255 - dwarfDebugLineHeader.opcode_base) / dwarfDebugLineHeader.line_range);
+						advance_address = dwarfDebugLineHeader.minimum_instruction_length * ((op_index + adjust) / dwarfDebugLineHeader.max_ops_per_insn);
+						address += advance_address;
+						op_index = (int) ((op_index + adjust) % dwarfDebugLineHeader.max_ops_per_insn);
+					}
+
+					if (DwarfGlobal.debug) {
+						System.out.println("Advance PC by constant " + advance_address + " to 0x" + Long.toHexString(address));
+					}
+
+					continue;
+				} else {
+					if (DwarfGlobal.debug) {
+						System.out.println("error, what? opcode=" + opcode);
+					}
+					return 14;
+				}
+
+				DwarfLine dwarfLine = new DwarfLine();
+				dwarfLine.address = address;
+				dwarfLine.file_num = file_num - 1;
+				dwarfLine.line_num = line_num;
+				dwarfLine.column_num = column_num;
+				dwarfLine.is_stmt = is_stmt;
+				dwarfLine.basic_block = basic_block;
+				dwarfDebugLineHeader.lines.add(dwarfLine);
+			}
+			debugLineBytes.position(end);
+
+			headers.add(dwarfDebugLineHeader);
+			return 0;
+		} catch (Exception ex) {
+			return 18;
+		}
 	}
 }

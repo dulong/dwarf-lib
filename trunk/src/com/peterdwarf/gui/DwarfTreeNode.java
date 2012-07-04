@@ -9,6 +9,23 @@ public class DwarfTreeNode implements TreeNode {
 	Vector<DwarfTreeNode> children = new Vector<DwarfTreeNode>();
 	boolean allowsChildren;
 	DwarfTreeNode parent;
+	private String text;
+
+	private DwarfTreeNode() {
+
+	}
+
+	public DwarfTreeNode(String text) {
+		this.text = text;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public void setText(String text) {
+		this.text = text;
+	}
 
 	@Override
 	public Enumeration children() {
@@ -50,5 +67,9 @@ public class DwarfTreeNode implements TreeNode {
 	@Override
 	public boolean isLeaf() {
 		return children.size() == 0;
+	}
+
+	public String toString() {
+		return text;
 	}
 }

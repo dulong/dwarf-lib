@@ -6,17 +6,11 @@ import java.awt.event.ActionListener;
 import java.io.File;
 
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-import com.peterdwarf.dwarf.CompileUnit;
-import com.peterdwarf.dwarf.DebugInfoAbbrevEntry;
-import com.peterdwarf.dwarf.DebugInfoEntry;
-import com.peterdwarf.dwarf.Dwarf;
-import com.peterdwarf.dwarf.DwarfHeaderFilename;
-import com.peterdwarf.dwarf.DwarfLine;
+import com.peterdwarf.gui.PeterDwarfPanel;
 
 /**
  * This code was edited or generated using CloudGarden's Jigloo SWT/Swing GUI
@@ -31,7 +25,7 @@ import com.peterdwarf.dwarf.DwarfLine;
 public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 	private JToolBar jToolBar1;
 	private JButton jOpenButton;
-	private PeterDwarfPanelOld peterDwarfPanel1;
+	private PeterDwarfPanel peterDwarfPanel1;
 
 	/**
 	 * Auto-generated main method to display this JFrame
@@ -70,7 +64,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 				}
 			}
 			{
-				peterDwarfPanel1 = new PeterDwarfPanelOld();
+				peterDwarfPanel1 = new PeterDwarfPanel();
 				getContentPane().add(peterDwarfPanel1, BorderLayout.CENTER);
 			}
 			pack();
@@ -90,7 +84,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 //		}
 		
 		File file = new File("/Users/peter/workspace/PeterI/kernel/kernel");
-		peterDwarfPanel1.init(file);
+//		peterDwarfPanel1.init(file);
 	}
 
 }
