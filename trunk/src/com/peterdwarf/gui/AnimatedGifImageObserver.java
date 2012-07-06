@@ -24,12 +24,12 @@ public class AnimatedGifImageObserver implements ImageObserver {
 
 	public boolean imageUpdate(Image img, int flags, int x, int y, int w, int h) {
 		if ((flags & (FRAMEBITS | ALLBITS)) != 0) {
-			//			TreePath path = new TreePath(model.getPathToRoot(node));
-			//			System.out.println(path);
-			//			Rectangle rect = tree.getPathBounds(path);
-			//			if (rect != null) {
-			tree.repaint();
-			//			}
+			TreePath path = new TreePath(model.getPathToRoot(node));
+			Rectangle rect = tree.getPathBounds(path);
+			if (rect != null) {
+				System.out.println("s");
+				tree.repaint(rect);
+			}
 		}
 		return (flags & (ALLBITS | ABORT)) == 0;
 	}

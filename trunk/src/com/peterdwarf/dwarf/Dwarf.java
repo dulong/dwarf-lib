@@ -240,7 +240,6 @@ public class Dwarf {
 		int start = 0;
 		int initial_length_size = 0;
 		while (debugInfoBytes.remaining() > 11) {
-			loadingMessage = "loading debugInfoBytes " + debugInfoBytes.position();
 			CompileUnit cu = new CompileUnit();
 			cu.offset = debugInfoBytes.position();
 			cu.length = debugInfoBytes.getInt();
@@ -260,6 +259,7 @@ public class Dwarf {
 			}
 
 			while (debugInfoBytes.position() <= cu.offset + cu.length + 1) {
+				loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
 				debugInfoEntry.position = debugInfoBytes.position();
 				debugInfoEntry.abbrevNo = (int) DwarfLib.getULEB128(debugInfoBytes);
@@ -275,6 +275,8 @@ public class Dwarf {
 					System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
 				}
 				for (AbbrevEntry entry : abbrev.entries) {
+					loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
+
 					DebugInfoAbbrevEntry debugInfoAbbrevEntry = new DebugInfoAbbrevEntry();
 					debugInfoEntry.debugInfoAbbrevEntry.add(debugInfoAbbrevEntry);
 
@@ -533,14 +535,16 @@ public class Dwarf {
 							|| ((ehdr.e_machine == Definition.EM_D30V || ehdr.e_machine == Definition.EM_CYGNUS_D30V) && relocationType == 12)) {
 						addend = debugInfoBytes.getInt();
 					}
-					System.out.printf("%x\t", offset);
-					System.out.printf("%x\t", info);
-					if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
-						System.out.printf("%x\t", addend);
+					if (DwarfGlobal.debug) {
+						System.out.printf("%x\t", offset);
+						System.out.printf("%x\t", info);
+						if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
+							System.out.printf("%x\t", addend);
+						}
+						System.out.printf("%s\t", Elf_Common.getRelocationTypeName(relocationType));
+						System.out.printf("%d\t", Elf_Common.ELF32_R_SYM(info));
+						System.out.printf("%08x\t", symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
 					}
-					System.out.printf("%s\t", Elf_Common.getRelocationTypeName(relocationType));
-					System.out.printf("%d\t", Elf_Common.ELF32_R_SYM(info));
-					System.out.printf("%08x\t", symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
 
 					// relocation
 					int temp = debugInfoBytes.position();
@@ -550,11 +554,15 @@ public class Dwarf {
 						int value = symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value + addend;
 						debugInfoBytes.putInt(value);
 						debugInfoBytes.position(temp);
-						System.out.print(",replace offset " + offset + " to " + value + ", addend=" + Integer.toHexString(addend) + ", ");
+						if (DwarfGlobal.debug) {
+							System.out.print(",replace offset " + offset + " to " + value + ", addend=" + Integer.toHexString(addend) + ", ");
+						}
 					}
 
-					//					System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
-					System.out.printf("\n");
+					if (DwarfGlobal.debug) {
+						//					System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
+						System.out.printf("\n");
+					}
 				}
 
 			} catch (Exception e) {
@@ -612,6 +620,7 @@ public class Dwarf {
 			// Read the file names.
 			int entryNo = 1;
 			while (debugLineBytes.hasRemaining() && debugLineBytes.position() < prologue_end) {
+				loadingMessage = "parsing .debug_line " + debugLineBytes.position() + " bytes";
 				DwarfHeaderFilename f = new DwarfHeaderFilename();
 				String fname = DwarfLib.getString(debugLineBytes);
 				long u1 = DwarfLib.getULEB128(debugLineBytes);

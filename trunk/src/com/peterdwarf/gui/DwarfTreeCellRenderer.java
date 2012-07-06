@@ -24,10 +24,10 @@ public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 
 		if (value instanceof DwarfTreeNode) {
 			DwarfTreeNode node = (DwarfTreeNode) value;
-			if (!node.addImageObserver) {
-				node.loadingIcon.setImageObserver(new AnimatedGifImageObserver(tree, node));
-				node.addImageObserver = true;
-			}
+			//			if (!node.addImageObserver) {
+			//				node.loadingIcon.setImageObserver(new AnimatedGifImageObserver(tree, node));
+			//				node.addImageObserver = true;
+			//			}
 			if (animationThread == null && node.dwarf != null && node.dwarf.isLoading) {
 				animationThread = new Thread(new AnimationThread(node));
 				animationThread.start();
@@ -37,10 +37,10 @@ public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 			} else if (node.dwarf != null) {
 				if (node.dwarf.isLoading) {
 					setText(node.dwarf.loadingMessage);
-					setIcon(node.loadingIcon);
+					//					setIcon(node.loadingIcon);
 				} else if (!node.dwarf.isLoading) {
-					setText(node.dwarf.loadingMessage);
-					setIcon(null);
+					setText(node.dwarf.file.getAbsolutePath());
+					//					setIcon(null);
 				} else if (node.dwarf.file != null) {
 					setText(node.dwarf.file.getName());
 				}
@@ -74,7 +74,7 @@ public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 				try {
 					((DefaultTreeModel) tree.getModel()).nodeChanged(node.getParent());
 					tree.repaint();
-					Thread.currentThread().sleep(100);
+					Thread.currentThread().sleep(50);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}

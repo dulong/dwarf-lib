@@ -29,7 +29,10 @@ public class PeterDwarfPanel extends JPanel {
 		frame.setSize(800, 600);
 		frame.setVisible(true);
 		frame.setLocationRelativeTo(null);
-		peterDwarfPanel.init("/Users/peter/Desktop/bochs");
+//		peterDwarfPanel.init("/Users/peter/Desktop/bochs");
+		peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel");
+		peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel.o");
+		peterDwarfPanel.init("/Users/peter/workspace/PeterI/app/pshell/pshell.o");
 	}
 
 	public PeterDwarfPanel() {
@@ -39,7 +42,6 @@ public class PeterDwarfPanel extends JPanel {
 		add(scrollPane, BorderLayout.CENTER);
 
 		tree.setShowsRootHandles(true);
-		tree.setRowHeight(100);
 		tree.setCellRenderer(treeCellRenderer);
 		scrollPane.setViewportView(tree);
 	}
