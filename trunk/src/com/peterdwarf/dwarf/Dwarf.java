@@ -26,7 +26,7 @@ public class Dwarf {
 	public Vector<DwarfDebugLineHeader> headers = new Vector<DwarfDebugLineHeader>();
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
-	private LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
+	public LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
 	public File file;
 	public Elf32_Ehdr ehdr = new Elf32_Ehdr();
 	public boolean isLoading;
