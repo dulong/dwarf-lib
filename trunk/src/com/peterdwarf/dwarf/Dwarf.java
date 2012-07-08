@@ -44,17 +44,19 @@ public class Dwarf {
 			return 101;
 		}
 
+		// read program header
 		try {
 			ehdr.read(new RandomAccessFile(file, "r"));
 		} catch (Exception e1) {
 			e1.printStackTrace();
 			return 1;
 		}
+		// end read program header
 
 		compileUnits.clear();
 
 		try {
-			debug_str = SectionFinder.findSectionByte(file, ".debug_str");
+			debug_str = SectionFinder.findSectionByte(ehdr, file, ".debug_str");
 			if (debug_str == null) {
 				return -8;
 			}
@@ -62,11 +64,11 @@ public class Dwarf {
 			// DwarfLib.printMappedByteBuffer(debug_str);
 			// System.out.println();
 
-			strtab_str = SectionFinder.findSectionByte(file, ".strtab");
+			strtab_str = SectionFinder.findSectionByte(ehdr, file, ".strtab");
 			// allStrings =
 			// Charset.forName("ASCII").decode(strtab_str).toString().split("\0");
 
-			symtab_str = SectionFinder.findSectionByte(file, ".symtab");
+			symtab_str = SectionFinder.findSectionByte(ehdr, file, ".symtab");
 			// System.out.println(".symtab:");
 			symbols = parseSymtab(symtab_str);
 			// System.out.printf("Num:\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\n",
@@ -86,19 +88,24 @@ public class Dwarf {
 			// }
 			// System.out.println();
 
-			debug_abbrevBuffer = SectionFinder.findSectionByte(file, ".debug_abbrev");
+			debug_abbrevBuffer = SectionFinder.findSectionByte(ehdr, file, ".debug_abbrev");
 			// System.out.println(".debug_abbrev:");
 			abbrevList = parseDebugAbbrev(debug_abbrevBuffer);
 			if (DwarfGlobal.debug) {
 				for (Integer abbrevOffset : abbrevList.keySet()) {
-					System.out.println("Abbrev offset=" + abbrevOffset);
+					if (DwarfGlobal.debug) {
+						System.out.println("Abbrev offset=" + abbrevOffset);
+					}
 					LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
 					for (Integer abbrevNo : abbrevHashtable.keySet()) {
 						Abbrev abbrev = abbrevHashtable.get(abbrevNo);
-						System.out.printf("%d\t%s\t%s\n", abbrev.number, Definition.getTagName(abbrev.tag), abbrev.has_children ? "has children" : "no children");
 
-						for (AbbrevEntry entry : abbrev.entries) {
-							System.out.printf("\t%x\t%x\t%s\t%s\n", entry.at, entry.form, Definition.getATName(entry.at), Definition.getFormName(entry.form));
+						if (DwarfGlobal.debug) {
+							System.out.printf("%d\t%s\t%s\n", abbrev.number, Definition.getTagName(abbrev.tag), abbrev.has_children ? "has children" : "no children");
+
+							for (AbbrevEntry entry : abbrev.entries) {
+								System.out.printf("\t%x\t%x\t%s\t%s\n", entry.at, entry.form, Definition.getATName(entry.at), Definition.getFormName(entry.form));
+							}
 						}
 					}
 				}
@@ -107,7 +114,7 @@ public class Dwarf {
 				System.out.println();
 			}
 
-			byteBuffer = SectionFinder.findSectionByte(file, ".debug_info");
+			byteBuffer = SectionFinder.findSectionByte(ehdr, file, ".debug_info");
 			Elf32_Shdr debugInfoSection = null;
 			for (Elf32_Shdr s : SectionFinder.getAllSection(file)) {
 				if (s.section_name.equals(".debug_info")) {
@@ -122,8 +129,8 @@ public class Dwarf {
 				}
 			}
 
-			Elf32_Shdr shdr = SectionFinder.getSectionHeader(file, ".debug_line");
-			byteBuffer = SectionFinder.findSectionByte(file, shdr.section_name);
+			Elf32_Shdr shdr = SectionFinder.getSectionHeader(ehdr, file, ".debug_line");
+			byteBuffer = SectionFinder.findSectionByte(ehdr, file, shdr.section_name);
 			//			calculationRelocation(shdr, byteBuffer);
 			//
 			//			byteBuffer.position(0x2390);
@@ -507,7 +514,7 @@ public class Dwarf {
 				// MappedByteBuffer byteBuffer =
 				// SectionFinder.findSectionByte(Dwarf.file,
 				// debugInfoRelSection.section_name);
-				ByteBuffer byteBuffer = SectionFinder.findSectionByte(file, ".rel.debug_info");
+				ByteBuffer byteBuffer = SectionFinder.findSectionByte(ehdr, file, ".rel.debug_info");
 				int size = Integer.MAX_VALUE;
 				if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
 					size = 12;

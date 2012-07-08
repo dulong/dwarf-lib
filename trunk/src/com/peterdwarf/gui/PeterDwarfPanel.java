@@ -100,7 +100,6 @@ public class PeterDwarfPanel extends JPanel {
 
 		LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList = dwarf.abbrevList;
 		for (Integer abbrevOffset : abbrevList.keySet()) {
-			System.out.println("Abbrev offset=" + abbrevOffset);
 			DwarfTreeNode abbrevSubnode = new DwarfTreeNode("Abbrev offset=" + abbrevOffset);
 			abbrevNode.children.add(abbrevSubnode);
 			LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);

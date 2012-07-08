@@ -17,16 +17,8 @@ public class SectionFinder {
 	private static final byte ELFMAG2 = (byte) 'L';
 	private static final byte ELFMAG3 = (byte) 'F';
 
-	public static Elf32_Shdr getSectionHeader(File file, String sectionName) throws IOException, FileNotFoundException {
+	public static Elf32_Shdr getSectionHeader(Elf32_Ehdr ehdr, File file, String sectionName) throws IOException, FileNotFoundException {
 		RandomAccessFile f = new RandomAccessFile(file, "r");
-
-		/** Read the ELF header. */
-		Elf32_Ehdr ehdr = new Elf32_Ehdr();
-		ehdr.read(f);
-		if (ehdr.e_ident[0] != ELFMAG0 || ehdr.e_ident[1] != ELFMAG1 || ehdr.e_ident[2] != ELFMAG2 || ehdr.e_ident[3] != ELFMAG3) {
-			f.close();
-			throw new IOException(file + ": not an ELF file");
-		}
 
 		/* Read the string table section header. */
 		Elf32_Shdr strtabhdr = new Elf32_Shdr();
@@ -106,16 +98,8 @@ public class SectionFinder {
 		return sections;
 	}
 
-	public static ByteBuffer findSectionByte(File file, String section) throws IOException {
+	public static ByteBuffer findSectionByte(Elf32_Ehdr ehdr, File file, String section) throws IOException {
 		RandomAccessFile f = new RandomAccessFile(file, "r");
-
-		/** Read the ELF header. */
-		Elf32_Ehdr ehdr = new Elf32_Ehdr();
-		ehdr.read(f);
-		if (ehdr.e_ident[0] != ELFMAG0 || ehdr.e_ident[1] != ELFMAG1 || ehdr.e_ident[2] != ELFMAG2 || ehdr.e_ident[3] != ELFMAG3) {
-			f.close();
-			return null;
-		}
 
 		/* Read the string table section header. */
 		Elf32_Shdr strtabhdr = new Elf32_Shdr();
