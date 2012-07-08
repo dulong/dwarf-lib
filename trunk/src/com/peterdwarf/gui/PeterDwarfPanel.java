@@ -18,6 +18,12 @@ import com.peterdwarf.dwarf.Abbrev;
 import com.peterdwarf.dwarf.AbbrevEntry;
 import com.peterdwarf.dwarf.Definition;
 import com.peterdwarf.dwarf.Dwarf;
+import com.peterswing.CommonLib;
+
+import javax.swing.JToolBar;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class PeterDwarfPanel extends JPanel {
 	DwarfTreeCellRenderer treeCellRenderer = new DwarfTreeCellRenderer();
@@ -25,6 +31,7 @@ public class PeterDwarfPanel extends JPanel {
 	DefaultTreeModel treeModel = new DefaultTreeModel(root);
 	JTree tree = new JTree(treeModel);
 	Vector<File> files = new Vector<File>();
+	public Vector<Dwarf> dwarfs = new Vector<Dwarf>();
 
 	public static void main(String args[]) {
 		try {
@@ -54,6 +61,25 @@ public class PeterDwarfPanel extends JPanel {
 		tree.setShowsRootHandles(true);
 		tree.setCellRenderer(treeCellRenderer);
 		scrollPane.setViewportView(tree);
+
+		JToolBar toolBar = new JToolBar();
+		add(toolBar, BorderLayout.NORTH);
+
+		JButton expandAllButton = new JButton("expand");
+		expandAllButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				CommonLib.expandAll(tree, true);
+			}
+		});
+		toolBar.add(expandAllButton);
+
+		JButton collapseButton = new JButton("collapse");
+		collapseButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				CommonLib.expandAll(tree, false);
+			}
+		});
+		toolBar.add(collapseButton);
 	}
 
 	public void init(String filepath) {
@@ -62,6 +88,7 @@ public class PeterDwarfPanel extends JPanel {
 
 	public void init(final File file) {
 		final Dwarf dwarf = new Dwarf();
+		dwarfs.add(dwarf);
 		dwarf.init(file);
 		files.add(file);
 		DwarfTreeNode node = new DwarfTreeNode(dwarf);
