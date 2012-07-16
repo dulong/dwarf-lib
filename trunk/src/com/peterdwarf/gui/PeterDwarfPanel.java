@@ -23,14 +23,20 @@ import com.peterdwarf.dwarf.CompileUnit;
 import com.peterdwarf.dwarf.Definition;
 import com.peterdwarf.dwarf.Dwarf;
 import com.peterdwarf.dwarf.DwarfDebugLineHeader;
+import com.peterdwarf.dwarf.DwarfHeaderFilename;
 import com.peterdwarf.dwarf.DwarfLine;
 import com.peterswing.CommonLib;
+import com.peterswing.advancedswing.searchtextfield.JSearchTextField;
+import java.awt.Dimension;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class PeterDwarfPanel extends JPanel {
 	DwarfTreeCellRenderer treeCellRenderer = new DwarfTreeCellRenderer();
 	DwarfTreeNode root = new DwarfTreeNode("Elf files");
 	DefaultTreeModel treeModel = new DefaultTreeModel(root);
-	JTree tree = new JTree(treeModel);
+	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel);
+	JTree tree = new JTree(filterTreeModel);
 	Vector<File> files = new Vector<File>();
 	public Vector<Dwarf> dwarfs = new Vector<Dwarf>();
 
@@ -69,7 +75,7 @@ public class PeterDwarfPanel extends JPanel {
 		JButton expandAllButton = new JButton("expand");
 		expandAllButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				treeModel.nodeChanged(root);
+				filterTreeModel.reload();
 				CommonLib.expandAll(tree, true);
 			}
 		});
@@ -78,15 +84,32 @@ public class PeterDwarfPanel extends JPanel {
 		JButton collapseButton = new JButton("collapse");
 		collapseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				treeModel.nodeChanged(root);
+				filterTreeModel.reload();
 				CommonLib.expandAll(tree, false);
 			}
 		});
 		toolBar.add(collapseButton);
+
+		final JSearchTextField searchTextField = new JSearchTextField();
+		searchTextField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				filterTreeModel.filter = searchTextField.getText();
+				filterTreeModel.reload();
+				CommonLib.expandAll(tree, false);
+			}
+		});
+		searchTextField.setMaximumSize(new Dimension(300, 20));
+		toolBar.add(searchTextField);
 	}
 
 	public void init(String filepath) {
 		init(new File(filepath));
+	}
+
+	public void clear() {
+		root.children.clear();
+		treeModel.nodeChanged(root);
 	}
 
 	public void init(final File file) {
@@ -96,7 +119,6 @@ public class PeterDwarfPanel extends JPanel {
 		files.add(file);
 		DwarfTreeNode node = new DwarfTreeNode(dwarf);
 		node.setDwarf(dwarf);
-		root.children.clear();
 		root.children.add(node);
 
 		// init abbrev nodes
@@ -140,33 +162,34 @@ public class PeterDwarfPanel extends JPanel {
 
 		Vector<DwarfDebugLineHeader> headers = dwarf.headers;
 
-		headNode.children.add(new DwarfTreeNode("X11"));
 		for (DwarfDebugLineHeader header : headers) {
-			System.out.println("asd");
-			headNode.children.add(new DwarfTreeNode("X22"));
-
 			DwarfTreeNode headerSubnode = new DwarfTreeNode("Offset: " + header.offset + ", Length: " + header.total_length + ", DWARF Version: " + header.version
 					+ ", Prologue Length: " + header.prologue_length + ", Minimum Instruction Length: " + header.minimum_instruction_length + ", Initial value of 'is_stmt': "
-					+ (header.default_is_stmt ? 1 : 0) + ", Line Base: " + header.line_base + ", Line Range " + header.line_range + ", Opcode Base: " + header.opcode_base
+					+ (header.default_is_stmt ? 1 : 0) + ", Line Base: " + header.line_base + ", Line Range " + header.line_range + ", Opcode Base: " + header.opcode_base);
+			headNode.children.add(headerSubnode);
 
-			);
-//			headNode.children.add(headerSubnode);
-//
-//			DwarfTreeNode dirnamesNode = new DwarfTreeNode("dirnames");
-//			headerSubnode.children.add(dirnamesNode);
-//			for (String dir : header.dirnames) {
-//				dirnamesNode.children.add(new DwarfTreeNode(dir));
-//			}
-//
-//			DwarfTreeNode lineInfoNode = new DwarfTreeNode("line info");
-//			headerSubnode.children.add(lineInfoNode);
-//			for (DwarfLine line : header.lines) {
-//				DwarfTreeNode lineSubnode = new DwarfTreeNode("file_numer: " + line.file_num + ", line_num:" + line.line_num + ", column_num: " + line.column_num + ", address: 0x"
-//						+ Long.toHexString(line.address));
-//				lineInfoNode.children.add(lineSubnode);
-//			}
+			DwarfTreeNode dirnamesNode = new DwarfTreeNode("dir name");
+			headerSubnode.children.add(dirnamesNode);
+			for (String dir : header.dirnames) {
+				dirnamesNode.children.add(new DwarfTreeNode(dir));
+			}
+
+			DwarfTreeNode filenamesNode = new DwarfTreeNode("file name");
+			headerSubnode.children.add(filenamesNode);
+			for (DwarfHeaderFilename filename : header.filenames) {
+				filenamesNode.children.add(new DwarfTreeNode(filename.file.getAbsolutePath()));
+			}
+
+			DwarfTreeNode lineInfoNode = new DwarfTreeNode("line info");
+			headerSubnode.children.add(lineInfoNode);
+			for (DwarfLine line : header.lines) {
+				DwarfTreeNode lineSubnode = new DwarfTreeNode("file_numer: " + line.file_num + ", line_num:" + line.line_num + ", column_num: " + line.column_num + ", address: 0x"
+						+ Long.toHexString(line.address));
+				lineInfoNode.children.add(lineSubnode);
+			}
 		}
+
 		// end init headers
-		treeModel.nodeChanged(root);
+		filterTreeModel.nodeChanged(root);
 	}
 }
