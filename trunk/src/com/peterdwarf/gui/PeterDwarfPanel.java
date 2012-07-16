@@ -1,14 +1,17 @@
 package com.peterdwarf.gui;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 
-import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -16,14 +19,12 @@ import javax.swing.tree.DefaultTreeModel;
 
 import com.peterdwarf.dwarf.Abbrev;
 import com.peterdwarf.dwarf.AbbrevEntry;
+import com.peterdwarf.dwarf.CompileUnit;
 import com.peterdwarf.dwarf.Definition;
 import com.peterdwarf.dwarf.Dwarf;
+import com.peterdwarf.dwarf.DwarfDebugLineHeader;
+import com.peterdwarf.dwarf.DwarfLine;
 import com.peterswing.CommonLib;
-
-import javax.swing.JToolBar;
-import javax.swing.JButton;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class PeterDwarfPanel extends JPanel {
 	DwarfTreeCellRenderer treeCellRenderer = new DwarfTreeCellRenderer();
@@ -68,6 +69,7 @@ public class PeterDwarfPanel extends JPanel {
 		JButton expandAllButton = new JButton("expand");
 		expandAllButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				treeModel.nodeChanged(root);
 				CommonLib.expandAll(tree, true);
 			}
 		});
@@ -76,6 +78,7 @@ public class PeterDwarfPanel extends JPanel {
 		JButton collapseButton = new JButton("collapse");
 		collapseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				treeModel.nodeChanged(root);
 				CommonLib.expandAll(tree, false);
 			}
 		});
@@ -93,8 +96,10 @@ public class PeterDwarfPanel extends JPanel {
 		files.add(file);
 		DwarfTreeNode node = new DwarfTreeNode(dwarf);
 		node.setDwarf(dwarf);
+		root.children.clear();
 		root.children.add(node);
 
+		// init abbrev nodes
 		DwarfTreeNode abbrevNode = new DwarfTreeNode("abbrev");
 		node.children.add(abbrevNode);
 
@@ -116,6 +121,52 @@ public class PeterDwarfPanel extends JPanel {
 
 			}
 		}
+		// end init abbrev nodes
+
+		// init compile unit nodes
+		DwarfTreeNode debugLineNode = new DwarfTreeNode("compile unit");
+		node.children.add(debugLineNode);
+
+		Vector<CompileUnit> compileUnits = dwarf.compileUnits;
+		for (CompileUnit compileUnit : compileUnits) {
+			DwarfTreeNode compileUnitSubnode = new DwarfTreeNode(compileUnit.DW_AT_name + " , offset " + compileUnit.abbrev_offset + " (size " + compileUnit.addr_size + ")");
+			debugLineNode.children.add(compileUnitSubnode);
+		}
+		// end init compile unit nodes
+
+		// init headers
+		DwarfTreeNode headNode = new DwarfTreeNode("header");
+		node.children.add(headNode);
+
+		Vector<DwarfDebugLineHeader> headers = dwarf.headers;
+
+		headNode.children.add(new DwarfTreeNode("X11"));
+		for (DwarfDebugLineHeader header : headers) {
+			System.out.println("asd");
+			headNode.children.add(new DwarfTreeNode("X22"));
+
+			DwarfTreeNode headerSubnode = new DwarfTreeNode("Offset: " + header.offset + ", Length: " + header.total_length + ", DWARF Version: " + header.version
+					+ ", Prologue Length: " + header.prologue_length + ", Minimum Instruction Length: " + header.minimum_instruction_length + ", Initial value of 'is_stmt': "
+					+ (header.default_is_stmt ? 1 : 0) + ", Line Base: " + header.line_base + ", Line Range " + header.line_range + ", Opcode Base: " + header.opcode_base
+
+			);
+//			headNode.children.add(headerSubnode);
+//
+//			DwarfTreeNode dirnamesNode = new DwarfTreeNode("dirnames");
+//			headerSubnode.children.add(dirnamesNode);
+//			for (String dir : header.dirnames) {
+//				dirnamesNode.children.add(new DwarfTreeNode(dir));
+//			}
+//
+//			DwarfTreeNode lineInfoNode = new DwarfTreeNode("line info");
+//			headerSubnode.children.add(lineInfoNode);
+//			for (DwarfLine line : header.lines) {
+//				DwarfTreeNode lineSubnode = new DwarfTreeNode("file_numer: " + line.file_num + ", line_num:" + line.line_num + ", column_num: " + line.column_num + ", address: 0x"
+//						+ Long.toHexString(line.address));
+//				lineInfoNode.children.add(lineSubnode);
+//			}
+		}
+		// end init headers
 		treeModel.nodeChanged(root);
 	}
 }

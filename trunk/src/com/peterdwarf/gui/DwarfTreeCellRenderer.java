@@ -53,7 +53,6 @@ public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 			setForeground(UIManager.getColor("Tree.textForeground"));
 			setBackground(UIManager.getColor("Tree.textBackground"));
 		}
-		this.setPreferredSize(new Dimension(500, 100));
 		return this;
 	}
 

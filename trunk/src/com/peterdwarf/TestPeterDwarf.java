@@ -70,15 +70,7 @@ public class TestPeterDwarf {
 
 			for (DwarfDebugLineHeader header : dwarf.headers) {
 				System.out.println();
-				System.out.println(".debug_line:");
-				System.out.println("length: " + header.total_length);
-				System.out.println("dwarf version: " + header.version);
-				System.out.println("header length: " + header.prologue_length);
-				System.out.println("minimum instruction length: " + header.minimum_instruction_length);
-				System.out.println("default is_stmt: " + header.default_is_stmt);
-				System.out.println("line base: " + header.line_base);
-				System.out.println("line range: " + header.line_range);
-				System.out.println("opcode base: " + header.opcode_base);
+				System.out.println(header);
 				System.out.println();
 
 				System.out.println("dirnames:");
