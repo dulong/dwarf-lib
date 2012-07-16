@@ -54,20 +54,21 @@ public class FilterTreeModel extends DefaultTreeModel {
 	}
 
 	private boolean isShown(Object node) {
+		if (filter == null || filter.equals("")) {
+			return true;
+		}
 		final DwarfTreeNode treeNode = (DwarfTreeNode) node;
 		if (treeNode == null) {
 			return false;
 		}
 		if (treeNode.text == null) {
-			if (treeNode.dwarf.file.getAbsolutePath().contains(filter)) {
+			if (treeNode.dwarf != null && treeNode.dwarf.file != null && treeNode.dwarf.file.getAbsolutePath().contains(filter)) {
 				return true;
 			} else {
 				return false;
 			}
 		}
-		if (filter == null || filter.equals("")) {
-			return true;
-		}
+
 		return treeNode.text.contains(filter);
 	}
 }
