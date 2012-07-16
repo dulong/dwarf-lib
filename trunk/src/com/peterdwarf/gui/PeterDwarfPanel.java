@@ -96,7 +96,7 @@ public class PeterDwarfPanel extends JPanel {
 			public void keyReleased(KeyEvent e) {
 				filterTreeModel.filter = searchTextField.getText();
 				filterTreeModel.reload();
-				CommonLib.expandAll(tree, false);
+				CommonLib.expandAll(tree, true);
 			}
 		});
 		searchTextField.setMaximumSize(new Dimension(300, 20));

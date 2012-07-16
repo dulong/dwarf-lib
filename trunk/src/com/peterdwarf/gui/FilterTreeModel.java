@@ -59,7 +59,11 @@ public class FilterTreeModel extends DefaultTreeModel {
 			return false;
 		}
 		if (treeNode.text == null) {
-			return true;
+			if (treeNode.dwarf.file.getAbsolutePath().contains(filter)) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 		if (filter == null || filter.equals("")) {
 			return true;
