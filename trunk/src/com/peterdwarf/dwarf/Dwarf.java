@@ -270,7 +270,9 @@ public class Dwarf {
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
 				debugInfoEntry.position = debugInfoBytes.position();
 				debugInfoEntry.abbrevNo = (int) DwarfLib.getULEB128(debugInfoBytes);
-
+				if (abbrevList == null || abbrevList.get(cu.abbrev_offset) == null) {
+					System.out.println("sd");
+				}
 				Abbrev abbrev = abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo);
 				if (abbrev == null) {
 					continue;
@@ -498,6 +500,7 @@ public class Dwarf {
 	}
 
 	private int calculationRelocation(Elf32_Shdr debugInfoSection, ByteBuffer debugInfoBytes) {
+		int originalPosition = debugInfoBytes.position();
 		if (ehdr.e_type != Elf_Common.ET_REL) {
 			return 0;
 		}
@@ -574,9 +577,11 @@ public class Dwarf {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				debugInfoBytes.position(originalPosition);
 				return 1;
 			}
 		}
+		debugInfoBytes.position(originalPosition);
 		return 0;
 	}
 
