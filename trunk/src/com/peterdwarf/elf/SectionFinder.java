@@ -82,6 +82,19 @@ public class SectionFinder {
 		return vector;
 	}
 
+	public static Elf32_Shdr getSection(File file, String sectionName) {
+		try {
+			for (Elf32_Shdr s : getAllSection(file)) {
+				if (s.section_name.equals(sectionName)) {
+					return s;
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	public static Vector<Elf32_Shdr> getAllRelocationSection(File file) {
 		Vector<Elf32_Shdr> temp = new Vector<Elf32_Shdr>();
 		Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();

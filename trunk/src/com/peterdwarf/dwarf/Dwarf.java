@@ -131,7 +131,7 @@ public class Dwarf {
 
 			Elf32_Shdr shdr = SectionFinder.getSectionHeader(ehdr, file, ".debug_line");
 			byteBuffer = SectionFinder.findSectionByte(ehdr, file, shdr.section_name);
-			//			calculationRelocation(shdr, byteBuffer);
+			calculationRelocation(shdr, byteBuffer);
 			//
 			//			byteBuffer.position(0x2390);
 			//			System.out.println(byteBuffer.get());
