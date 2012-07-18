@@ -33,7 +33,9 @@ public class TestPeterDwarf {
 		int r = dwarf.init(file);
 		if (r > 0) {
 			System.out.println("dwarf init fail");
+			//$hide>>$
 			System.exit(r);
+			//$hide<<$
 		} else if (DwarfGlobal.debug) {
 			System.out.println(".debug_info:");
 			for (CompileUnit compileUnit : dwarf.compileUnits) {

@@ -20,9 +20,9 @@ import com.peterdwarf.elf.SectionFinder;
 public class Dwarf {
 	public ByteBuffer byteBuffer;
 	public ByteBuffer debug_abbrevBuffer;
-	public ByteBuffer debug_str;
-	public ByteBuffer symtab_str;
-	public ByteBuffer strtab_str;
+	public ByteBuffer debug_bytes;
+	public ByteBuffer symtab_bytes;
+	private ByteBuffer strtab_bytes;
 	public Vector<DwarfDebugLineHeader> headers = new Vector<DwarfDebugLineHeader>();
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
@@ -56,21 +56,21 @@ public class Dwarf {
 		compileUnits.clear();
 
 		try {
-			debug_str = SectionFinder.findSectionByte(ehdr, file, ".debug_str");
-			if (debug_str == null) {
+			debug_bytes = SectionFinder.findSectionByte(ehdr, file, ".debug_str");
+			if (debug_bytes == null) {
 				return -8;
 			}
 			// System.out.println(".debug_str:");
 			// DwarfLib.printMappedByteBuffer(debug_str);
 			// System.out.println();
 
-			strtab_str = SectionFinder.findSectionByte(ehdr, file, ".strtab");
+			strtab_bytes = SectionFinder.findSectionByte(ehdr, file, ".strtab");
 			// allStrings =
 			// Charset.forName("ASCII").decode(strtab_str).toString().split("\0");
 
-			symtab_str = SectionFinder.findSectionByte(ehdr, file, ".symtab");
+			symtab_bytes = SectionFinder.findSectionByte(ehdr, file, ".symtab");
 			// System.out.println(".symtab:");
-			symbols = parseSymtab(symtab_str);
+			symbols = parseSymtab(symtab_bytes, strtab_bytes);
 			// System.out.printf("Num:\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\n",
 			// "Value", "Size", "Type", "Bind", "Vis", "Ndx", "Name");
 			// int x = 0;
@@ -179,7 +179,7 @@ public class Dwarf {
 		return true;
 	}
 
-	public static Vector<Elf32_Sym> parseSymtab(ByteBuffer symtab) {
+	public static Vector<Elf32_Sym> parseSymtab(ByteBuffer symtab, ByteBuffer strtab) {
 		Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 		while (symtab.remaining() >= 16) {
 			Elf32_Sym symbol = new Elf32_Sym();
@@ -189,6 +189,8 @@ public class Dwarf {
 			symbol.st_info = symtab.get();
 			symbol.st_other = symtab.get();
 			symbol.st_shndx = symtab.getShort();
+
+			symbol.name = DwarfLib.getString(strtab, symbol.st_name);
 			symbols.add(symbol);
 		}
 		return symbols;
@@ -316,7 +318,7 @@ public class Dwarf {
 						}
 					} else if (entry.form == Definition.DW_FORM_strp) {
 						int stringOffset = debugInfoBytes.getInt();
-						String s = DwarfLib.getString(debug_str, stringOffset);
+						String s = DwarfLib.getString(debug_bytes, stringOffset);
 						if (DwarfGlobal.debug) {
 							System.out.printf("\t(indirect string, offset: %x):\t%s", stringOffset, s);
 						}
