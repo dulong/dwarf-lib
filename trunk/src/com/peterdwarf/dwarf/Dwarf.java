@@ -31,6 +31,7 @@ public class Dwarf {
 	public Elf32_Ehdr ehdr = new Elf32_Ehdr();
 	public boolean isLoading;
 	public String loadingMessage;
+	public Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
 
 	public int init(File file) {
 		isLoading = true;
@@ -42,6 +43,12 @@ public class Dwarf {
 
 		if (!isELF(file)) {
 			return 101;
+		}
+
+		try {
+			sections = SectionFinder.getAllSections(file);
+		} catch (IOException e2) {
+			return 23;
 		}
 
 		// read program header
@@ -58,7 +65,8 @@ public class Dwarf {
 		try {
 			debug_bytes = SectionFinder.findSectionByte(ehdr, file, ".debug_str");
 			if (debug_bytes == null) {
-				return -8;
+				System.err.println("missing section .debug_str");
+				return 24;
 			}
 			// System.out.println(".debug_str:");
 			// DwarfLib.printMappedByteBuffer(debug_str);
@@ -116,7 +124,7 @@ public class Dwarf {
 
 			byteBuffer = SectionFinder.findSectionByte(ehdr, file, ".debug_info");
 			Elf32_Shdr debugInfoSection = null;
-			for (Elf32_Shdr s : SectionFinder.getAllSection(file)) {
+			for (Elf32_Shdr s : sections) {
 				if (s.section_name.equals(".debug_info")) {
 					debugInfoSection = s;
 					break;
@@ -131,7 +139,7 @@ public class Dwarf {
 
 			Elf32_Shdr shdr = SectionFinder.getSectionHeader(ehdr, file, ".debug_line");
 			byteBuffer = SectionFinder.findSectionByte(ehdr, file, shdr.section_name);
-			calculationRelocation(shdr, byteBuffer);
+//			calculationRelocation(shdr, byteBuffer);
 			//
 			//			byteBuffer.position(0x2390);
 			//			System.out.println(byteBuffer.get());

@@ -46,7 +46,7 @@ public class SectionFinder {
 		return null;
 	}
 
-	public static Vector<Elf32_Shdr> getAllSection(File file) throws IOException {
+	public static Vector<Elf32_Shdr> getAllSections(File file) throws IOException {
 		Vector<Elf32_Shdr> vector = new Vector<Elf32_Shdr>();
 		RandomAccessFile f = new RandomAccessFile(file, "r");
 
@@ -84,7 +84,7 @@ public class SectionFinder {
 
 	public static Elf32_Shdr getSection(File file, String sectionName) {
 		try {
-			for (Elf32_Shdr s : getAllSection(file)) {
+			for (Elf32_Shdr s : getAllSections(file)) {
 				if (s.section_name.equals(sectionName)) {
 					return s;
 				}
@@ -99,7 +99,7 @@ public class SectionFinder {
 		Vector<Elf32_Shdr> temp = new Vector<Elf32_Shdr>();
 		Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
 		try {
-			temp = getAllSection(file);
+			temp = getAllSections(file);
 			for (Elf32_Shdr s : temp) {
 				if (s.sh_type == 4 || s.sh_type == 9) {
 					sections.add(s);

@@ -21,16 +21,20 @@ public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 	@Override
 	public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
 		this.tree = tree;
-
 		if (value instanceof DwarfTreeNode) {
 			DwarfTreeNode node = (DwarfTreeNode) value;
 			//			if (!node.addImageObserver) {
 			//				node.loadingIcon.setImageObserver(new AnimatedGifImageObserver(tree, node));
 			//				node.addImageObserver = true;
 			//			}
-			if (animationThread == null && node.dwarf != null && node.dwarf.isLoading) {
-				animationThread = new Thread(new AnimationThread(node));
-				animationThread.start();
+			//			if (animationThread == null && node.dwarf != null && node.dwarf.isLoading) {
+			//				animationThread = new Thread(new AnimationThread(node));
+			//				animationThread.start();
+			//			}
+			if (node.tooltip == null) {
+				setToolTipText(null);
+			} else {
+				setToolTipText(node.tooltip);
 			}
 			if (node.text != null) {
 				setText(node.text);
