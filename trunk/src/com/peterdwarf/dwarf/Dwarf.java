@@ -139,7 +139,7 @@ public class Dwarf {
 
 			Elf32_Shdr shdr = SectionFinder.getSectionHeader(ehdr, file, ".debug_line");
 			byteBuffer = SectionFinder.findSectionByte(ehdr, file, shdr.section_name);
-//			calculationRelocation(shdr, byteBuffer);
+			//			calculationRelocation(shdr, byteBuffer);
 			//
 			//			byteBuffer.position(0x2390);
 			//			System.out.println(byteBuffer.get());
@@ -473,8 +473,14 @@ public class Dwarf {
 						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data);
 						}
+					} else if (entry.form == Definition.DW_FORM_udata) {
+						long data = DwarfLib.getULEB128(debugInfoBytes);
+						debugInfoAbbrevEntry.value = data;
+						if (DwarfGlobal.debug) {
+							System.out.print("\t:\t" + data);
+						}
 					} else {
-						System.out.println("unsupport DW_FORM_? = 0x" + Integer.toHexString(entry.form));
+						System.out.println(" unsupport DW_FORM_? = 0x" + Integer.toHexString(entry.form));
 						return 3;
 					}
 
