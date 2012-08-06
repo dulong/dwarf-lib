@@ -1,8 +1,9 @@
 package com.peterdwarf.dwarf;
 
+import java.math.BigInteger;
 
 public class DwarfLine {
-	public long address;
+	public BigInteger address;
 	public long file_num;
 	public int line_num;
 	public long column_num;

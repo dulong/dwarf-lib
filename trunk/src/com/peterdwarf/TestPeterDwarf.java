@@ -90,7 +90,7 @@ public class TestPeterDwarf {
 				System.out.println("address\tfile no.\tline no.\tcolumn no.\taddress");
 
 				for (DwarfLine line : header.lines) {
-					System.out.println("\t" + line.file_num + "\t\t" + line.line_num + "\t\t" + line.column_num + "\t\t" + Long.toHexString(line.address));
+					System.out.println("\t" + line.file_num + "\t\t" + line.line_num + "\t\t" + line.column_num + "\t\t" + line.address.toString(16));
 				}
 				System.out.println();
 				System.out.println();
