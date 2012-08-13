@@ -32,7 +32,7 @@ public class TestPeterDwarf {
 
 		int r = dwarf.init(file);
 		if (r > 0) {
-			System.out.println("dwarf init fail");
+			System.err.println("dwarf init fail");
 			//$hide>>$
 			System.exit(r);
 			//$hide<<$

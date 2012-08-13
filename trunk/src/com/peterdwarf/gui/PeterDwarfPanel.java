@@ -14,6 +14,7 @@ import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
@@ -121,7 +122,11 @@ public class PeterDwarfPanel extends JPanel {
 	public void init(final File file) {
 		final Dwarf dwarf = new Dwarf();
 		dwarfs.add(dwarf);
-		dwarf.init(file);
+		int r = dwarf.init(file);
+		if (r > 0) {
+			JOptionPane.showMessageDialog(this, "dwarf init fail");
+			return;
+		}
 		files.add(file);
 		DwarfTreeNode node = new DwarfTreeNode(dwarf);
 		node.setDwarf(dwarf);
@@ -234,6 +239,6 @@ public class PeterDwarfPanel extends JPanel {
 		}
 
 		// end init headers
-		filterTreeModel.nodeChanged(root);
+		filterTreeModel.nodeStructureChanged(root);
 	}
 }
