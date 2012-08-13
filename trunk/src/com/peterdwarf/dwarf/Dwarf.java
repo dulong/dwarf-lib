@@ -42,7 +42,7 @@ public class Dwarf {
 		}
 		this.file = file;
 
-		if (!isELF(file)) {
+		if (!isELF(file) && !isArchive(file)) {
 			return 101;
 		}
 
@@ -167,6 +167,25 @@ public class Dwarf {
 		return 0;
 	}
 
+	private boolean isArchive(File file) {
+		InputStream is;
+		try {
+			is = new FileInputStream(file);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return false;
+		}
+		try {
+			if (is.read() != 0x21 || is.read() != 0x3c || is.read() != 0x61 || is.read() != 0x72 || is.read() != 0x63 || is.read() != 0x68 || is.read() != 0x3e) {
+				return false;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+
 	public boolean isELF(File file) {
 		InputStream is;
 		try {
@@ -178,7 +197,6 @@ public class Dwarf {
 		try {
 			is.skip(1);
 			if (is.read() != 0x45 || is.read() != 0x4c || is.read() != 0x46) {
-				System.err.println("not a ELF!!!");
 				return false;
 			}
 		} catch (IOException e) {
@@ -766,7 +784,7 @@ public class Dwarf {
 					if (dwarfDebugLineHeader.max_ops_per_insn == 1) {
 						long advance_address = DwarfLib.getULEB128(debugLineBytes);
 						adjust = dwarfDebugLineHeader.minimum_instruction_length * advance_address;
-						address=address.add(BigInteger.valueOf(adjust));
+						address = address.add(BigInteger.valueOf(adjust));
 					} else {
 						adjust = DwarfLib.getULEB128(debugLineBytes);
 						address = BigInteger.valueOf(((op_index + adjust) / dwarfDebugLineHeader.max_ops_per_insn) * dwarfDebugLineHeader.minimum_instruction_length);
@@ -808,7 +826,7 @@ public class Dwarf {
 					}
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_fixed_advance_pc) {
 					int advance_address = debugLineBytes.getInt();
-					address=address.add(BigInteger.valueOf(advance_address));
+					address = address.add(BigInteger.valueOf(advance_address));
 					op_index = 0;
 					if (DwarfGlobal.debug) {
 						System.out.println("fixed advance pc, address=" + address.toString(16));
@@ -818,11 +836,11 @@ public class Dwarf {
 
 					if (dwarfDebugLineHeader.max_ops_per_insn == 1) {
 						advance_address = (dwarfDebugLineHeader.minimum_instruction_length * ((255 - dwarfDebugLineHeader.opcode_base) / dwarfDebugLineHeader.line_range));
-						address=address.add(BigInteger.valueOf(advance_address));
+						address = address.add(BigInteger.valueOf(advance_address));
 					} else {
 						long adjust = ((255 - dwarfDebugLineHeader.opcode_base) / dwarfDebugLineHeader.line_range);
 						advance_address = dwarfDebugLineHeader.minimum_instruction_length * ((op_index + adjust) / dwarfDebugLineHeader.max_ops_per_insn);
-						address=address.add(BigInteger.valueOf(advance_address));
+						address = address.add(BigInteger.valueOf(advance_address));
 						op_index = (int) ((op_index + adjust) % dwarfDebugLineHeader.max_ops_per_insn);
 					}
 
