@@ -3,14 +3,18 @@ package com.peterdwarf.dwarf;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 
+import com.peter.AR;
+import com.peter.PeterAR;
 import com.peterdwarf.DwarfGlobal;
 import com.peterdwarf.elf.Elf32_Ehdr;
 import com.peterdwarf.elf.Elf32_Shdr;
@@ -35,6 +39,40 @@ public class Dwarf {
 	public Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
 
 	public int init(File file) {
+		if (isArchive(file)) {
+			PeterAR peterAR = new PeterAR();
+			Vector<AR> data = peterAR.init(file);
+			if (data != null) {
+				for (AR ar : data) {
+					File temp;
+					try {
+						temp = File.createTempFile("peterDwarf", ".peterDwarf");
+						System.out.println(ar.filename + " , " + temp.getAbsolutePath());
+						FileOutputStream out = new FileOutputStream(temp);
+						out.write(ar.bytes);
+						out.close();
+						int r = initElf(temp);
+						temp.delete();
+						if (r == 14) {
+							System.out.println(ar.filename);
+						}
+						if (r > 0 && r != 24) {
+							return r;
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						return 27;
+					}
+				}
+				return 0;
+			}
+		} else {
+			return initElf(file);
+		}
+		return 26;
+	}
+
+	public int initElf(File file) {
 		isLoading = true;
 		if (!file.isFile()) {
 			System.err.println(file.getAbsolutePath() + " is not a file!!!");
@@ -42,7 +80,7 @@ public class Dwarf {
 		}
 		this.file = file;
 
-		if (!isELF(file) && !isArchive(file)) {
+		if (!isELF(file)) {
 			return 101;
 		}
 
@@ -140,7 +178,7 @@ public class Dwarf {
 
 			Elf32_Shdr shdr = SectionFinder.getSectionHeader(ehdr, file, ".debug_line");
 			byteBuffer = SectionFinder.findSectionByte(ehdr, file, shdr.section_name);
-			//			calculationRelocation(shdr, byteBuffer);
+//						calculationRelocation(shdr, byteBuffer);
 			//
 			//			byteBuffer.position(0x2390);
 			//			System.out.println(byteBuffer.get());

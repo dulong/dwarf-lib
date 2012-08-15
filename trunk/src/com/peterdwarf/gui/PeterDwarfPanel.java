@@ -58,10 +58,11 @@ public class PeterDwarfPanel extends JPanel {
 		frame.setSize(800, 600);
 		frame.setVisible(true);
 		frame.setLocationRelativeTo(null);
-		//		peterDwarfPanel.init("/Users/peter/Desktop/bochs");
-		peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel");
-		peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel.o");
-		peterDwarfPanel.init("/Users/peter/workspace/PeterI/app/pshell/pshell.o");
+		//peterDwarfPanel.init("/Users/peter/Desktop/bochs");
+		//peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel");
+		//peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel.o");
+		//peterDwarfPanel.init("/Users/peter/workspace/PeterI/app/pshell/pshell.o");
+		peterDwarfPanel.init("/Users/peter/install/i586-peter-elf-newlib/i586-peter-elf/lib/libc.a");
 	}
 
 	public PeterDwarfPanel() {
@@ -124,7 +125,7 @@ public class PeterDwarfPanel extends JPanel {
 		dwarfs.add(dwarf);
 		int r = dwarf.init(file);
 		if (r > 0) {
-			JOptionPane.showMessageDialog(this, "dwarf init fail");
+			JOptionPane.showMessageDialog(this, "dwarf init fail, return value=" + r);
 			return;
 		}
 		files.add(file);
