@@ -43,10 +43,10 @@ public class Dwarf {
 			PeterAR peterAR = new PeterAR();
 			Vector<AR> data = peterAR.init(file);
 			if (data != null) {
+				System.out.println(data.size());
 				for (AR ar : data) {
-					File temp;
 					try {
-						temp = File.createTempFile("peterDwarf", ".peterDwarf");
+						File temp = File.createTempFile("peterDwarf", ".peterDwarf");
 						System.out.println(ar.filename + " , " + temp.getAbsolutePath());
 						FileOutputStream out = new FileOutputStream(temp);
 						out.write(ar.bytes);

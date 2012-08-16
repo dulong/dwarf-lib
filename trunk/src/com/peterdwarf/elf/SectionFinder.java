@@ -40,9 +40,11 @@ public class SectionFinder {
 			}
 			shdr.section_name = sectionNameTemp;
 			if (sectionName.equals(sectionNameTemp)) {
+				f.close();
 				return shdr;
 			}
 		}
+		f.close();
 		return null;
 	}
 
@@ -151,8 +153,6 @@ public class SectionFinder {
 
 		try {
 			byte bytes[] = new byte[(int) shdr.sh_size];
-			f = new RandomAccessFile(file, "r");
-
 			f.seek(shdr.sh_offset);
 			f.readFully(bytes);
 			f.close();
