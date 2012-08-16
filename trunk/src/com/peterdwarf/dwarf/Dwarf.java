@@ -178,7 +178,7 @@ public class Dwarf {
 
 			Elf32_Shdr shdr = SectionFinder.getSectionHeader(ehdr, file, ".debug_line");
 			byteBuffer = SectionFinder.findSectionByte(ehdr, file, shdr.section_name);
-//						calculationRelocation(shdr, byteBuffer);
+			calculationRelocation(shdr, byteBuffer, ".rel.debug_line");
 			//
 			//			byteBuffer.position(0x2390);
 			//			System.out.println(byteBuffer.get());
@@ -307,7 +307,7 @@ public class Dwarf {
 		if (abbrevList == null) {
 			throw new IllegalArgumentException("abbrevList is null, please call parseDebugAbbrev() first");
 		}
-		int r = calculationRelocation(debugInfoSection, debugInfoBytes);
+		int r = calculationRelocation(debugInfoSection, debugInfoBytes, ".rel.debug_info");
 		if (r > 0) {
 			return r;
 		}
@@ -572,7 +572,7 @@ public class Dwarf {
 		return 0;
 	}
 
-	private int calculationRelocation(Elf32_Shdr debugInfoSection, ByteBuffer debugInfoBytes) {
+	private int calculationRelocation(Elf32_Shdr debugInfoSection, ByteBuffer debugInfoBytes, String relocationInfoSectionName) {
 		int originalPosition = debugInfoBytes.position();
 		if (ehdr.e_type != Elf_Common.ET_REL) {
 			return 0;
@@ -590,7 +590,7 @@ public class Dwarf {
 				// MappedByteBuffer byteBuffer =
 				// SectionFinder.findSectionByte(Dwarf.file,
 				// debugInfoRelSection.section_name);
-				ByteBuffer byteBuffer = SectionFinder.findSectionByte(ehdr, file, ".rel.debug_info");
+				ByteBuffer byteBuffer = SectionFinder.findSectionByte(ehdr, file, relocationInfoSectionName);
 				int size = Integer.MAX_VALUE;
 				if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
 					size = 12;
@@ -661,6 +661,10 @@ public class Dwarf {
 	public int parseHeader(ByteBuffer debugLineBytes, CompileUnit compileUnit) {
 		try {
 			final int begin = debugLineBytes.position();
+
+			//			debugLineBytes.position(0x2a6);
+			//			debugLineBytes.put((byte) 14);
+			//			debugLineBytes.position(begin);
 
 			DwarfDebugLineHeader dwarfDebugLineHeader = new DwarfDebugLineHeader();
 			dwarfDebugLineHeader.offset = debugLineBytes.position();
@@ -756,10 +760,10 @@ public class Dwarf {
 
 			while (debugLineBytes.hasRemaining() && debugLineBytes.position() < end) {
 				if (DwarfGlobal.debug) {
-					System.out.print("> 0x" + Integer.toHexString(debugLineBytes.position()) + " ");
+					System.out.print("> 0x" + Integer.toHexString(debugLineBytes.position() - 0xf0) + " ");
 				}
 				int opcode = debugLineBytes.get() & 0xff;
-				if (opcode > dwarfDebugLineHeader.opcode_base) {
+				if (opcode >= dwarfDebugLineHeader.opcode_base) {
 					opcode -= dwarfDebugLineHeader.opcode_base;
 					int advance_address = ((opcode / dwarfDebugLineHeader.line_range) * dwarfDebugLineHeader.minimum_instruction_length);
 					address = address.add(BigInteger.valueOf(advance_address));
