@@ -45,6 +45,8 @@ public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 				} else if (!node.dwarf.isLoading) {
 					setText(node.dwarf.file.getAbsolutePath());
 					//					setIcon(null);
+				} else if (node.dwarf.realFilename != null) {
+					setText(node.dwarf.realFilename);
 				} else if (node.dwarf.file != null) {
 					setText(node.dwarf.file.getName());
 				}

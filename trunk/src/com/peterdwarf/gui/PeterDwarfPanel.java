@@ -130,7 +130,6 @@ public class PeterDwarfPanel extends JPanel {
 		}
 		files.add(file);
 		DwarfTreeNode node = new DwarfTreeNode(dwarf);
-		node.setDwarf(dwarf);
 		root.children.add(node);
 
 		// init section nodes

@@ -33,6 +33,7 @@ public class Dwarf {
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 	public LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
 	public File file;
+	public String realFilename;
 	public Elf32_Ehdr ehdr = new Elf32_Ehdr();
 	public boolean isLoading;
 	public String loadingMessage;
@@ -51,7 +52,7 @@ public class Dwarf {
 						FileOutputStream out = new FileOutputStream(temp);
 						out.write(ar.bytes);
 						out.close();
-						int r = initElf(temp);
+						int r = initElf(temp, ar.filename);
 						temp.delete();
 						if (r == 14) {
 							System.out.println(ar.filename);
@@ -67,18 +68,20 @@ public class Dwarf {
 				return 0;
 			}
 		} else {
-			return initElf(file);
+			return initElf(file, null);
 		}
 		return 26;
 	}
 
-	private int initElf(File file) {
+	private int initElf(File file, String realFilename) {
+		this.file = file;
+		this.realFilename = realFilename;
+
 		isLoading = true;
 		if (!file.isFile()) {
 			System.err.println(file.getAbsolutePath() + " is not a file!!!");
 			return 100;
 		}
-		this.file = file;
 
 		if (!isELF(file)) {
 			return 101;
@@ -179,11 +182,6 @@ public class Dwarf {
 			Elf32_Shdr shdr = SectionFinder.getSectionHeader(ehdr, file, ".debug_line");
 			byteBuffer = SectionFinder.findSectionByte(ehdr, file, shdr.section_name);
 			calculationRelocation(shdr, byteBuffer, ".rel.debug_line");
-			//
-			//			byteBuffer.position(0x2390);
-			//			System.out.println(byteBuffer.get());
-			//			byteBuffer.position(0);
-
 			int x = 0;
 			while (((ByteBuffer) byteBuffer).hasRemaining() && x < compileUnits.size()) {
 				int r = parseHeader(byteBuffer, compileUnits.get(x));
