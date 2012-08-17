@@ -72,7 +72,7 @@ public class Dwarf {
 		return 26;
 	}
 
-	public int initElf(File file) {
+	private int initElf(File file) {
 		isLoading = true;
 		if (!file.isFile()) {
 			System.err.println(file.getAbsolutePath() + " is not a file!!!");

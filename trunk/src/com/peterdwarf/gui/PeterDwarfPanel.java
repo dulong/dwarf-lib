@@ -163,21 +163,23 @@ public class PeterDwarfPanel extends JPanel {
 		node.children.add(abbrevNode);
 
 		LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList = dwarf.abbrevList;
-		for (Integer abbrevOffset : abbrevList.keySet()) {
-			DwarfTreeNode abbrevSubnode = new DwarfTreeNode("Abbrev offset=" + abbrevOffset);
-			abbrevNode.children.add(abbrevSubnode);
-			LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
-			for (Integer abbrevNo : abbrevHashtable.keySet()) {
-				Abbrev abbrev = abbrevHashtable.get(abbrevNo);
-				DwarfTreeNode abbrevSubnode2 = new DwarfTreeNode(abbrev.number + ": " + Definition.getTagName(abbrev.tag) + " "
-						+ (abbrev.has_children ? "has children" : "no children"));
-				abbrevSubnode.children.add(abbrevSubnode2);
-				for (AbbrevEntry entry : abbrev.entries) {
-					DwarfTreeNode abbrevSubnode3 = new DwarfTreeNode(entry.at + "\t" + entry.form + "\t" + Definition.getATName(entry.at) + "\t"
-							+ Definition.getFormName(entry.form));
-					abbrevSubnode2.children.add(abbrevSubnode3);
-				}
+		if (abbrevList != null) {
+			for (Integer abbrevOffset : abbrevList.keySet()) {
+				DwarfTreeNode abbrevSubnode = new DwarfTreeNode("Abbrev offset=" + abbrevOffset);
+				abbrevNode.children.add(abbrevSubnode);
+				LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
+				for (Integer abbrevNo : abbrevHashtable.keySet()) {
+					Abbrev abbrev = abbrevHashtable.get(abbrevNo);
+					DwarfTreeNode abbrevSubnode2 = new DwarfTreeNode(abbrev.number + ": " + Definition.getTagName(abbrev.tag) + " "
+							+ (abbrev.has_children ? "has children" : "no children"));
+					abbrevSubnode.children.add(abbrevSubnode2);
+					for (AbbrevEntry entry : abbrev.entries) {
+						DwarfTreeNode abbrevSubnode3 = new DwarfTreeNode(entry.at + "\t" + entry.form + "\t" + Definition.getATName(entry.at) + "\t"
+								+ Definition.getFormName(entry.form));
+						abbrevSubnode2.children.add(abbrevSubnode3);
+					}
 
+				}
 			}
 		}
 		// end init abbrev nodes
