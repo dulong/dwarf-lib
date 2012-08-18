@@ -1,13 +1,78 @@
 package com.peterdwarf.dwarf;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
+import java.util.Vector;
+
+import com.peter.AR;
+import com.peter.PeterAR;
 
 public class DwarfLib {
 	private static final boolean WORDS_BIGENDIAN = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
+
+	public static Vector<Dwarf> init(File file) {
+		Vector<Dwarf> dwarfVector = new Vector<Dwarf>();
+		if (isArchive(file)) {
+			PeterAR peterAR = new PeterAR();
+			Vector<AR> data = peterAR.init(file);
+			if (data != null) {
+				System.out.println(data.size());
+				for (AR ar : data) {
+					try {
+						File temp = File.createTempFile("peterDwarf", ".peterDwarf");
+						System.out.println(ar.filename + " , " + temp.getAbsolutePath());
+						FileOutputStream out = new FileOutputStream(temp);
+						out.write(ar.bytes);
+						out.close();
+						Dwarf dwarf = new Dwarf();
+						int r = dwarf.initElf(temp, ar.filename);
+						temp.delete();
+						if (r > 0 && r != 24) {
+							return null;
+						}
+						dwarfVector.add(dwarf);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		} else {
+			Dwarf dwarf = new Dwarf();
+			int r = dwarf.initElf(file, null);
+			if (r > 0) {
+				return null;
+			}
+			dwarfVector.add(dwarf);
+		}
+		return dwarfVector;
+	}
+
+	public static boolean isArchive(File file) {
+		InputStream is;
+		try {
+			is = new FileInputStream(file);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return false;
+		}
+		try {
+			if (is.read() != 0x21 || is.read() != 0x3c || is.read() != 0x61 || is.read() != 0x72 || is.read() != 0x63 || is.read() != 0x68 || is.read() != 0x3e) {
+				return false;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
 
 	public static int readUHalf(RandomAccessFile f) throws IOException {
 		if (WORDS_BIGENDIAN)
@@ -84,7 +149,7 @@ public class DwarfLib {
 
 		while (true) {
 			b = buf.get();
-			val |= ((long) (b & 0x7f))  << shift;
+			val |= ((long) (b & 0x7f)) << shift;
 			if ((b & 0x80) == 0)
 				break;
 			shift += 7;
@@ -92,32 +157,32 @@ public class DwarfLib {
 
 		return val;
 	}
-	
-//	public static long getUleb128(ByteBuffer buf) {
-//		long result = 0;
-//		int num_read = 0;
-//		int shift = 0;
-//		int b;
-//
-//		int x = 0;
-//		do {
-//			b = buf.get();
-//			num_read++;
-//
-//			result |= ((long) (b & 0x7f)) << shift;
-//
-//			shift += 7;
-//
-//		} while ((b & 0x80) != 0);
-//
-////		length_return[0] = num_read;
-//
-////		if (sign != 0 && shift < 8 * 4 && (b & 0x40) != 0) {
-//			result |= -1L << shift;
-////		}
-//
-//		return result;
-//	}
+
+	//	public static long getUleb128(ByteBuffer buf) {
+	//		long result = 0;
+	//		int num_read = 0;
+	//		int shift = 0;
+	//		int b;
+	//
+	//		int x = 0;
+	//		do {
+	//			b = buf.get();
+	//			num_read++;
+	//
+	//			result |= ((long) (b & 0x7f)) << shift;
+	//
+	//			shift += 7;
+	//
+	//		} while ((b & 0x80) != 0);
+	//
+	////		length_return[0] = num_read;
+	//
+	////		if (sign != 0 && shift < 8 * 4 && (b & 0x40) != 0) {
+	//			result |= -1L << shift;
+	////		}
+	//
+	//		return result;
+	//	}
 
 	public static int getSLEB128(ByteBuffer buffer) {
 		int result = 0;

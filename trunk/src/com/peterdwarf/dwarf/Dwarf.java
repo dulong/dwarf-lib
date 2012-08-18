@@ -3,18 +3,14 @@ package com.peterdwarf.dwarf;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 
-import com.peter.AR;
-import com.peter.PeterAR;
 import com.peterdwarf.DwarfGlobal;
 import com.peterdwarf.elf.Elf32_Ehdr;
 import com.peterdwarf.elf.Elf32_Shdr;
@@ -23,6 +19,7 @@ import com.peterdwarf.elf.Elf_Common;
 import com.peterdwarf.elf.SectionFinder;
 
 public class Dwarf {
+
 	public ByteBuffer byteBuffer;
 	public ByteBuffer debug_abbrevBuffer;
 	public ByteBuffer debug_bytes;
@@ -39,41 +36,7 @@ public class Dwarf {
 	public String loadingMessage;
 	public Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
 
-	public int init(File file) {
-		if (isArchive(file)) {
-			PeterAR peterAR = new PeterAR();
-			Vector<AR> data = peterAR.init(file);
-			if (data != null) {
-				System.out.println(data.size());
-				for (AR ar : data) {
-					try {
-						File temp = File.createTempFile("peterDwarf", ".peterDwarf");
-						System.out.println(ar.filename + " , " + temp.getAbsolutePath());
-						FileOutputStream out = new FileOutputStream(temp);
-						out.write(ar.bytes);
-						out.close();
-						int r = initElf(temp, ar.filename);
-						temp.delete();
-						if (r == 14) {
-							System.out.println(ar.filename);
-						}
-						if (r > 0 && r != 24) {
-							return r;
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-						return 27;
-					}
-				}
-				return 0;
-			}
-		} else {
-			return initElf(file, null);
-		}
-		return 26;
-	}
-
-	private int initElf(File file, String realFilename) {
+	public int initElf(File file, String realFilename) {
 		this.file = file;
 		this.realFilename = realFilename;
 
@@ -201,25 +164,6 @@ public class Dwarf {
 		}
 		isLoading = false;
 		return 0;
-	}
-
-	private boolean isArchive(File file) {
-		InputStream is;
-		try {
-			is = new FileInputStream(file);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			return false;
-		}
-		try {
-			if (is.read() != 0x21 || is.read() != 0x3c || is.read() != 0x61 || is.read() != 0x72 || is.read() != 0x63 || is.read() != 0x68 || is.read() != 0x3e) {
-				return false;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		}
-		return true;
 	}
 
 	public boolean isELF(File file) {

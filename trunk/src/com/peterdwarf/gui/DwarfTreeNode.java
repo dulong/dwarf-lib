@@ -15,7 +15,7 @@ public class DwarfTreeNode implements TreeNode {
 	boolean allowsChildren;
 	DwarfTreeNode parent;
 	Dwarf dwarf;
-	String text;
+	private String text;
 	String tooltip;
 
 	boolean addImageObserver;

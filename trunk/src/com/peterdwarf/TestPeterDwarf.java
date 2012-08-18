@@ -1,10 +1,7 @@
 package com.peterdwarf;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
+import java.util.Vector;
 
 import com.peterdwarf.dwarf.CompileUnit;
 import com.peterdwarf.dwarf.DebugInfoAbbrevEntry;
@@ -12,6 +9,7 @@ import com.peterdwarf.dwarf.DebugInfoEntry;
 import com.peterdwarf.dwarf.Dwarf;
 import com.peterdwarf.dwarf.DwarfDebugLineHeader;
 import com.peterdwarf.dwarf.DwarfHeaderFilename;
+import com.peterdwarf.dwarf.DwarfLib;
 import com.peterdwarf.dwarf.DwarfLine;
 
 public class TestPeterDwarf {
@@ -30,11 +28,11 @@ public class TestPeterDwarf {
 		Dwarf dwarf = new Dwarf();
 		File file = new File(args[0]);
 
-		int r = dwarf.init(file);
-		if (r > 0) {
+		Vector<Dwarf> dwarfLib = DwarfLib.init(file);
+		if (dwarfLib == null) {
 			System.err.println("dwarf init fail");
 			//$hide>>$
-			System.exit(r);
+			System.exit(1);
 			//$hide<<$
 		} else if (DwarfGlobal.debug) {
 			System.out.println(".debug_info:");
