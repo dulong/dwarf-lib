@@ -2,12 +2,10 @@ package com.peterdwarf.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Vector;
@@ -83,8 +81,8 @@ public class PeterDwarfPanel extends JPanel {
 		expandAllButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				filterTreeModel.reload();
-				
-//				CommonLib.expandAll(tree, true);
+
+				//				CommonLib.expandAll(tree, true);
 			}
 		});
 		toolBar.add(expandAllButton);
@@ -125,6 +123,7 @@ public class PeterDwarfPanel extends JPanel {
 	public void init(final File file) {
 		Vector<Dwarf> dwarfVector = DwarfLib.init(file);
 		for (Dwarf dwarf : dwarfVector) {
+			System.out.println("dwarf=" + dwarf);
 			dwarfs.add(dwarf);
 			if (dwarfVector == null) {
 				JOptionPane.showMessageDialog(this, "dwarf init fail");
@@ -244,7 +243,6 @@ public class PeterDwarfPanel extends JPanel {
 			// end init headers
 		}
 
-		filterTreeModel.nodeStructureChanged(root);
 		filterTreeModel.nodeChanged(root);
 	}
 }

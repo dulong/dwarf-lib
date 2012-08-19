@@ -28,7 +28,7 @@ public class DwarfLib {
 				for (AR ar : data) {
 					try {
 						File temp = File.createTempFile("peterDwarf", ".peterDwarf");
-						System.out.println(ar.filename + " , " + temp.getAbsolutePath());
+						System.out.println(ar.filename);
 						FileOutputStream out = new FileOutputStream(temp);
 						out.write(ar.bytes);
 						out.close();
