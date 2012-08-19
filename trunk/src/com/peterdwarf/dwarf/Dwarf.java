@@ -197,7 +197,6 @@ public class Dwarf {
 			symbol.st_other = symtab.get();
 			symbol.st_shndx = symtab.getShort();
 			symbol.name = DwarfLib.getString(strtab, symbol.st_name);
-			System.out.println("symbol.name ="+symbol.name );
 			symbols.add(symbol);
 		}
 		return symbols;
@@ -856,5 +855,15 @@ public class Dwarf {
 		} catch (Exception ex) {
 			return 18;
 		}
+	}
+
+	@Override
+	public String toString() {
+		if (realFilename != null) {
+			return realFilename;
+		} else if (file != null) {
+			return file.getName();
+		}
+		return super.toString();
 	}
 }

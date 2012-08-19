@@ -83,7 +83,8 @@ public class PeterDwarfPanel extends JPanel {
 		expandAllButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				filterTreeModel.reload();
-				CommonLib.expandAll(tree, true);
+				
+//				CommonLib.expandAll(tree, true);
 			}
 		});
 		toolBar.add(expandAllButton);

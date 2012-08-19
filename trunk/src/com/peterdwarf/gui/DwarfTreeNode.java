@@ -86,4 +86,13 @@ public class DwarfTreeNode implements TreeNode {
 		this.text = text;
 	}
 
+	@Override
+	public String toString() {
+		if (dwarf == null) {
+			return text;
+		} else {
+			return dwarf.toString();
+		}
+	}
+
 }
