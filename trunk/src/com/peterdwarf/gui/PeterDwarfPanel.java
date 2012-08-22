@@ -235,7 +235,7 @@ public class PeterDwarfPanel extends JPanel {
 				DwarfTreeNode lineInfoNode = new DwarfTreeNode("line info");
 				headerSubnode.children.add(lineInfoNode);
 				for (DwarfLine line : header.lines) {
-					DwarfTreeNode lineSubnode = new DwarfTreeNode("file_numer: " + line.file_num + ", line_num:" + line.line_num + ", column_num: " + line.column_num
+					DwarfTreeNode lineSubnode = new DwarfTreeNode("file_num: " + line.file_num + ", line_num:" + line.line_num + ", column_num: " + line.column_num
 							+ ", address: 0x" + line.address.toString(16));
 					lineInfoNode.children.add(lineSubnode);
 				}

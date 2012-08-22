@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 
@@ -19,7 +20,6 @@ import com.peterdwarf.elf.Elf_Common;
 import com.peterdwarf.elf.SectionFinder;
 
 public class Dwarf {
-
 	public ByteBuffer byteBuffer;
 	public ByteBuffer debug_abbrevBuffer;
 	public ByteBuffer debug_bytes;
@@ -690,7 +690,7 @@ public class Dwarf {
 			debugLineBytes.get();
 
 			BigInteger address = BigInteger.ZERO;
-			long file_num = 1;
+			long file_num = 0;
 			int line_num = 1;
 			long column_num = 0;
 			boolean is_stmt = dwarfDebugLineHeader.default_is_stmt;
@@ -713,6 +713,9 @@ public class Dwarf {
 					if (DwarfGlobal.debug) {
 						System.out.println("Special opcode:" + opcode + ",\tadvance address by " + advance_address + " to 0x" + address.toString(16) + ", line by " + advance_line
 								+ " to " + line_num);
+					}
+					if (address.compareTo(BigInteger.valueOf(0x65)) == 0 && line_num == 35) {
+						System.out.println("fuck");
 					}
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_extended_op) {
 					long size = DwarfLib.getULEB128(debugLineBytes);
@@ -787,10 +790,11 @@ public class Dwarf {
 					continue;
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_file) {
 					long fileno = DwarfLib.getULEB128(debugLineBytes);
-					file_num = fileno;
+					file_num = fileno-1;
 					if (DwarfGlobal.debug) {
-						System.out.println("set file, file=" + line_num);
+						System.out.println("set file, file=" + file_num);
 					}
+					continue;
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_column) {
 					long colno = DwarfLib.getULEB128(debugLineBytes);
 					column_num = colno;
@@ -802,6 +806,7 @@ public class Dwarf {
 					if (DwarfGlobal.debug) {
 						System.out.println("!stmt, stmt=" + is_stmt);
 					}
+					continue;
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_basic_block) {
 					basic_block = true;
 					if (DwarfGlobal.debug) {
@@ -841,13 +846,15 @@ public class Dwarf {
 
 				DwarfLine dwarfLine = new DwarfLine();
 				dwarfLine.address = address;
-				dwarfLine.file_num = file_num - 1;
+				dwarfLine.file_num = file_num;
 				dwarfLine.line_num = line_num;
 				dwarfLine.column_num = column_num;
 				dwarfLine.is_stmt = is_stmt;
 				dwarfLine.basic_block = basic_block;
 				dwarfDebugLineHeader.lines.add(dwarfLine);
+				System.out.println("DATA>>" + dwarfLine.address.toString(16) + ", " + dwarfLine.file_num + ", " + dwarfLine.line_num);
 			}
+			Collections.sort(dwarfDebugLineHeader.lines);
 			debugLineBytes.position(end);
 
 			headers.add(dwarfDebugLineHeader);
