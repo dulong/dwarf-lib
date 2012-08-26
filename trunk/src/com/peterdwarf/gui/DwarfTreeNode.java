@@ -7,8 +7,9 @@ import javax.swing.ImageIcon;
 import javax.swing.tree.TreeNode;
 
 import com.peterdwarf.dwarf.Dwarf;
+import com.peterswing.FilterTreeNode;
 
-public class DwarfTreeNode implements TreeNode {
+public class DwarfTreeNode extends FilterTreeNode {
 	ImageIcon loadingIcon = new ImageIcon(DwarfTreeCellRenderer.class.getResource("/com/peterdwarf/gui/ajax-loader.gif"));
 
 	Vector<DwarfTreeNode> children = new Vector<DwarfTreeNode>();

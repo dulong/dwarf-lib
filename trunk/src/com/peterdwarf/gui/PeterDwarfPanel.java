@@ -35,13 +35,14 @@ import com.peterdwarf.dwarf.DwarfLib;
 import com.peterdwarf.dwarf.DwarfLine;
 import com.peterdwarf.elf.Elf32_Shdr;
 import com.peterswing.CommonLib;
+import com.peterswing.FilterTreeModel;
 import com.peterswing.advancedswing.searchtextfield.JSearchTextField;
 
 public class PeterDwarfPanel extends JPanel {
 	DwarfTreeCellRenderer treeCellRenderer = new DwarfTreeCellRenderer();
 	DwarfTreeNode root = new DwarfTreeNode("Elf files");
 	DefaultTreeModel treeModel = new DefaultTreeModel(root);
-	MyFilterTreeModel filterTreeModel = new MyFilterTreeModel(treeModel);
+	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel);
 	JTree tree = new JTree(filterTreeModel);
 	Vector<File> files = new Vector<File>();
 	public Vector<Dwarf> dwarfs = new Vector<Dwarf>();
@@ -102,7 +103,7 @@ public class PeterDwarfPanel extends JPanel {
 			public void keyReleased(KeyEvent e) {
 				filterTreeModel.filter = searchTextField.getText();
 				filterTreeModel.reload();
-				CommonLib.expandAll(tree, true);
+//				CommonLib.expandAll(tree, true);
 			}
 		});
 		searchTextField.setMaximumSize(new Dimension(300, 20));
