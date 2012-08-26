@@ -270,7 +270,7 @@ public class Dwarf {
 				initial_length_size = 4;
 			}
 			if (DwarfGlobal.debug) {
-				System.out.println(cu);
+				System.out.println("cu=" + cu);
 			}
 
 			while (debugInfoBytes.position() <= cu.offset + cu.length + 1) {
@@ -278,9 +278,6 @@ public class Dwarf {
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
 				debugInfoEntry.position = debugInfoBytes.position();
 				debugInfoEntry.abbrevNo = (int) DwarfLib.getULEB128(debugInfoBytes);
-				if (abbrevList == null || abbrevList.get(cu.abbrev_offset) == null) {
-					System.out.println("sd");
-				}
 				Abbrev abbrev = abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo);
 				if (abbrev == null) {
 					continue;
@@ -714,9 +711,6 @@ public class Dwarf {
 						System.out.println("Special opcode:" + opcode + ",\tadvance address by " + advance_address + " to 0x" + address.toString(16) + ", line by " + advance_line
 								+ " to " + line_num);
 					}
-					if (address.compareTo(BigInteger.valueOf(0x65)) == 0 && line_num == 35) {
-						System.out.println("fuck");
-					}
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_extended_op) {
 					long size = DwarfLib.getULEB128(debugLineBytes);
 					if (size == 0) {
@@ -790,7 +784,7 @@ public class Dwarf {
 					continue;
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_file) {
 					long fileno = DwarfLib.getULEB128(debugLineBytes);
-					file_num = fileno-1;
+					file_num = fileno - 1;
 					if (DwarfGlobal.debug) {
 						System.out.println("set file, file=" + file_num);
 					}
@@ -852,7 +846,6 @@ public class Dwarf {
 				dwarfLine.is_stmt = is_stmt;
 				dwarfLine.basic_block = basic_block;
 				dwarfDebugLineHeader.lines.add(dwarfLine);
-				System.out.println("DATA>>" + dwarfLine.address.toString(16) + ", " + dwarfLine.file_num + ", " + dwarfLine.line_num);
 			}
 			Collections.sort(dwarfDebugLineHeader.lines);
 			debugLineBytes.position(end);

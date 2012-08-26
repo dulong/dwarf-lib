@@ -24,11 +24,9 @@ public class DwarfLib {
 			PeterAR peterAR = new PeterAR();
 			Vector<AR> data = peterAR.init(file);
 			if (data != null) {
-				System.out.println(data.size());
 				for (AR ar : data) {
 					try {
 						File temp = File.createTempFile("peterDwarf", ".peterDwarf");
-						System.out.println(ar.filename);
 						FileOutputStream out = new FileOutputStream(temp);
 						out.write(ar.bytes);
 						out.close();
