@@ -19,13 +19,9 @@ public class MyFilterTreeModel extends FilterTreeModel {
 		if (treeNode == null) {
 			return false;
 		} else if (treeNode.getText() == null) {
-			if (treeNode.dwarf != null && treeNode.dwarf.file != null && treeNode.dwarf.file.getAbsolutePath().toLowerCase().contains(filter.toLowerCase())) {
-				return true;
-			} else {
-				return false;
-			}
+			return true;
+		} else {
+			return treeNode.getText().toLowerCase().contains(filter.toLowerCase());
 		}
-
-		return treeNode.getText().toLowerCase().contains(filter.toLowerCase());
 	}
 }
