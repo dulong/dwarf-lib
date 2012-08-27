@@ -103,6 +103,7 @@ public class PeterDwarfPanel extends JPanel {
 			public void keyReleased(KeyEvent e) {
 				filterTreeModel.filter = searchTextField.getText();
 				filterTreeModel.reload();
+				tree.updateUI();
 //				CommonLib.expandAll(tree, true);
 			}
 		});
