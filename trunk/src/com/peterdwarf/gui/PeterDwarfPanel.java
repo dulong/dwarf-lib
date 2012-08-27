@@ -42,7 +42,7 @@ public class PeterDwarfPanel extends JPanel {
 	DwarfTreeCellRenderer treeCellRenderer = new DwarfTreeCellRenderer();
 	DwarfTreeNode root = new DwarfTreeNode("Elf files");
 	DefaultTreeModel treeModel = new DefaultTreeModel(root);
-	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel);
+	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel, 1);
 	JTree tree = new JTree(filterTreeModel);
 	Vector<File> files = new Vector<File>();
 	public Vector<Dwarf> dwarfs = new Vector<Dwarf>();
@@ -104,7 +104,7 @@ public class PeterDwarfPanel extends JPanel {
 				filterTreeModel.filter = searchTextField.getText();
 				filterTreeModel.reload();
 				tree.updateUI();
-//				CommonLib.expandAll(tree, true);
+				//				CommonLib.expandAll(tree, true);
 			}
 		});
 		searchTextField.setMaximumSize(new Dimension(300, 20));
