@@ -19,12 +19,6 @@ public class DwarfTreeModel implements javax.swing.tree.TreeModel {
 	}
 
 	@Override
-	public void addTreeModelListener(TreeModelListener arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public Object getChild(Object node, int x) {
 		return ((DwarfTreeNode) node).getChildAt(x);
 	}
@@ -37,7 +31,6 @@ public class DwarfTreeModel implements javax.swing.tree.TreeModel {
 
 	@Override
 	public int getIndexOfChild(Object arg0, Object arg1) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
@@ -53,13 +46,15 @@ public class DwarfTreeModel implements javax.swing.tree.TreeModel {
 
 	@Override
 	public void removeTreeModelListener(TreeModelListener arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
+	public void addTreeModelListener(TreeModelListener arg0) {
+	}
+
+	@Override
 	public void valueForPathChanged(TreePath arg0, Object arg1) {
-		// TODO Auto-generated method stub
 
 	}
 
