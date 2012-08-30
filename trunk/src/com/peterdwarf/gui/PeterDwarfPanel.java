@@ -207,7 +207,7 @@ public class PeterDwarfPanel extends JPanel {
 
 						Vector<DwarfDebugLineHeader> headers = dwarf.headers;
 
-						for (DwarfDebugLineHeader header : headers) {System.out.println("dwarf=" + dwarf);
+						for (DwarfDebugLineHeader header : headers) {
 							DwarfTreeNode headerSubnode = new DwarfTreeNode("Offset: 0x" + Long.toHexString(header.offset) + ", Length: " + header.total_length
 									+ ", DWARF Version: " + header.version + ", Prologue Length: " + header.prologue_length + ", Minimum Instruction Length: "
 									+ header.minimum_instruction_length + ", Initial value of 'is_stmt': " + (header.default_is_stmt ? 1 : 0) + ", Line Base: " + header.line_base
