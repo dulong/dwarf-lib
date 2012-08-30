@@ -21,12 +21,14 @@ public class DwarfTreeNode extends FilterTreeNode {
 
 	boolean addImageObserver;
 
-	public DwarfTreeNode(String text) {
+	public DwarfTreeNode(String text, DwarfTreeNode parent) {
 		this.text = text;
+		this.parent = parent;
 	}
 
-	public DwarfTreeNode(Dwarf dwarf) {
+	public DwarfTreeNode(Dwarf dwarf, DwarfTreeNode parent) {
 		this.dwarf = dwarf;
+		this.parent = parent;
 	}
 
 	@Override

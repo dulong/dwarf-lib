@@ -40,9 +40,9 @@ import com.peterswing.advancedswing.searchtextfield.JSearchTextField;
 
 public class PeterDwarfPanel extends JPanel {
 	DwarfTreeCellRenderer treeCellRenderer = new DwarfTreeCellRenderer();
-	DwarfTreeNode root = new DwarfTreeNode("Elf files");
+	DwarfTreeNode root = new DwarfTreeNode("Elf files", null);
 	DefaultTreeModel treeModel = new DefaultTreeModel(root);
-	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel, 1);
+	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel, 4);
 	JTree tree = new JTree(filterTreeModel);
 	Vector<File> files = new Vector<File>();
 	public Vector<Dwarf> dwarfs = new Vector<Dwarf>();
@@ -103,7 +103,6 @@ public class PeterDwarfPanel extends JPanel {
 			public void keyReleased(KeyEvent e) {
 				filterTreeModel.filter = searchTextField.getText();
 				filterTreeModel.reload();
-				tree.repaint();
 				//				CommonLib.expandAll(tree, true);
 			}
 		});
@@ -124,28 +123,27 @@ public class PeterDwarfPanel extends JPanel {
 
 	public void init(final File file) {
 		final Vector<Dwarf> dwarfVector = DwarfLib.init(file);
-		ExecutorService exec = Executors.newFixedThreadPool(30);
+		ExecutorService exec = Executors.newFixedThreadPool(5);
 		try {
 			for (final Dwarf dwarf : dwarfVector) {
 				exec.submit(new Runnable() {
 					@Override
 					public void run() {
-						//						System.out.println("dwarf=" + dwarf);
 						dwarfs.add(dwarf);
 						if (dwarfVector == null) {
 							System.err.println("dwarf init fail");
 							return;
 						}
 						files.add(file);
-						DwarfTreeNode node = new DwarfTreeNode(dwarf);
+						DwarfTreeNode node = new DwarfTreeNode(dwarf, root);
 						root.children.add(node);
 
 						// init section nodes
-						DwarfTreeNode sectionNodes = new DwarfTreeNode("section");
+						DwarfTreeNode sectionNodes = new DwarfTreeNode("section", node);
 						node.children.add(sectionNodes);
 						for (Elf32_Shdr section : dwarf.sections) {
 							DwarfTreeNode sectionSubNode = new DwarfTreeNode(section.section_name + ", offset: 0x" + Long.toHexString(section.sh_offset) + ", size: 0x"
-									+ Long.toHexString(section.sh_size) + ", addr: 0x" + Long.toHexString(section.sh_addr));
+									+ Long.toHexString(section.sh_size) + ", addr: 0x" + Long.toHexString(section.sh_addr), sectionNodes);
 							String str = "<html><table>";
 							str += "<tr><td>no.</td><td>:</td><td>" + section.number + "</td></tr>";
 							str += "<tr><td>name</td><td>:</td><td>" + section.section_name + "</td></tr>";
@@ -166,23 +164,23 @@ public class PeterDwarfPanel extends JPanel {
 						// enf init section nodes
 
 						// init abbrev nodes
-						DwarfTreeNode abbrevNode = new DwarfTreeNode("abbrev");
+						DwarfTreeNode abbrevNode = new DwarfTreeNode("abbrev", node);
 						node.children.add(abbrevNode);
 
 						LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList = dwarf.abbrevList;
 						if (abbrevList != null) {
 							for (Integer abbrevOffset : abbrevList.keySet()) {
-								DwarfTreeNode abbrevSubnode = new DwarfTreeNode("Abbrev offset=" + abbrevOffset);
+								DwarfTreeNode abbrevSubnode = new DwarfTreeNode("Abbrev offset=" + abbrevOffset, abbrevNode);
 								abbrevNode.children.add(abbrevSubnode);
 								LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
 								for (Integer abbrevNo : abbrevHashtable.keySet()) {
 									Abbrev abbrev = abbrevHashtable.get(abbrevNo);
 									DwarfTreeNode abbrevSubnode2 = new DwarfTreeNode(abbrev.number + ": " + Definition.getTagName(abbrev.tag) + " "
-											+ (abbrev.has_children ? "has children" : "no children"));
+											+ (abbrev.has_children ? "has children" : "no children"), abbrevSubnode);
 									abbrevSubnode.children.add(abbrevSubnode2);
 									for (AbbrevEntry entry : abbrev.entries) {
 										DwarfTreeNode abbrevSubnode3 = new DwarfTreeNode(entry.at + "\t" + entry.form + "\t" + Definition.getATName(entry.at) + "\t"
-												+ Definition.getFormName(entry.form));
+												+ Definition.getFormName(entry.form), abbrevSubnode2);
 										abbrevSubnode2.children.add(abbrevSubnode3);
 									}
 
@@ -192,28 +190,28 @@ public class PeterDwarfPanel extends JPanel {
 						// end init abbrev nodes
 
 						// init compile unit nodes
-						DwarfTreeNode debugLineNode = new DwarfTreeNode("compile unit");
+						DwarfTreeNode debugLineNode = new DwarfTreeNode("compile unit", node);
 						node.children.add(debugLineNode);
 
 						Vector<CompileUnit> compileUnits = dwarf.compileUnits;
 						for (CompileUnit compileUnit : compileUnits) {
 							DwarfTreeNode compileUnitSubnode = new DwarfTreeNode(compileUnit.DW_AT_name + " , offset " + compileUnit.abbrev_offset + " (size "
-									+ compileUnit.addr_size + ")");
+									+ compileUnit.addr_size + ")", debugLineNode);
 							debugLineNode.children.add(compileUnitSubnode);
 						}
 						// end init compile unit nodes
 
 						// init headers
-						DwarfTreeNode headNode = new DwarfTreeNode("header");
+						DwarfTreeNode headNode = new DwarfTreeNode("header", node);
 						node.children.add(headNode);
 
 						Vector<DwarfDebugLineHeader> headers = dwarf.headers;
 
-						for (DwarfDebugLineHeader header : headers) {
+						for (DwarfDebugLineHeader header : headers) {System.out.println("dwarf=" + dwarf);
 							DwarfTreeNode headerSubnode = new DwarfTreeNode("Offset: 0x" + Long.toHexString(header.offset) + ", Length: " + header.total_length
 									+ ", DWARF Version: " + header.version + ", Prologue Length: " + header.prologue_length + ", Minimum Instruction Length: "
 									+ header.minimum_instruction_length + ", Initial value of 'is_stmt': " + (header.default_is_stmt ? 1 : 0) + ", Line Base: " + header.line_base
-									+ ", Line Range: " + header.line_range + ", Opcode Base: " + header.opcode_base);
+									+ ", Line Range: " + header.line_range + ", Opcode Base: " + header.opcode_base, headNode);
 							String str = "<html><table>";
 							str += "<tr><td>offset</td><td>:</td><td>0x" + Long.toHexString(header.offset) + "</td></tr>";
 							str += "<tr><td>total length</td><td>:</td><td>" + header.total_length + "</td></tr>";
@@ -228,23 +226,23 @@ public class PeterDwarfPanel extends JPanel {
 							headerSubnode.tooltip = str;
 							headNode.children.add(headerSubnode);
 
-							DwarfTreeNode dirnamesNode = new DwarfTreeNode("dir name");
+							DwarfTreeNode dirnamesNode = new DwarfTreeNode("dir name", headerSubnode);
 							headerSubnode.children.add(dirnamesNode);
 							for (String dir : header.dirnames) {
-								dirnamesNode.children.add(new DwarfTreeNode(dir));
+								dirnamesNode.children.add(new DwarfTreeNode(dir, dirnamesNode));
 							}
 
-							DwarfTreeNode filenamesNode = new DwarfTreeNode("file name");
+							DwarfTreeNode filenamesNode = new DwarfTreeNode("file name", headerSubnode);
 							headerSubnode.children.add(filenamesNode);
 							for (DwarfHeaderFilename filename : header.filenames) {
-								filenamesNode.children.add(new DwarfTreeNode(filename.file.getAbsolutePath()));
+								filenamesNode.children.add(new DwarfTreeNode(filename.file.getAbsolutePath(), filenamesNode));
 							}
 
-							DwarfTreeNode lineInfoNode = new DwarfTreeNode("line info");
+							DwarfTreeNode lineInfoNode = new DwarfTreeNode("line info", headerSubnode);
 							headerSubnode.children.add(lineInfoNode);
 							for (DwarfLine line : header.lines) {
 								DwarfTreeNode lineSubnode = new DwarfTreeNode("file_num: " + line.file_num + ", line_num:" + line.line_num + ", column_num: " + line.column_num
-										+ ", address: 0x" + line.address.toString(16));
+										+ ", address: 0x" + line.address.toString(16), lineInfoNode);
 								lineInfoNode.children.add(lineSubnode);
 							}
 						}
@@ -261,7 +259,7 @@ public class PeterDwarfPanel extends JPanel {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
+		System.out.println("loadelf end");
 		filterTreeModel.nodeChanged(root);
 	}
 }
