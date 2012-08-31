@@ -14,7 +14,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
@@ -113,7 +115,7 @@ public class PeterDwarfPanel extends JPanel {
 	}
 
 	public void init(String filepath) {
-		init(new File(filepath));
+		init(new File(filepath), null);
 	}
 
 	public void clear() {
@@ -121,7 +123,7 @@ public class PeterDwarfPanel extends JPanel {
 		treeModel.nodeChanged(root);
 	}
 
-	public void init(final File file) {
+	public void init(final File file, final JDialog dialog) {
 		final Vector<Dwarf> dwarfVector = DwarfLib.init(file);
 		ExecutorService exec = Executors.newFixedThreadPool(5);
 		try {
@@ -142,6 +144,7 @@ public class PeterDwarfPanel extends JPanel {
 						DwarfTreeNode sectionNodes = new DwarfTreeNode("section", node);
 						node.children.add(sectionNodes);
 						for (Elf32_Shdr section : dwarf.sections) {
+							showProgress(dialog, "loading dwarf : " + dwarf + ", section : " + section.section_name);
 							DwarfTreeNode sectionSubNode = new DwarfTreeNode(section.section_name + ", offset: 0x" + Long.toHexString(section.sh_offset) + ", size: 0x"
 									+ Long.toHexString(section.sh_size) + ", addr: 0x" + Long.toHexString(section.sh_addr), sectionNodes);
 							String str = "<html><table>";
@@ -170,6 +173,7 @@ public class PeterDwarfPanel extends JPanel {
 						LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList = dwarf.abbrevList;
 						if (abbrevList != null) {
 							for (Integer abbrevOffset : abbrevList.keySet()) {
+								showProgress(dialog, "loading dwarf : " + dwarf + ", Abbrev offset : " + abbrevOffset);
 								DwarfTreeNode abbrevSubnode = new DwarfTreeNode("Abbrev offset=" + abbrevOffset, abbrevNode);
 								abbrevNode.children.add(abbrevSubnode);
 								LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
@@ -261,5 +265,11 @@ public class PeterDwarfPanel extends JPanel {
 		}
 		System.out.println("loadelf end");
 		filterTreeModel.nodeChanged(root);
+	}
+
+	private void showProgress(JDialog dialog, String message) {
+		if (dialog != null) {
+			((JLabel) dialog.getContentPane()).setText(message);
+		}
 	}
 }
