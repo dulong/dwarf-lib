@@ -197,6 +197,7 @@ public class Dwarf {
 			symbol.st_other = symtab.get();
 			symbol.st_shndx = symtab.getShort();
 			symbol.name = DwarfLib.getString(strtab, symbol.st_name);
+			System.out.println("name=" + symbol.name + ", symbol.st_value=" + symbol.st_value);
 			symbols.add(symbol);
 		}
 		return symbols;
