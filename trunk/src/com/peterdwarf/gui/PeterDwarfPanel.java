@@ -115,7 +115,7 @@ public class PeterDwarfPanel extends JPanel {
 	}
 
 	public void init(String filepath) {
-		init(new File(filepath), null);
+		init(new File(filepath), 0, null);
 	}
 
 	public void clear() {
@@ -123,8 +123,8 @@ public class PeterDwarfPanel extends JPanel {
 		treeModel.nodeChanged(root);
 	}
 
-	public void init(final File file, final JDialog dialog) {
-		final Vector<Dwarf> dwarfVector = DwarfLib.init(file);
+	public void init(final File file, long meoryOffset, final JDialog dialog) {
+		final Vector<Dwarf> dwarfVector = DwarfLib.init(file, meoryOffset);
 		ExecutorService exec = Executors.newFixedThreadPool(5);
 		try {
 			for (final Dwarf dwarf : dwarfVector) {

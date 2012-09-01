@@ -28,7 +28,7 @@ public class TestPeterDwarf {
 		Dwarf dwarf = new Dwarf();
 		File file = new File(args[0]);
 
-		Vector<Dwarf> dwarfLib = DwarfLib.init(file);
+		Vector<Dwarf> dwarfLib = DwarfLib.init(file, 0);
 		if (dwarfLib == null) {
 			System.err.println("dwarf init fail");
 			//$hide>>$

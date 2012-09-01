@@ -36,7 +36,7 @@ public class Dwarf {
 	public String loadingMessage;
 	public Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
 
-	public int initElf(File file, String realFilename) {
+	public int initElf(File file, String realFilename, long memoryOffset) {
 		this.file = file;
 		this.realFilename = realFilename;
 
@@ -147,7 +147,7 @@ public class Dwarf {
 			calculationRelocation(shdr, byteBuffer, ".rel.debug_line");
 			int x = 0;
 			while (((ByteBuffer) byteBuffer).hasRemaining() && x < compileUnits.size()) {
-				int r = parseHeader(byteBuffer, compileUnits.get(x));
+				int r = parseHeader(byteBuffer, compileUnits.get(x), memoryOffset);
 				x++;
 				if (r > 0) {
 					return r;
@@ -596,7 +596,7 @@ public class Dwarf {
 		return 0;
 	}
 
-	public int parseHeader(ByteBuffer debugLineBytes, CompileUnit compileUnit) {
+	public int parseHeader(ByteBuffer debugLineBytes, CompileUnit compileUnit, long memoryOffset) {
 		try {
 			final int begin = debugLineBytes.position();
 
@@ -839,7 +839,7 @@ public class Dwarf {
 				}
 
 				DwarfLine dwarfLine = new DwarfLine();
-				dwarfLine.address = address;
+				dwarfLine.address = address.add(BigInteger.valueOf(memoryOffset));
 				dwarfLine.file_num = file_num;
 				dwarfLine.line_num = line_num;
 				dwarfLine.column_num = column_num;

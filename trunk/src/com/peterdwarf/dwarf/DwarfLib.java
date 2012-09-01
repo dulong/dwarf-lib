@@ -18,7 +18,7 @@ import com.peter.PeterAR;
 public class DwarfLib {
 	private static final boolean WORDS_BIGENDIAN = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
 
-	public static Vector<Dwarf> init(File file) {
+	public static Vector<Dwarf> init(File file, long memoryOffset) {
 		Vector<Dwarf> dwarfVector = new Vector<Dwarf>();
 		if (isArchive(file)) {
 			PeterAR peterAR = new PeterAR();
@@ -31,7 +31,7 @@ public class DwarfLib {
 						out.write(ar.bytes);
 						out.close();
 						Dwarf dwarf = new Dwarf();
-						int r = dwarf.initElf(temp, ar.filename);
+						int r = dwarf.initElf(temp, ar.filename, memoryOffset);
 						temp.delete();
 						if (r > 0 && r != 24) {
 							return null;
@@ -44,7 +44,7 @@ public class DwarfLib {
 			}
 		} else {
 			Dwarf dwarf = new Dwarf();
-			int r = dwarf.initElf(file, null);
+			int r = dwarf.initElf(file, null, memoryOffset);
 			if (r > 0) {
 				return null;
 			}
