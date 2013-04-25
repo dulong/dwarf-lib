@@ -1,9 +1,7 @@
 package com.peterdwarf.gui;
 
 import java.awt.Component;
-import java.awt.Dimension;
 
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTree;
 import javax.swing.UIManager;

@@ -66,7 +66,7 @@ public class PeterDwarfPanel extends JPanel {
 		//peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel");
 		//peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel.o");
 		//peterDwarfPanel.init("/Users/peter/workspace/PeterI/app/pshell/pshell.o");
-		peterDwarfPanel.init("/Users/peter/install/i586-peter-elf-newlib/i586-peter-elf/lib/libc.a");
+		peterDwarfPanel.init(args[0]);
 	}
 
 	public PeterDwarfPanel() {

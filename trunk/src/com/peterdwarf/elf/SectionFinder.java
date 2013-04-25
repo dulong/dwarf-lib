@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -134,7 +132,7 @@ public class SectionFinder {
 			// Read the section name from the string table.
 			f.seek(strtabhdr.sh_offset + shdr.sh_name);
 			f.readFully(buf);
-
+System.out.println(Arrays.copyOf(buf, target_bytes.length));
 			if (!Arrays.equals(target_bytes, Arrays.copyOf(buf, target_bytes.length))) {
 				continue outer;
 			}
