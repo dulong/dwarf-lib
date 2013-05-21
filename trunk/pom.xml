@@ -32,13 +32,13 @@
   	</dependency>
   	<dependency>
   		<groupId>com.peter</groupId>
-  		<artifactId>peter-swing</artifactId>
-  		<version>20130429</version>
+  		<artifactId>peter-ar</artifactId>
+  		<version>20130520</version>
   	</dependency>
   	<dependency>
   		<groupId>com.peter</groupId>
-  		<artifactId>peter-ar</artifactId>
-  		<version>20130520</version>
+  		<artifactId>peter-swing</artifactId>
+  		<version>20130429</version>
   	</dependency>
   </dependencies>
 </project>
