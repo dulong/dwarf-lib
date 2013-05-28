@@ -11,8 +11,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Vector;
 
-import com.peter.AR;
-import com.peter.PeterAR;
+import com.peterar.AR;
+import com.peterar.PeterAR;
 
 public class DwarfLib {
 	private static final boolean WORDS_BIGENDIAN = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
