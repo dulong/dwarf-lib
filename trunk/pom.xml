@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.peter</groupId>
   <artifactId>peter-dwarf</artifactId>
-  <version>20130520</version>
+  <version>20131001</version>
   <build>
     <plugins>
       <plugin>
@@ -29,7 +29,7 @@
   	<dependency>
   		<groupId>com.peter</groupId>
   		<artifactId>peter-swing</artifactId>
-  		<version>20130717</version>
+  		<version>20131001</version>
   	</dependency>
   </dependencies>
 </project>
