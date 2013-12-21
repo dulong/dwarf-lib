@@ -56,7 +56,7 @@
 		<dependency>
 			<groupId>com.peter</groupId>
 			<artifactId>peter-swing</artifactId>
-			<version>20131001</version>
+			<version>20131123</version>
 		</dependency>
 	</dependencies>
 	<name>peter-dwarf</name>
