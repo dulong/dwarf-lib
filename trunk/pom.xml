@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.peter</groupId>
 	<artifactId>peter-dwarf</artifactId>
-	<version>20131001</version>
+	<version>20140129</version>
 	<developers>
 		<developer>
 			<id>peter</id>
