@@ -51,12 +51,12 @@
 		<dependency>
 			<groupId>com.peter</groupId>
 			<artifactId>peter-ar</artifactId>
-			<version>20130520</version>
+			<version>20140129</version>
 		</dependency>
 		<dependency>
 			<groupId>com.peter</groupId>
 			<artifactId>peter-swing</artifactId>
-			<version>20131123</version>
+			<version>20140129</version>
 		</dependency>
 	</dependencies>
 	<name>peter-dwarf</name>
