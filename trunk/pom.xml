@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.peter</groupId>
 	<artifactId>peter-dwarf</artifactId>
-	<version>20140717</version>
+	<version>20141215</version>
 	<developers>
 		<developer>
 			<id>peter</id>
@@ -51,12 +51,12 @@
 		<dependency>
 			<groupId>com.peter</groupId>
 			<artifactId>peter-ar</artifactId>
-			<version>20140129</version>
+			<version>20141215</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.mcheung63</groupId>
 			<artifactId>peter-swing</artifactId>
-			<version>20140721</version>
+			<version>20141215</version>
 		</dependency>
 	</dependencies>
 	<name>peter-dwarf</name>
