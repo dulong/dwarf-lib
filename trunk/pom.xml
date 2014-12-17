@@ -4,6 +4,9 @@
 	<groupId>com.peter</groupId>
 	<artifactId>peter-dwarf</artifactId>
 	<version>20141215</version>
+	<name>Peter Dwarf Library</name>
+	<url>https://code.google.com/p/peter-dwarf/</url>
+	<description>A java library to read the dwarf debug specification</description>
 	<developers>
 		<developer>
 			<id>peter</id>
@@ -59,7 +62,4 @@
 			<version>20141215</version>
 		</dependency>
 	</dependencies>
-	<name>peter-dwarf</name>
-	<url>https://code.google.com/p/peter-dwarf/</url>
-	<description>A java library to read the dwarf debug specification</description>
 </project>
