@@ -44,7 +44,7 @@ public class PeterDwarfPanel extends JPanel {
 	DwarfTreeCellRenderer treeCellRenderer = new DwarfTreeCellRenderer();
 	DwarfTreeNode root = new DwarfTreeNode("Elf files", null);
 	DefaultTreeModel treeModel = new DefaultTreeModel(root);
-	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel, 4);
+	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel, 10);
 	JTree tree = new JTree(filterTreeModel);
 	Vector<File> files = new Vector<File>();
 	public Vector<Dwarf> dwarfs = new Vector<Dwarf>();
@@ -63,10 +63,10 @@ public class PeterDwarfPanel extends JPanel {
 		frame.setVisible(true);
 		frame.setLocationRelativeTo(null);
 		//peterDwarfPanel.init("/Users/peter/Desktop/bochs");
-		//peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel");
+		peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel");
 		//peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel.o");
 		//peterDwarfPanel.init("/Users/peter/workspace/PeterI/app/pshell/pshell.o");
-		peterDwarfPanel.init(args[0]);
+		//peterDwarfPanel.init(args[0]);
 	}
 
 	public PeterDwarfPanel() {
@@ -86,6 +86,7 @@ public class PeterDwarfPanel extends JPanel {
 		expandAllButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				filterTreeModel.reload();
+				CommonLib.expandAll(tree, true);
 			}
 		});
 		toolBar.add(expandAllButton);
