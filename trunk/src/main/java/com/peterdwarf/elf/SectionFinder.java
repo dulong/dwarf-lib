@@ -132,7 +132,7 @@ public class SectionFinder {
 			// Read the section name from the string table.
 			f.seek(strtabhdr.sh_offset + shdr.sh_name);
 			f.readFully(buf);
-System.out.println(Arrays.copyOf(buf, target_bytes.length));
+
 			if (!Arrays.equals(target_bytes, Arrays.copyOf(buf, target_bytes.length))) {
 				continue outer;
 			}
