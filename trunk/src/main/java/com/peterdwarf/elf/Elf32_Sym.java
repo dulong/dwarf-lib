@@ -11,11 +11,12 @@ public class Elf32_Sym implements Comparable<Elf32_Sym> {
 
 	@Override
 	public int compareTo(Elf32_Sym o) {
-		System.out.println("hey");
 		if (st_value == o.st_value) {
 			return 0;
-		} else {
+		} else if (name != null && o.name != null) {
 			return name.compareToIgnoreCase(o.name);
+		} else {
+			return 0;
 		}
 	}
 
