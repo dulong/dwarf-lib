@@ -264,7 +264,6 @@ public class PeterDwarfPanel extends JPanel {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		System.out.println("loadelf end");
 		filterTreeModel.nodeChanged(root);
 	}
 
