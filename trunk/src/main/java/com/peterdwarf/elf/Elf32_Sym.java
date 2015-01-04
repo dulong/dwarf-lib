@@ -20,6 +20,14 @@ public class Elf32_Sym implements Comparable<Elf32_Sym> {
 		}
 	}
 
+	public boolean checkWithinRange(long address) {
+		if (address >= st_value && address <= st_value + st_size) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public String toString() {
 		return name;
 	}
