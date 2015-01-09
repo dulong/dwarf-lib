@@ -489,7 +489,7 @@ public class Dwarf {
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_comp_dir")) {
 							cu.DW_AT_comp_dir = String.valueOf(debugInfoAbbrevEntry.value);
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_low_pc")) {
-							cu.DW_AT_low_pc = (int) Long.parseLong(debugInfoAbbrevEntry.value.toString(), 16);
+							cu.DW_AT_low_pc = (int) Long.parseLong(debugInfoAbbrevEntry.value.toString(), 10);
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_high_pc")) {
 							cu.DW_AT_high_pc = (int) Long.parseLong(debugInfoAbbrevEntry.value.toString(), 16);
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_stmt_list")) {
@@ -505,7 +505,6 @@ public class Dwarf {
 
 			start += cu.length + initial_length_size;
 			debugInfoBytes.position(start);
-			//			debugInfoBytes.get();
 		}
 		return 0;
 	}

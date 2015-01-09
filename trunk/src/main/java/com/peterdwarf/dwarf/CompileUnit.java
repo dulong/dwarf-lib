@@ -2,7 +2,7 @@ package com.peterdwarf.dwarf;
 
 import java.util.Vector;
 
-public class CompileUnit {
+public class CompileUnit implements Comparable<CompileUnit> {
 	public int offset;
 	public int length;
 	public int version;
@@ -25,7 +25,13 @@ public class CompileUnit {
 		str += "  	   Version:       " + version + "\n";
 		str += "  	   Abbrev Offset: " + abbrev_offset + "\n";
 		str += "  	   Pointer Size:  " + addr_size + "\n";
+		str += "  	   Low pc:  " + DW_AT_low_pc + "\n";
+		str += "  	   High pc:  " + DW_AT_high_pc + "\n";
 		return str;
+	}
 
+	@Override
+	public int compareTo(CompileUnit a) {
+		return DW_AT_name.compareTo(a.DW_AT_name);
 	}
 }

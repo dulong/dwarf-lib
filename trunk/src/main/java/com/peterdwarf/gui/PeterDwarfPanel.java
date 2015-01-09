@@ -7,6 +7,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -171,6 +173,8 @@ public class PeterDwarfPanel extends JPanel {
 								}
 							});
 						}
+						while (dwarf.sections.size() != sectionNodes.children.size())
+							;
 						// enf init section nodes
 
 						// init abbrev nodes
@@ -201,23 +205,34 @@ public class PeterDwarfPanel extends JPanel {
 									}
 								});
 							}
+							while (abbrevList.size() != abbrevNode.children.size())
+								;
 						}
 						// end init abbrev nodes
 
 						// init compile unit nodes
-						final DwarfTreeNode debugLineNode = new DwarfTreeNode("compile unit", node);
-						node.children.add(debugLineNode);
+						final DwarfTreeNode compileUnitsNode = new DwarfTreeNode("compile unit", node);
+						node.children.add(compileUnitsNode);
 
 						Vector<CompileUnit> compileUnits = dwarf.compileUnits;
 						for (final CompileUnit compileUnit : compileUnits) {
 							executorService.execute(new Runnable() {
 								public void run() {
-									DwarfTreeNode compileUnitSubnode = new DwarfTreeNode(compileUnit.DW_AT_name + " , offset " + compileUnit.abbrev_offset + " (size "
-											+ compileUnit.addr_size + ")", debugLineNode);
-									debugLineNode.children.add(compileUnitSubnode);
+									DwarfTreeNode compileUnitSubnode = new DwarfTreeNode("0x" + Long.toHexString(compileUnit.DW_AT_low_pc) + " - " + "0x"
+											+ Long.toHexString(compileUnit.DW_AT_low_pc + compileUnit.DW_AT_high_pc - 1) + " " + compileUnit.DW_AT_name + ", offset = "
+											+ compileUnit.abbrev_offset + " (size " + compileUnit.addr_size + ")", compileUnitsNode);
+									compileUnitsNode.children.add(compileUnitSubnode);
 								}
 							});
 						}
+						while (dwarf.compileUnits.size() != compileUnitsNode.children.size())
+							;
+						Collections.sort(compileUnitsNode.children, new Comparator<DwarfTreeNode>() {
+							@Override
+							public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
+								return o1.getText().compareTo(o2.getText());
+							}
+						});
 						// end init compile unit nodes
 
 						// init headers
@@ -225,7 +240,6 @@ public class PeterDwarfPanel extends JPanel {
 						node.children.add(headNode);
 
 						Vector<DwarfDebugLineHeader> headers = dwarf.headers;
-
 						for (final DwarfDebugLineHeader header : headers) {
 							executorService.execute(new Runnable() {
 								public void run() {
@@ -269,9 +283,11 @@ public class PeterDwarfPanel extends JPanel {
 								}
 							});
 						}
-						// end init headers
 
-						executorService.shutdown();
+						while (headers.size() != headNode.children.size())
+							;
+						System.out.println("done");
+						// end init headers
 					}
 				});
 			}
