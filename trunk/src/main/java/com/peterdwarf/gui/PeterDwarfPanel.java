@@ -219,7 +219,7 @@ public class PeterDwarfPanel extends JPanel {
 							executorService.execute(new Runnable() {
 								public void run() {
 									DwarfTreeNode compileUnitSubnode = new DwarfTreeNode("0x" + Long.toHexString(compileUnit.DW_AT_low_pc) + " - " + "0x"
-											+ Long.toHexString(compileUnit.DW_AT_low_pc + compileUnit.DW_AT_high_pc - 1) + " " + compileUnit.DW_AT_name + ", offset = "
+											+ Long.toHexString(compileUnit.DW_AT_low_pc + compileUnit.DW_AT_high_pc - 1) + " - " + compileUnit.DW_AT_name + ", offset = "
 											+ compileUnit.abbrev_offset + " (size " + compileUnit.addr_size + ")", compileUnitsNode);
 									compileUnitsNode.children.add(compileUnitSubnode);
 								}
