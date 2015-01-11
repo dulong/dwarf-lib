@@ -489,9 +489,9 @@ public class Dwarf {
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_comp_dir")) {
 							cu.DW_AT_comp_dir = String.valueOf(debugInfoAbbrevEntry.value);
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_low_pc")) {
-							cu.DW_AT_low_pc = (int) Long.parseLong(debugInfoAbbrevEntry.value.toString(), 10);
+							cu.DW_AT_low_pc = Long.parseLong(debugInfoAbbrevEntry.value.toString(), 10);
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_high_pc")) {
-							cu.DW_AT_high_pc = (int) Long.parseLong(debugInfoAbbrevEntry.value.toString(), 16);
+							cu.DW_AT_high_pc = Long.parseLong(debugInfoAbbrevEntry.value.toString(), 16);
 						} else if (debugInfoAbbrevEntry.name.equals("DW_AT_stmt_list")) {
 							cu.DW_AT_stmt_list = String.valueOf(debugInfoAbbrevEntry.value);
 						}
@@ -864,5 +864,14 @@ public class Dwarf {
 			return file.getName();
 		}
 		return super.toString();
+	}
+
+	public CompileUnit getCompileUnit(long address) {
+		for (CompileUnit cu : compileUnits) {
+			if (address >= cu.DW_AT_high_pc && address <= (cu.DW_AT_high_pc + cu.DW_AT_low_pc - 1)) {
+				return cu;
+			}
+		}
+		return null;
 	}
 }

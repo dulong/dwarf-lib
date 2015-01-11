@@ -308,4 +308,14 @@ public class PeterDwarfPanel extends JPanel {
 			((JLabel) dialog.getContentPane()).setText(message);
 		}
 	}
+
+	public CompileUnit getCompileUnit(long address) {
+		for (Dwarf dwarf : dwarfs) {
+			CompileUnit cu = dwarf.getCompileUnit(address);
+			if (cu != null) {
+				return cu;
+			}
+		}
+		return null;
+	}
 }
