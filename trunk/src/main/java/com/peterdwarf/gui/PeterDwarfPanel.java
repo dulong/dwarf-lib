@@ -286,7 +286,6 @@ public class PeterDwarfPanel extends JPanel {
 
 						while (headers.size() != headNode.children.size())
 							;
-						System.out.println("done");
 						// end init headers
 					}
 				});
