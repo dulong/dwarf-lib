@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.peter</groupId>
 	<artifactId>peter-dwarf</artifactId>
-	<version>20141215</version>
+	<version>20150128</version>
 	<name>Peter Dwarf Library</name>
 	<url>https://code.google.com/p/peter-dwarf/</url>
 	<description>A java library to read the dwarf debug specification</description>
@@ -49,17 +49,17 @@
 		<dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jzlib</artifactId>
-			<version>1.1.2</version>
+			<version>1.1.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.peter</groupId>
 			<artifactId>peter-ar</artifactId>
-			<version>20141215</version>
+			<version>20150128</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.mcheung63</groupId>
 			<artifactId>peter-swing</artifactId>
-			<version>20141215</version>
+			<version>20150128</version>
 		</dependency>
 	</dependencies>
 </project>
