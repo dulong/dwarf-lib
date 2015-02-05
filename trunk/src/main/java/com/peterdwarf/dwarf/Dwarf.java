@@ -9,6 +9,7 @@ import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 
@@ -866,9 +867,20 @@ public class Dwarf {
 		return super.toString();
 	}
 
+	//	int hashCode = -99999;
+	//	Hashtable<Long, CompileUnit> ht;
+
 	public CompileUnit getCompileUnit(long address) {
+		//		if (hashCode != compileUnits.hashCode()) {
+		//			ht = new Hashtable<Long, CompileUnit>();
+		//			hashCode = compileUnits.hashCode();
+		//		}
+		//		if (ht.containsKey(address)) {
+		//			return ht.get(address);
+		//		}
 		for (CompileUnit cu : compileUnits) {
 			if (address >= cu.DW_AT_high_pc && address <= (cu.DW_AT_high_pc + cu.DW_AT_low_pc - 1)) {
+				//				ht.put(address, cu);
 				return cu;
 			}
 		}

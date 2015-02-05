@@ -9,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
