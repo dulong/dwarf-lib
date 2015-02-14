@@ -9,7 +9,6 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -18,20 +17,19 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.ToolTipManager;
-import javax.swing.UIManager;
-import javax.swing.WindowConstants;
 import javax.swing.tree.DefaultTreeModel;
 
 import com.peterdwarf.dwarf.Abbrev;
 import com.peterdwarf.dwarf.AbbrevEntry;
 import com.peterdwarf.dwarf.CompileUnit;
+import com.peterdwarf.dwarf.DebugInfoAbbrevEntry;
+import com.peterdwarf.dwarf.DebugInfoEntry;
 import com.peterdwarf.dwarf.Definition;
 import com.peterdwarf.dwarf.Dwarf;
 import com.peterdwarf.dwarf.DwarfDebugLineHeader;
@@ -51,26 +49,6 @@ public class PeterDwarfPanel extends JPanel {
 	JTree tree = new JTree(filterTreeModel);
 	Vector<File> files = new Vector<File>();
 	public Vector<Dwarf> dwarfs = new Vector<Dwarf>();
-
-	public static void main(String args[]) {
-		try {
-			UIManager.setLookAndFeel("com.peterswing.white.PeterSwingWhiteLookAndFeel");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		JFrame frame = new JFrame();
-		PeterDwarfPanel peterDwarfPanel = new PeterDwarfPanel();
-		frame.getContentPane().add(peterDwarfPanel);
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.setSize(800, 600);
-		frame.setVisible(true);
-		frame.setLocationRelativeTo(null);
-		//peterDwarfPanel.init("/Users/peter/Desktop/bochs");
-		peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel");
-		//peterDwarfPanel.init("/Users/peter/workspace/PeterI/kernel/kernel.o");
-		//peterDwarfPanel.init("/Users/peter/workspace/PeterI/app/pshell/pshell.o");
-		//peterDwarfPanel.init(args[0]);
-	}
 
 	public PeterDwarfPanel() {
 		setLayout(new BorderLayout(0, 0));
@@ -220,9 +198,19 @@ public class PeterDwarfPanel extends JPanel {
 							executorService.execute(new Runnable() {
 								public void run() {
 									DwarfTreeNode compileUnitSubnode = new DwarfTreeNode("0x" + Long.toHexString(compileUnit.DW_AT_low_pc) + " - " + "0x"
-											+ Long.toHexString(compileUnit.DW_AT_low_pc + compileUnit.DW_AT_high_pc - 1) + " - " + compileUnit.DW_AT_name + ", offset = "
-											+ compileUnit.abbrev_offset + " (size " + compileUnit.addr_size + ")", compileUnitsNode);
+											+ Long.toHexString(compileUnit.DW_AT_low_pc + compileUnit.DW_AT_high_pc - 1) + " - " + compileUnit.DW_AT_name + ", offset="
+											+ compileUnit.abbrev_offset + ", length=" + compileUnit.length + " (size " + compileUnit.addr_size + ")", compileUnitsNode);
 									compileUnitsNode.children.add(compileUnitSubnode);
+
+									for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntry) {
+										DwarfTreeNode compileUnitDebugInfoSubnode = new DwarfTreeNode(debugInfoEntry.toString(), compileUnitSubnode);
+										compileUnitSubnode.children.add(compileUnitDebugInfoSubnode);
+
+										for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : debugInfoEntry.debugInfoAbbrevEntry) {
+											DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString(), compileUnitDebugInfoSubnode);
+											compileUnitDebugInfoSubnode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
+										}
+									}
 								}
 							});
 						}

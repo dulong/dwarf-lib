@@ -31,6 +31,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 	public TestPeterDwarfJFrame() {
 		super();
 		initGUI();
+		jOpenButtonActionPerformed(null);
 	}
 
 	private void initGUI() {

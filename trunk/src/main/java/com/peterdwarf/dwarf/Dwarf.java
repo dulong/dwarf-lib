@@ -250,12 +250,13 @@ public class Dwarf {
 				initial_length_size = 4;
 			}
 			if (DwarfGlobal.debug) {
-				System.out.println("cu=" + cu);
+				System.out.println(Integer.toHexString(debugInfoBytes.position()) + " " + cu);
 			}
 
 			while (debugInfoBytes.position() <= cu.offset + cu.length + 1) {
 				loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
+
 				debugInfoEntry.position = debugInfoBytes.position();
 				debugInfoEntry.abbrevNo = (int) DwarfLib.getULEB128(debugInfoBytes);
 				Abbrev abbrev = abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo);
@@ -267,6 +268,7 @@ public class Dwarf {
 
 				if (DwarfGlobal.debug) {
 					System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
+					System.out.flush();
 				}
 				for (AbbrevEntry entry : abbrev.entries) {
 					loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
@@ -561,7 +563,6 @@ public class Dwarf {
 						//System.out.printf("\n");
 					}
 				}
-
 			} catch (Exception e) {
 				e.printStackTrace();
 				debugInfoBytes.position(originalPosition);
