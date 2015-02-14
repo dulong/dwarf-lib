@@ -74,36 +74,10 @@ public class Dwarf {
 				System.err.println("missing section .debug_str");
 				return 24;
 			}
-			// System.out.println(".debug_str:");
-			// DwarfLib.printMappedByteBuffer(debug_str);
-			// System.out.println();
-
 			strtab_bytes = SectionFinder.findSectionByte(ehdr, file, ".strtab");
-			// allStrings =
-			// Charset.forName("ASCII").decode(strtab_str).toString().split("\0");
-
 			symtab_bytes = SectionFinder.findSectionByte(ehdr, file, ".symtab");
-			// System.out.println(".symtab:");
 			symbols = parseSymtab(symtab_bytes, strtab_bytes);
-			// System.out.printf("Num:\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\t%-8s\n",
-			// "Value", "Size", "Type", "Bind", "Vis", "Ndx", "Name");
-			// int x = 0;
-			// for (Elf32_Sym symbol : symbols) {
-			// System.out.printf("%d:\t%08x\t%8d\t%s\t%s\t%s\t\t%s\t", x,
-			// symbol.st_value, symbol.st_size,
-			// Elf_Common.getSTTypeName(Elf_Common.ELF32_ST_TYPE(symbol.st_info)),
-			// Elf_Common.getSTBindName(Elf_Common.ELF32_ST_BIND(symbol.st_info)),
-			// Elf_Common.get_symbol_visibility(Elf_Common.ELF_ST_VISIBILITY(symbol.st_other)),
-			// Elf_Common.get_symbol_index_type((byte) symbol.st_shndx));
-			// System.out.printf("%s", DwarfLib.getString(strtab_str,
-			// symbol.st_name));
-			// System.out.println();
-			// x++;
-			// }
-			// System.out.println();
-
 			debug_abbrevBuffer = SectionFinder.findSectionByte(ehdr, file, ".debug_abbrev");
-			// System.out.println(".debug_abbrev:");
 			abbrevList = parseDebugAbbrev(debug_abbrevBuffer);
 			if (DwarfGlobal.debug) {
 				for (Integer abbrevOffset : abbrevList.keySet()) {
@@ -183,6 +157,12 @@ public class Dwarf {
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
+		} finally {
+			try {
+				is.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		return true;
 	}
@@ -525,9 +505,6 @@ public class Dwarf {
 		}
 		if (debugInfoRelSection != null) {
 			try {
-				// MappedByteBuffer byteBuffer =
-				// SectionFinder.findSectionByte(Dwarf.file,
-				// debugInfoRelSection.section_name);
 				ByteBuffer byteBuffer = SectionFinder.findSectionByte(ehdr, file, relocationInfoSectionName);
 				int size = Integer.MAX_VALUE;
 				if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
@@ -581,8 +558,8 @@ public class Dwarf {
 					}
 
 					if (DwarfGlobal.debug) {
-						//					System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
-						System.out.printf("\n");
+						//System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
+						//System.out.printf("\n");
 					}
 				}
 
@@ -599,10 +576,6 @@ public class Dwarf {
 	public int parseHeader(ByteBuffer debugLineBytes, CompileUnit compileUnit, long memoryOffset) {
 		try {
 			final int begin = debugLineBytes.position();
-
-			//			debugLineBytes.position(0x2a6);
-			//			debugLineBytes.put((byte) 14);
-			//			debugLineBytes.position(begin);
 
 			DwarfDebugLineHeader dwarfDebugLineHeader = new DwarfDebugLineHeader();
 			dwarfDebugLineHeader.offset = debugLineBytes.position();
