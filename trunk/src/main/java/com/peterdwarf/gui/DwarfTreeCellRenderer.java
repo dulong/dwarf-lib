@@ -37,13 +37,6 @@ public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 			if (node.getText() != null) {
 				setText(node.getText());
 			} else if (node.dwarf != null) {
-//				if (node.dwarf.isLoading) {
-//					setText(node.dwarf.loadingMessage);
-//					//					setIcon(node.loadingIcon);
-//				} else if (!node.dwarf.isLoading) {
-//					setText(node.dwarf.file.getAbsolutePath());
-//					//					setIcon(null);
-//				} else 
 				if (node.dwarf.realFilename != null) {
 					setText(node.dwarf.realFilename);
 				} else if (node.dwarf.file != null) {
@@ -64,10 +57,6 @@ public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 
 	class AnimationThread implements Runnable {
 		DwarfTreeNode node;
-
-		private AnimationThread() {
-
-		}
 
 		public AnimationThread(DwarfTreeNode node) {
 			this.node = node;

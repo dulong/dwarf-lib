@@ -9,7 +9,6 @@ import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 

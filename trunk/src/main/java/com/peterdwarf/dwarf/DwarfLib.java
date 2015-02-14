@@ -67,6 +67,12 @@ public class DwarfLib {
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
+		} finally {
+			try {
+				is.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		return true;
 	}
