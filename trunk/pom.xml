@@ -7,6 +7,18 @@
 	<name>Peter Dwarf Library</name>
 	<url>https://code.google.com/p/peter-dwarf/</url>
 	<description>A java library to read the dwarf debug specification</description>
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+				<version>${project.version}</version>
+			</properties>
+		</profile>
+	</profiles>
 	<developers>
 		<developer>
 			<id>peter</id>
@@ -44,6 +56,12 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 	</build>
 	<dependencies>
 		<dependency>
