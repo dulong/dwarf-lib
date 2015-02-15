@@ -18,17 +18,20 @@ public class DwarfTreeNode extends FilterTreeNode {
 	Dwarf dwarf;
 	private String text;
 	String tooltip;
+	Object object;
 
 	boolean addImageObserver;
 
-	public DwarfTreeNode(String text, DwarfTreeNode parent) {
+	public DwarfTreeNode(String text, DwarfTreeNode parent, Object object) {
 		this.text = text;
 		this.parent = parent;
+		this.object = object;
 	}
 
-	public DwarfTreeNode(Dwarf dwarf, DwarfTreeNode parent) {
+	public DwarfTreeNode(Dwarf dwarf, DwarfTreeNode parent, Object object) {
 		this.dwarf = dwarf;
 		this.parent = parent;
+		this.object = object;
 	}
 
 	@Override
