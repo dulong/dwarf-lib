@@ -253,6 +253,8 @@ public class Dwarf {
 				System.out.println(Integer.toHexString(debugInfoBytes.position()) + " " + cu);
 			}
 
+			DebugInfoEntry lastDebugInfoEntry = null;
+
 			while (debugInfoBytes.position() <= cu.offset + cu.length + 1) {
 				loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
@@ -264,7 +266,18 @@ public class Dwarf {
 					continue;
 				}
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
-				cu.debugInfoEntry.add(debugInfoEntry);
+
+				if (lastDebugInfoEntry == null) {
+					cu.debugInfoEntries.add(debugInfoEntry);
+				} else {
+					lastDebugInfoEntry.DebugInfoEntries.add(debugInfoEntry);
+				}
+
+				if (abbrev.tag == Definition.DW_TAG_union_type) {
+					lastDebugInfoEntry = debugInfoEntry;
+				} else if (abbrev.tag != Definition.DW_TAG_member) {
+					lastDebugInfoEntry = null;
+				}
 
 				if (DwarfGlobal.debug) {
 					System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
@@ -274,7 +287,7 @@ public class Dwarf {
 					loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
 
 					DebugInfoAbbrevEntry debugInfoAbbrevEntry = new DebugInfoAbbrevEntry();
-					debugInfoEntry.debugInfoAbbrevEntry.add(debugInfoAbbrevEntry);
+					debugInfoEntry.debugInfoAbbrevEntries.add(debugInfoAbbrevEntry);
 
 					debugInfoAbbrevEntry.name = Definition.getATName(entry.at);
 					debugInfoAbbrevEntry.form = entry.form;

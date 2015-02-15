@@ -43,9 +43,9 @@ public class TestPeterDwarf {
 				System.out.printf("Abbrev Offset: 0x%x\n", compileUnit.offset);
 				System.out.println("Pointer Size: " + compileUnit.addr_size);
 
-				for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntry) {
+				for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntries) {
 					System.out.println("<" + debugInfoEntry.position + "> Abbrev Number: " + debugInfoEntry.abbrevNo + " (" + debugInfoEntry.name + ")");
-					for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : debugInfoEntry.debugInfoAbbrevEntry) {
+					for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : debugInfoEntry.debugInfoAbbrevEntries) {
 						if (debugInfoAbbrevEntry.value == null) {
 							System.out.printf("<%x>\t%s\tnull\n", debugInfoAbbrevEntry.position, debugInfoAbbrevEntry.name);
 						} else if (debugInfoAbbrevEntry.value instanceof String) {

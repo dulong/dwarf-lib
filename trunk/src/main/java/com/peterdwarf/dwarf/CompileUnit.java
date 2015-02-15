@@ -8,7 +8,7 @@ public class CompileUnit implements Comparable<CompileUnit> {
 	public int version;
 	public int abbrev_offset;
 	public int addr_size;
-	public Vector<DebugInfoEntry> debugInfoEntry = new Vector<DebugInfoEntry>();
+	public Vector<DebugInfoEntry> debugInfoEntries = new Vector<DebugInfoEntry>();
 
 	public String DW_AT_producer;
 	public int DW_AT_language;

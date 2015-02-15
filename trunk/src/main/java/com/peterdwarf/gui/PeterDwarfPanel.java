@@ -190,8 +190,8 @@ public class PeterDwarfPanel extends JPanel {
 						// end init abbrev nodes
 
 						// init compile unit nodes
-						final DwarfTreeNode compileUnitsNode = new DwarfTreeNode("compile unit", node, null);
-						node.children.add(compileUnitsNode);
+						final DwarfTreeNode compileUnitNode = new DwarfTreeNode("compile unit", node, null);
+						node.children.add(compileUnitNode);
 
 						Vector<CompileUnit> compileUnits = dwarf.compileUnits;
 						for (final CompileUnit compileUnit : compileUnits) {
@@ -199,14 +199,14 @@ public class PeterDwarfPanel extends JPanel {
 								public void run() {
 									DwarfTreeNode compileUnitSubnode = new DwarfTreeNode("0x" + Long.toHexString(compileUnit.DW_AT_low_pc) + " - " + "0x"
 											+ Long.toHexString(compileUnit.DW_AT_low_pc + compileUnit.DW_AT_high_pc - 1) + " - " + compileUnit.DW_AT_name + ", offset="
-											+ compileUnit.abbrev_offset + ", length=" + compileUnit.length + " (size " + compileUnit.addr_size + ")", compileUnitsNode, compileUnit);
-									compileUnitsNode.children.add(compileUnitSubnode);
+											+ compileUnit.abbrev_offset + ", length=" + compileUnit.length + " (size " + compileUnit.addr_size + ")", compileUnitNode, compileUnit);
+									compileUnitNode.children.add(compileUnitSubnode);
 
-									for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntry) {
+									for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntries) {
 										DwarfTreeNode compileUnitDebugInfoSubnode = new DwarfTreeNode(debugInfoEntry.toString(), compileUnitSubnode, debugInfoEntry);
 										compileUnitSubnode.children.add(compileUnitDebugInfoSubnode);
 
-										for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : debugInfoEntry.debugInfoAbbrevEntry) {
+										for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : debugInfoEntry.debugInfoAbbrevEntries) {
 											DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString(), compileUnitDebugInfoSubnode,
 													debugInfoAbbrevEntry);
 											compileUnitDebugInfoSubnode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
@@ -215,9 +215,9 @@ public class PeterDwarfPanel extends JPanel {
 								}
 							});
 						}
-						while (dwarf.compileUnits.size() != compileUnitsNode.children.size())
+						while (dwarf.compileUnits.size() != compileUnitNode.children.size())
 							;
-						Collections.sort(compileUnitsNode.children, new Comparator<DwarfTreeNode>() {
+						Collections.sort(compileUnitNode.children, new Comparator<DwarfTreeNode>() {
 							@Override
 							public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
 								CompileUnit c1 = (CompileUnit) o1.object;

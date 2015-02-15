@@ -14,8 +14,8 @@ import javax.swing.WindowConstants;
 import com.peterdwarf.gui.PeterDwarfPanel;
 
 public class TestPeterDwarfJFrame extends javax.swing.JFrame {
-	private JToolBar jToolBar1;
-	private JButton jOpenButton;
+	private JToolBar toolBar1;
+	private JButton openButton;
 	private PeterDwarfPanel peterDwarfPanel1;
 
 	public static void main(String[] args) {
@@ -31,7 +31,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 	public TestPeterDwarfJFrame() {
 		super();
 		initGUI();
-		jOpenButtonActionPerformed(null);
+		openButtonActionPerformed(null);
 	}
 
 	private void initGUI() {
@@ -39,15 +39,15 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 			setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 			this.setTitle("Test Peter-dwarf Library");
 			{
-				jToolBar1 = new JToolBar();
-				getContentPane().add(jToolBar1, BorderLayout.NORTH);
+				toolBar1 = new JToolBar();
+				getContentPane().add(toolBar1, BorderLayout.NORTH);
 				{
-					jOpenButton = new JButton();
-					jToolBar1.add(jOpenButton);
-					jOpenButton.setText("Open ELF");
-					jOpenButton.addActionListener(new ActionListener() {
+					openButton = new JButton();
+					toolBar1.add(openButton);
+					openButton.setText("Open ELF");
+					openButton.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent evt) {
-							jOpenButtonActionPerformed(evt);
+							openButtonActionPerformed(evt);
 						}
 					});
 				}
@@ -58,14 +58,13 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 			}
 			pack();
 			setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			this.setSize(768, 596);
+			this.setSize(900, 750);
 		} catch (Exception e) {
-			//add your error handling code here
 			e.printStackTrace();
 		}
 	}
 
-	private void jOpenButtonActionPerformed(ActionEvent evt) {
+	private void openButtonActionPerformed(ActionEvent evt) {
 		File file = new File("/Users/peter/workspace/PeterI/kernel/kernel");
 		peterDwarfPanel1.init(file.getAbsolutePath());
 	}
