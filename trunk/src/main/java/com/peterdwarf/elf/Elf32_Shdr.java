@@ -3,7 +3,7 @@ package com.peterdwarf.elf;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import com.peterdwarf.dwarf.DwarfLib;
+import com.peterdwarf.dwarf.DwarfHelper;
 
 public class Elf32_Shdr {
 	public int number;
@@ -28,16 +28,16 @@ public class Elf32_Shdr {
 
 	public void read(int number, RandomAccessFile f) throws IOException {
 		this.number = number;
-		sh_name = DwarfLib.readUWord(f);
-		sh_type = DwarfLib.readWord(f);
-		sh_flags = DwarfLib.readWord(f);
-		sh_addr = DwarfLib.readUWord(f);
-		sh_offset = DwarfLib.readUWord(f);
-		sh_size = DwarfLib.readUWord(f);
-		sh_link = DwarfLib.readWord(f);
-		sh_info = DwarfLib.readWord(f);
-		sh_addralign = DwarfLib.readWord(f);
-		sh_entsize = DwarfLib.readWord(f);
+		sh_name = DwarfHelper.readUWord(f);
+		sh_type = DwarfHelper.readWord(f);
+		sh_flags = DwarfHelper.readWord(f);
+		sh_addr = DwarfHelper.readUWord(f);
+		sh_offset = DwarfHelper.readUWord(f);
+		sh_size = DwarfHelper.readUWord(f);
+		sh_link = DwarfHelper.readWord(f);
+		sh_info = DwarfHelper.readWord(f);
+		sh_addralign = DwarfHelper.readWord(f);
+		sh_entsize = DwarfHelper.readWord(f);
 	}
 
 	public String toString() {
