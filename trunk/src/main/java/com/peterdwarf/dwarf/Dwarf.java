@@ -254,7 +254,6 @@ public class Dwarf {
 			}
 
 			DebugInfoEntry lastDebugInfoEntry = null;
-
 			while (debugInfoBytes.position() <= cu.offset + cu.length + 1) {
 				loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
@@ -267,15 +266,15 @@ public class Dwarf {
 				}
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
 
-				if (lastDebugInfoEntry == null) {
-					cu.debugInfoEntries.add(debugInfoEntry);
-				} else {
+				if ((abbrev.tag == Definition.DW_TAG_member || abbrev.tag == Definition.DW_TAG_subrange_type) && lastDebugInfoEntry != null) {
 					lastDebugInfoEntry.debugInfoEntries.add(debugInfoEntry);
+				} else {
+					cu.debugInfoEntries.add(debugInfoEntry);
 				}
 
-				if (abbrev.tag == Definition.DW_TAG_union_type) {
+				if (abbrev.tag == Definition.DW_TAG_union_type || abbrev.tag == Definition.DW_TAG_array_type || abbrev.tag == Definition.DW_TAG_structure_type) {
 					lastDebugInfoEntry = debugInfoEntry;
-				} else if (abbrev.tag != Definition.DW_TAG_member) {
+				} else if (abbrev.tag != Definition.DW_TAG_member && abbrev.tag != Definition.DW_TAG_subrange_type) {
 					lastDebugInfoEntry = null;
 				}
 

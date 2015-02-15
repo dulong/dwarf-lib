@@ -12,6 +12,6 @@ public class DebugInfoEntry {
 	public Vector<DebugInfoEntry> debugInfoEntries = new Vector<DebugInfoEntry>();
 
 	public String toString() {
-		return "name=" + name + ", position=0x" + Integer.toHexString(position) + ", abbrevNo=" + abbrevNo;
+		return "0x" + Integer.toHexString(position) + ", " + name + ", abbrevNo=" + abbrevNo;
 	}
 }
