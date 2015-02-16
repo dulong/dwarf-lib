@@ -8,8 +8,11 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Stack;
 import java.util.Vector;
 
 import com.peterdwarf.DwarfGlobal;
@@ -35,6 +38,11 @@ public class Dwarf {
 	public boolean isLoading;
 	public String loadingMessage;
 	public Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
+
+	List<Integer> addSubNode = Arrays.asList(Definition.DW_TAG_union_type, Definition.DW_TAG_array_type, Definition.DW_TAG_structure_type, Definition.DW_TAG_subprogram,
+			Definition.DW_TAG_lexical_block);
+	List<Integer> returnSubNode = Arrays.asList(Definition.DW_TAG_member, Definition.DW_TAG_subrange_type, Definition.DW_TAG_unspecified_parameters, Definition.DW_TAG_variable,
+			Definition.DW_TAG_formal_parameter);
 
 	public int initElf(File file, String realFilename, long memoryOffset) {
 		this.file = file;
@@ -253,7 +261,11 @@ public class Dwarf {
 				System.out.println(Integer.toHexString(debugInfoBytes.position()) + " " + cu);
 			}
 
-			DebugInfoEntry lastDebugInfoEntry = null;
+			//			DebugInfoEntry currentDebugInfoEntry = null;
+			Stack<Vector<DebugInfoEntry>> originalDebugInfoEntry = new Stack<Vector<DebugInfoEntry>>();
+
+			Vector<DebugInfoEntry> currentDebugInfoEntry = cu.debugInfoEntries;
+
 			while (debugInfoBytes.position() <= cu.offset + cu.length + 1) {
 				loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
@@ -266,17 +278,32 @@ public class Dwarf {
 				}
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
 
-				if ((abbrev.tag == Definition.DW_TAG_member || abbrev.tag == Definition.DW_TAG_subrange_type) && lastDebugInfoEntry != null) {
-					lastDebugInfoEntry.debugInfoEntries.add(debugInfoEntry);
-				} else {
-					cu.debugInfoEntries.add(debugInfoEntry);
+				currentDebugInfoEntry.add(debugInfoEntry);
+				if (addSubNode.contains(abbrev.tag)) {
+					originalDebugInfoEntry.push(currentDebugInfoEntry);
+					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
+				} else if (!returnSubNode.contains(abbrev.tag)) {
+					if (originalDebugInfoEntry.size() > 0) {
+						currentDebugInfoEntry = originalDebugInfoEntry.pop();
+					}
 				}
 
-				if (abbrev.tag == Definition.DW_TAG_union_type || abbrev.tag == Definition.DW_TAG_array_type || abbrev.tag == Definition.DW_TAG_structure_type) {
-					lastDebugInfoEntry = debugInfoEntry;
-				} else if (abbrev.tag != Definition.DW_TAG_member && abbrev.tag != Definition.DW_TAG_subrange_type) {
-					lastDebugInfoEntry = null;
-				}
+				//				if (currentDebugInfoEntry != null && returnSubNode.contains(abbrev.tag)) {
+				//					currentDebugInfoEntry.debugInfoEntries.add(debugInfoEntry);
+				//				} else {
+				//					cu.debugInfoEntries.add(debugInfoEntry);
+				//				}
+				//
+				//				if (addSubNode.contains(abbrev.tag)) {
+				//					originalDebugInfoEntry.push(currentDebugInfoEntry);
+				//					currentDebugInfoEntry = debugInfoEntry;
+				//				} else if (!returnSubNode.contains(abbrev.tag)) {
+				//					if (originalDebugInfoEntry.size() > 0) {
+				//						currentDebugInfoEntry = originalDebugInfoEntry.pop();
+				//					} else {
+				//						currentDebugInfoEntry = null;
+				//					}
+				//				}
 
 				if (DwarfGlobal.debug) {
 					System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
