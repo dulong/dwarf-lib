@@ -161,6 +161,14 @@ public class PeterDwarfPanel extends JPanel {
 						node.children.add(abbrevNode);
 
 						final LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList = dwarf.abbrevList;
+						//						Collections.sort(abbrevList.ch, new Comparator<DwarfTreeNode>() {
+						//							@Override
+						//							public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
+						//								CompileUnit c1 = (CompileUnit) o1.object;
+						//								CompileUnit c2 = (CompileUnit) o2.object;
+						//								return new Integer(c1.offset).compareTo(new Integer(c2.offset));
+						//							}
+						//						});
 						if (abbrevList != null) {
 							for (final Integer abbrevOffset : abbrevList.keySet()) {
 								executorService.execute(new Runnable() {
@@ -171,8 +179,7 @@ public class PeterDwarfPanel extends JPanel {
 										LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
 										for (Integer abbrevNo : abbrevHashtable.keySet()) {
 											Abbrev abbrev = abbrevHashtable.get(abbrevNo);
-											DwarfTreeNode abbrevSubnode2 = new DwarfTreeNode(abbrev.number + ": " + Definition.getTagName(abbrev.tag) + ", "
-													+ (abbrev.has_children ? "has children" : "no children"), abbrevSubnode, abbrev);
+											DwarfTreeNode abbrevSubnode2 = new DwarfTreeNode(abbrev.toString(), abbrevSubnode, abbrev);
 											abbrevSubnode.children.add(abbrevSubnode2);
 											for (AbbrevEntry entry : abbrev.entries) {
 												DwarfTreeNode abbrevSubnode3 = new DwarfTreeNode(entry.at + "\t" + entry.form + "\t" + Definition.getATName(entry.at) + "\t"
@@ -186,6 +193,15 @@ public class PeterDwarfPanel extends JPanel {
 							}
 							while (abbrevList.size() != abbrevNode.children.size())
 								;
+
+							Collections.sort(abbrevNode.children, new Comparator<DwarfTreeNode>() {
+								@Override
+								public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
+									String c1 = o1.getText().split("=")[1];
+									String c2 = o2.getText().split("=")[1];
+									return new Integer(c1).compareTo(new Integer(c2));
+								}
+							});
 						}
 						// end init abbrev nodes
 
@@ -226,8 +242,7 @@ public class PeterDwarfPanel extends JPanel {
 										node.children.add(subNode);
 
 										for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : d.debugInfoAbbrevEntries) {
-											DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString(), subNode,
-													debugInfoAbbrevEntry);
+											DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString(), subNode, debugInfoAbbrevEntry);
 											subNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
 										}
 
