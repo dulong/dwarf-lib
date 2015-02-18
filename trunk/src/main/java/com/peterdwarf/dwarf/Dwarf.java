@@ -88,19 +88,15 @@ public class Dwarf {
 			abbrevList = parseDebugAbbrev(debug_abbrevBuffer);
 			if (DwarfGlobal.debug) {
 				for (Integer abbrevOffset : abbrevList.keySet()) {
-					if (DwarfGlobal.debug) {
-						System.out.println("Abbrev offset=" + abbrevOffset);
-					}
+					System.out.println("Abbrev offset=" + abbrevOffset);
 					LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
 					for (Integer abbrevNo : abbrevHashtable.keySet()) {
 						Abbrev abbrev = abbrevHashtable.get(abbrevNo);
 
-						if (DwarfGlobal.debug) {
-							System.out.printf("%d\t%s\t%s\n", abbrev.number, Definition.getTagName(abbrev.tag), abbrev.has_children ? "has children" : "no children");
+						System.out.printf("%d\t%s\t%s\n", abbrev.number, Definition.getTagName(abbrev.tag), abbrev.has_children ? "has children" : "no children");
 
-							for (AbbrevEntry entry : abbrev.entries) {
-								System.out.printf("\t%x\t%x\t%s\t%s\n", entry.at, entry.form, Definition.getATName(entry.at), Definition.getFormName(entry.form));
-							}
+						for (AbbrevEntry entry : abbrev.entries) {
+							System.out.printf("\t%x\t%x\t%s\t%s\n", entry.at, entry.form, Definition.getATName(entry.at), Definition.getFormName(entry.form));
 						}
 					}
 				}

@@ -171,7 +171,7 @@ public class PeterDwarfPanel extends JPanel {
 										LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
 										for (Integer abbrevNo : abbrevHashtable.keySet()) {
 											Abbrev abbrev = abbrevHashtable.get(abbrevNo);
-											DwarfTreeNode abbrevSubnode2 = new DwarfTreeNode(abbrev.number + ": " + Definition.getTagName(abbrev.tag) + " "
+											DwarfTreeNode abbrevSubnode2 = new DwarfTreeNode(abbrev.number + ": " + Definition.getTagName(abbrev.tag) + ", "
 													+ (abbrev.has_children ? "has children" : "no children"), abbrevSubnode, abbrev);
 											abbrevSubnode.children.add(abbrevSubnode2);
 											for (AbbrevEntry entry : abbrev.entries) {
