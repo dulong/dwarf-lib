@@ -14,4 +14,16 @@ public class DebugInfoEntry {
 	public String toString() {
 		return "0x" + Integer.toHexString(position) + ", " + name + ", abbrevNo=" + abbrevNo;
 	}
+
+	public Object getValueByTagName(String tagName) {
+		if (debugInfoAbbrevEntries == null) {
+			return null;
+		}
+		for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : debugInfoAbbrevEntries) {
+			if (debugInfoAbbrevEntry.name.equals(tagName)) {
+				return debugInfoAbbrevEntry.value;
+			}
+		}
+		return null;
+	}
 }

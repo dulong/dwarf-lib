@@ -21,6 +21,7 @@ import com.peterdwarf.elf.Elf32_Shdr;
 import com.peterdwarf.elf.Elf32_Sym;
 import com.peterdwarf.elf.Elf_Common;
 import com.peterdwarf.elf.SectionFinder;
+import com.peterswing.CommonLib;
 
 public class Dwarf {
 	public ByteBuffer byteBuffer;
@@ -259,14 +260,19 @@ public class Dwarf {
 
 			//			DebugInfoEntry currentDebugInfoEntry = null;
 			Stack<Vector<DebugInfoEntry>> originalDebugInfoEntry = new Stack<Vector<DebugInfoEntry>>();
-
 			Vector<DebugInfoEntry> currentDebugInfoEntry = cu.debugInfoEntries;
+			long siblingValue = -1;
 
 			while (debugInfoBytes.position() <= cu.offset + cu.length + 1) {
 				loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
 
 				debugInfoEntry.position = debugInfoBytes.position();
+
+				if (debugInfoEntry.position == siblingValue) {
+					currentDebugInfoEntry = originalDebugInfoEntry.pop();
+				}
+
 				debugInfoEntry.abbrevNo = (int) DwarfHelper.getULEB128(debugInfoBytes);
 				Abbrev abbrev = abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo);
 				if (abbrev == null) {
@@ -274,32 +280,20 @@ public class Dwarf {
 				}
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
 
-				currentDebugInfoEntry.add(debugInfoEntry);
-				if (addSubNode.contains(abbrev.tag)) {
-					originalDebugInfoEntry.push(currentDebugInfoEntry);
-					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
-				} else if (!returnSubNode.contains(abbrev.tag)) {
-					if (originalDebugInfoEntry.size() > 0) {
-						currentDebugInfoEntry = originalDebugInfoEntry.pop();
-					}
-				}
-
-				//				if (currentDebugInfoEntry != null && returnSubNode.contains(abbrev.tag)) {
-				//					currentDebugInfoEntry.debugInfoEntries.add(debugInfoEntry);
-				//				} else {
-				//					cu.debugInfoEntries.add(debugInfoEntry);
-				//				}
-				//
+				//				currentDebugInfoEntry.add(debugInfoEntry);
 				//				if (addSubNode.contains(abbrev.tag)) {
 				//					originalDebugInfoEntry.push(currentDebugInfoEntry);
-				//					currentDebugInfoEntry = debugInfoEntry;
+				//					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
 				//				} else if (!returnSubNode.contains(abbrev.tag)) {
 				//					if (originalDebugInfoEntry.size() > 0) {
 				//						currentDebugInfoEntry = originalDebugInfoEntry.pop();
-				//					} else {
-				//						currentDebugInfoEntry = null;
 				//					}
 				//				}
+
+				//				System.out.println(abbrevList);
+				//				System.out.println(cu.offset);
+				//				System.out.println(debugInfoEntry.abbrevNo);
+				//				System.out.println(abbrevList.get(cu.offset));
 
 				if (DwarfGlobal.debug) {
 					System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
@@ -518,6 +512,16 @@ public class Dwarf {
 						System.out.println();
 					}
 				}
+				currentDebugInfoEntry.add(debugInfoEntry);
+				if (abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo).has_children) {
+					originalDebugInfoEntry.push(currentDebugInfoEntry);
+					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
+					Object obj = debugInfoEntry.getValueByTagName("DW_AT_sibling");
+					if (obj != null) {
+						siblingValue = CommonLib.convertFilesize("0x" + (String) obj);
+					}
+				}
+
 			}
 
 			start += cu.length + initial_length_size;
