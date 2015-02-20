@@ -28,6 +28,10 @@ public class TestPeterDwarf {
 		Dwarf dwarf = new Dwarf();
 		File file = new File(args[0]);
 
+		if (file.isDirectory()) {
+			return;
+		}
+
 		Vector<Dwarf> dwarfLib = DwarfLib.init(file, 0);
 		if (dwarfLib == null) {
 			System.err.println("dwarf init fail");
