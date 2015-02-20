@@ -45,7 +45,7 @@ public class PeterDwarfPanel extends JPanel {
 	DwarfTreeCellRenderer treeCellRenderer = new DwarfTreeCellRenderer();
 	DwarfTreeNode root = new DwarfTreeNode("Elf files", null, null);
 	DefaultTreeModel treeModel = new DefaultTreeModel(root);
-	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel, 10);
+	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel, 10, true);
 	JTree tree = new JTree(filterTreeModel);
 	Vector<File> files = new Vector<File>();
 	public Vector<Dwarf> dwarfs = new Vector<Dwarf>();
