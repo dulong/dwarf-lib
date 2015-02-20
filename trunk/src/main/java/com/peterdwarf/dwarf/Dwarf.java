@@ -516,7 +516,7 @@ public class Dwarf {
 				if (abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo).has_children) {
 					originalDebugInfoEntry.push(currentDebugInfoEntry);
 					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
-					Object obj = debugInfoEntry.getValueByTagName("DW_AT_sibling");
+					Object obj = debugInfoEntry.getDebugInfoAbbrevEntryByName("DW_AT_sibling");
 					if (obj != null) {
 						siblingValue = CommonLib.convertFilesize("0x" + (String) obj);
 					}

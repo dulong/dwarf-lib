@@ -11,6 +11,7 @@ import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import com.peterdwarf.dwarf.DebugInfoEntry;
 import com.peterdwarf.dwarf.DwarfLib;
 import com.peterdwarf.gui.PeterDwarfPanel;
 import com.peterswing.CommonLib;
@@ -70,7 +71,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 		File file = new File("/Users/peter/workspace/PeterI/kernel/kernel");
 		peterDwarfPanel1.init(file.getAbsolutePath());
 
-		System.out.println(DwarfLib.getSubProgram(peterDwarfPanel1.dwarfs, CommonLib.convertFilesize("0x1600000")));
+		DebugInfoEntry debugInfoEntry = DwarfLib.getSubProgram(peterDwarfPanel1.dwarfs, CommonLib.convertFilesize("0x1600000"));
 	}
 
 }
