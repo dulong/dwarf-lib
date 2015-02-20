@@ -171,7 +171,7 @@ public class Dwarf {
 		return true;
 	}
 
-	public static Vector<Elf32_Sym> parseSymtab(ByteBuffer symtab, ByteBuffer strtab) {
+	private static Vector<Elf32_Sym> parseSymtab(ByteBuffer symtab, ByteBuffer strtab) {
 		Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 		while (symtab.remaining() >= 16) {
 			Elf32_Sym symbol = new Elf32_Sym();
@@ -187,7 +187,7 @@ public class Dwarf {
 		return symbols;
 	}
 
-	public LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> parseDebugAbbrev(ByteBuffer debug_abbrev_bytes) {
+	private LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> parseDebugAbbrev(ByteBuffer debug_abbrev_bytes) {
 		LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> vector = new LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>>();
 		LinkedHashMap<Integer, Abbrev> abbrevList = new LinkedHashMap<Integer, Abbrev>();
 
@@ -229,7 +229,7 @@ public class Dwarf {
 		return vector;
 	}
 
-	public int parseDebugInfo(Elf32_Shdr debugInfoSection, ByteBuffer debugInfoBytes) throws OutOfMemoryError {
+	private int parseDebugInfo(Elf32_Shdr debugInfoSection, ByteBuffer debugInfoBytes) throws OutOfMemoryError {
 		if (abbrevList == null) {
 			throw new IllegalArgumentException("abbrevList is null, please call parseDebugAbbrev() first");
 		}
@@ -612,7 +612,7 @@ public class Dwarf {
 		return 0;
 	}
 
-	public int parseHeader(ByteBuffer debugLineBytes, CompileUnit compileUnit, long memoryOffset) {
+	private int parseHeader(ByteBuffer debugLineBytes, CompileUnit compileUnit, long memoryOffset) {
 		try {
 			final int begin = debugLineBytes.position();
 
