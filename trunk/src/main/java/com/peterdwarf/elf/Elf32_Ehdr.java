@@ -3,7 +3,7 @@ package com.peterdwarf.elf;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import com.peterdwarf.dwarf.DwarfHelper;
+import com.peterdwarf.dwarf.DwarfLib;
 
 public class Elf32_Ehdr {
 	public static final int EI_NIDENT = 16;
@@ -28,19 +28,19 @@ public class Elf32_Ehdr {
 
 	public void read(RandomAccessFile f) throws IOException {
 		f.readFully(e_ident);
-		e_type = DwarfHelper.readUHalf(f);
-		e_machine = DwarfHelper.readUHalf(f);
-		e_version = DwarfHelper.readWord(f);
-		e_entry = DwarfHelper.readUWord(f);
-		e_phoff = DwarfHelper.readUWord(f);
-		e_shoff = DwarfHelper.readUWord(f);
-		e_flags = DwarfHelper.readWord(f);
-		e_ehsize = DwarfHelper.readUHalf(f);
-		e_phentsize = DwarfHelper.readUHalf(f);
-		e_phentnum = DwarfHelper.readUHalf(f);
-		e_shentsize = DwarfHelper.readUHalf(f);
-		e_shnum = DwarfHelper.readUHalf(f);
-		e_shstrndx = DwarfHelper.readUHalf(f);
+		e_type = DwarfLib.readUHalf(f);
+		e_machine = DwarfLib.readUHalf(f);
+		e_version = DwarfLib.readWord(f);
+		e_entry = DwarfLib.readUWord(f);
+		e_phoff = DwarfLib.readUWord(f);
+		e_shoff = DwarfLib.readUWord(f);
+		e_flags = DwarfLib.readWord(f);
+		e_ehsize = DwarfLib.readUHalf(f);
+		e_phentsize = DwarfLib.readUHalf(f);
+		e_phentnum = DwarfLib.readUHalf(f);
+		e_shentsize = DwarfLib.readUHalf(f);
+		e_shnum = DwarfLib.readUHalf(f);
+		e_shstrndx = DwarfLib.readUHalf(f);
 	}
 
 	public String toString() {

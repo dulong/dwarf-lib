@@ -34,7 +34,7 @@ import com.peterdwarf.dwarf.Definition;
 import com.peterdwarf.dwarf.Dwarf;
 import com.peterdwarf.dwarf.DwarfDebugLineHeader;
 import com.peterdwarf.dwarf.DwarfHeaderFilename;
-import com.peterdwarf.dwarf.DwarfHelper;
+import com.peterdwarf.dwarf.DwarfLib;
 import com.peterdwarf.dwarf.DwarfLine;
 import com.peterdwarf.elf.Elf32_Shdr;
 import com.peterswing.CommonLib;
@@ -106,7 +106,7 @@ public class PeterDwarfPanel extends JPanel {
 	}
 
 	public void init(final File file, long meoryOffset, final JDialog dialog) {
-		final Vector<Dwarf> dwarfVector = DwarfHelper.init(file, meoryOffset);
+		final Vector<Dwarf> dwarfVector = DwarfLib.init(file, meoryOffset);
 		ExecutorService exec = Executors.newFixedThreadPool(5);
 		try {
 			for (final Dwarf dwarf : dwarfVector) {

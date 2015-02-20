@@ -9,7 +9,7 @@ import com.peterdwarf.dwarf.DebugInfoEntry;
 import com.peterdwarf.dwarf.Dwarf;
 import com.peterdwarf.dwarf.DwarfDebugLineHeader;
 import com.peterdwarf.dwarf.DwarfHeaderFilename;
-import com.peterdwarf.dwarf.DwarfHelper;
+import com.peterdwarf.dwarf.DwarfLib;
 import com.peterdwarf.dwarf.DwarfLine;
 
 public class TestPeterDwarf {
@@ -28,7 +28,7 @@ public class TestPeterDwarf {
 		Dwarf dwarf = new Dwarf();
 		File file = new File(args[0]);
 
-		Vector<Dwarf> dwarfLib = DwarfHelper.init(file, 0);
+		Vector<Dwarf> dwarfLib = DwarfLib.init(file, 0);
 		if (dwarfLib == null) {
 			System.err.println("dwarf init fail");
 			//$hide>>$

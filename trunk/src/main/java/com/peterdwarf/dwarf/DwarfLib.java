@@ -14,7 +14,7 @@ import java.util.Vector;
 import com.peterar.AR;
 import com.peterar.PeterAR;
 
-public class DwarfHelper {
+public class DwarfLib {
 	private static final boolean WORDS_BIGENDIAN = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
 
 	public static Vector<Dwarf> init(File file, long memoryOffset) {
