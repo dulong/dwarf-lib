@@ -246,15 +246,42 @@ public class DwarfLib {
 		System.out.println(" }");
 	}
 
-	public static Vector<DebugInfoEntry> getSubProgram(Vector<Dwarf> dwarfVector, long address) {
+	public static DebugInfoEntry getSubProgram(Vector<Dwarf> dwarfVector, long address) {
 		for (Dwarf dwarf : dwarfVector) {
 			for (CompileUnit compileUnit : dwarf.compileUnits) {
-				if (compileUnit.DW_AT_low_pc == address) {
-					return compileUnit.debugInfoEntries;
+				for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntries) {
+					DebugInfoEntry result = searchDubProgram(debugInfoEntry, address);
+					if (result != null) {
+						return result;
+					}
 				}
+
+				//				if (compileUnit.DW_AT_low_pc == address) {
+				//					return compileUnit.debugInfoEntries;
+				//				}
 			}
 		}
 		return null;
 	}
 
+	private static DebugInfoEntry searchDubProgram(DebugInfoEntry debugInfoEntry, long address) {
+		if (debugInfoEntry.name.equals("DW_TAG_subprogram")) {
+			for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : debugInfoEntry.debugInfoAbbrevEntries) {
+				if (debugInfoAbbrevEntry.name.equals("DW_AT_low_pc")) {
+					System.out.println(debugInfoAbbrevEntry.name + " , " + debugInfoAbbrevEntry.value);
+				}
+				if (debugInfoAbbrevEntry.name.equals("DW_AT_low_pc") && (Long) debugInfoAbbrevEntry.value == address) {
+					return debugInfoEntry;
+				}
+			}
+		}
+
+		for (DebugInfoEntry d : debugInfoEntry.debugInfoEntries) {
+			DebugInfoEntry result = searchDubProgram(d, address);
+			if (result != null) {
+				return result;
+			}
+		}
+		return null;
+	}
 }

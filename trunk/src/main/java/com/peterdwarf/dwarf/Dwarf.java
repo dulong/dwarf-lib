@@ -324,7 +324,7 @@ public class Dwarf {
 						debugInfoAbbrevEntry.value = value;
 					} else if (entry.form == Definition.DW_FORM_addr) {
 						if (cu.addr_size == 4) {
-							int address = debugInfoBytes.getInt();
+							long address = debugInfoBytes.getInt();
 							debugInfoAbbrevEntry.value = address;
 						} else {
 							debugInfoAbbrevEntry.value = null;
