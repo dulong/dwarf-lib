@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -72,6 +73,10 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 		peterDwarfPanel1.init(file.getAbsolutePath());
 
 		DebugInfoEntry debugInfoEntry = DwarfLib.getSubProgram(peterDwarfPanel1.dwarfs, CommonLib.convertFilesize("0x1600000"));
+		Vector<DebugInfoEntry> v = debugInfoEntry.getDebugInfoEntryByName("DW_TAG_formal_parameter");
+		for (DebugInfoEntry d : v) {
+			System.out.println(d.getDebugInfoAbbrevEntryByName("DW_AT_name").value);
+		}
 	}
 
 }
