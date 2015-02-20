@@ -898,4 +898,14 @@ public class Dwarf {
 		}
 		return null;
 	}
+
+	public Vector<DebugInfoEntry> getSubProgram(long address) {
+		for (CompileUnit compileUnit : compileUnits) {
+			if (compileUnit.DW_AT_low_pc == address) {
+				return compileUnit.debugInfoEntries;
+			}
+		}
+		return null;
+	}
+
 }
