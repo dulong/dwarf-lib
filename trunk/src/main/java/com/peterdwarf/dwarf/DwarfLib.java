@@ -246,4 +246,15 @@ public class DwarfLib {
 		System.out.println(" }");
 	}
 
+	public static Vector<DebugInfoEntry> getSubProgram(Vector<Dwarf> dwarfVector, long address) {
+		for (Dwarf dwarf : dwarfVector) {
+			for (CompileUnit compileUnit : dwarf.compileUnits) {
+				if (compileUnit.DW_AT_low_pc == address) {
+					return compileUnit.debugInfoEntries;
+				}
+			}
+		}
+		return null;
+	}
+
 }

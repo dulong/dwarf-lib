@@ -25,7 +25,6 @@ public class DwarfTreeModel implements javax.swing.tree.TreeModel {
 
 	@Override
 	public int getChildCount(Object node) {
-		System.out.println(((DwarfTreeNode) node).getChildCount());
 		return ((DwarfTreeNode) node).getChildCount();
 	}
 

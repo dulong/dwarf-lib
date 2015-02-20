@@ -107,7 +107,6 @@ public class PeterDwarfPanel extends JPanel {
 
 	public void init(final File file, long meoryOffset, final JDialog dialog) {
 		final Vector<Dwarf> dwarfVector = DwarfLib.init(file, meoryOffset);
-		System.out.println(dwarfVector.size());
 		ExecutorService exec = Executors.newFixedThreadPool(5);
 		try {
 			for (final Dwarf dwarf : dwarfVector) {
