@@ -9,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -214,9 +215,11 @@ public class PeterDwarfPanel extends JPanel {
 										DwarfTreeNode compileUnitDebugInfoNode = new DwarfTreeNode(debugInfoEntry.toString(), compileUnitSubnode, debugInfoEntry);
 										compileUnitSubnode.children.add(compileUnitDebugInfoNode);
 
-										for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : debugInfoEntry.debugInfoAbbrevEntries) {
-											DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString(), compileUnitDebugInfoNode,
-													debugInfoAbbrevEntry);
+										Enumeration<String> e = debugInfoEntry.debugInfoAbbrevEntries.keys();
+										while (e.hasMoreElements()) {
+											String key = e.nextElement();
+											DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoEntry.debugInfoAbbrevEntries.get(key).toString(),
+													compileUnitDebugInfoNode, debugInfoEntry.debugInfoAbbrevEntries.get(key));
 											compileUnitDebugInfoNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
 										}
 
@@ -233,8 +236,11 @@ public class PeterDwarfPanel extends JPanel {
 										DwarfTreeNode subNode = new DwarfTreeNode(d.toString(), node, d);
 										node.children.add(subNode);
 
-										for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : d.debugInfoAbbrevEntries) {
-											DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString(), subNode, debugInfoAbbrevEntry);
+										Enumeration<String> e = debugInfoEntry.debugInfoAbbrevEntries.keys();
+										while (e.hasMoreElements()) {
+											String key = e.nextElement();
+											DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoEntry.debugInfoAbbrevEntries.get(key).toString(),
+													subNode, debugInfoEntry.debugInfoAbbrevEntries.get(key));
 											subNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
 										}
 

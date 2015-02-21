@@ -303,9 +303,8 @@ public class Dwarf {
 					loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
 
 					DebugInfoAbbrevEntry debugInfoAbbrevEntry = new DebugInfoAbbrevEntry();
-					debugInfoEntry.debugInfoAbbrevEntries.add(debugInfoAbbrevEntry);
-
 					debugInfoAbbrevEntry.name = Definition.getATName(entry.at);
+					debugInfoEntry.debugInfoAbbrevEntries.put(debugInfoAbbrevEntry.name, debugInfoAbbrevEntry);
 					debugInfoAbbrevEntry.form = entry.form;
 					debugInfoAbbrevEntry.position = debugInfoBytes.position();
 					if (DwarfGlobal.debug) {

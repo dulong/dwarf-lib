@@ -1,6 +1,7 @@
 package com.peterdwarf;
 
 import java.io.File;
+import java.util.Enumeration;
 import java.util.Vector;
 
 import com.peterdwarf.dwarf.CompileUnit;
@@ -49,7 +50,11 @@ public class TestPeterDwarf {
 
 				for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntries) {
 					System.out.println("<" + debugInfoEntry.position + "> Abbrev Number: " + debugInfoEntry.abbrevNo + " (" + debugInfoEntry.name + ")");
-					for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : debugInfoEntry.debugInfoAbbrevEntries) {
+
+					Enumeration<String> e = debugInfoEntry.debugInfoAbbrevEntries.keys();
+					while (e.hasMoreElements()) {
+						String key = e.nextElement();
+						DebugInfoAbbrevEntry debugInfoAbbrevEntry = debugInfoEntry.debugInfoAbbrevEntries.get(key);
 						if (debugInfoAbbrevEntry.value == null) {
 							System.out.printf("<%x>\t%s\tnull\n", debugInfoAbbrevEntry.position, debugInfoAbbrevEntry.name);
 						} else if (debugInfoAbbrevEntry.value instanceof String) {
