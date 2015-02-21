@@ -262,7 +262,7 @@ public class DwarfLib {
 
 	private static DebugInfoEntry searchDubProgram(DebugInfoEntry debugInfoEntry, long address) {
 		if (debugInfoEntry.name.equals("DW_TAG_subprogram")) {
-			if ((long) debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_low_pc").value == address) {
+			if (debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_low_pc") != null && (long) debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_low_pc").value == address) {
 				return debugInfoEntry;
 			}
 		}
