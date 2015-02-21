@@ -29,7 +29,6 @@ import javax.swing.tree.DefaultTreeModel;
 import com.peterdwarf.dwarf.Abbrev;
 import com.peterdwarf.dwarf.AbbrevEntry;
 import com.peterdwarf.dwarf.CompileUnit;
-import com.peterdwarf.dwarf.DebugInfoAbbrevEntry;
 import com.peterdwarf.dwarf.DebugInfoEntry;
 import com.peterdwarf.dwarf.Definition;
 import com.peterdwarf.dwarf.Dwarf;
@@ -67,7 +66,6 @@ public class PeterDwarfPanel extends JPanel {
 		JButton expandAllButton = new JButton("expand");
 		expandAllButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				filterTreeModel.reload();
 				CommonLib.expandAll(tree, true, 4);
 			}
 		});

@@ -16,18 +16,18 @@ public class DebugInfoEntry {
 		return "0x" + Integer.toHexString(position) + ", " + name + ", abbrevNo=" + abbrevNo;
 	}
 
-	public DebugInfoAbbrevEntry getDebugInfoAbbrevEntryByName(String name) {
-		if (debugInfoAbbrevEntries == null) {
-			return null;
-		}
-		//		for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : debugInfoAbbrevEntries) {
-		//			if (debugInfoAbbrevEntry.name.equals(name)) {
-		//				return debugInfoAbbrevEntry;
-		//			}
-		//		}
-		//		return null;
-		return debugInfoAbbrevEntries.get(name);
-	}
+//	public DebugInfoAbbrevEntry getDebugInfoAbbrevEntryByName(String name) {
+//		if (debugInfoAbbrevEntries == null) {
+//			return null;
+//		}
+//		//		for (DebugInfoAbbrevEntry debugInfoAbbrevEntry : debugInfoAbbrevEntries) {
+//		//			if (debugInfoAbbrevEntry.name.equals(name)) {
+//		//				return debugInfoAbbrevEntry;
+//		//			}
+//		//		}
+//		//		return null;
+//		return debugInfoAbbrevEntries.get(name);
+//	}
 
 	public Vector<DebugInfoEntry> getDebugInfoEntryByName(String name) {
 		if (debugInfoEntries == null) {
