@@ -251,11 +251,11 @@ public class PeterDwarfPanel extends JPanel {
 												DwarfTreeNode subNode = new DwarfTreeNode(d.toString(), node, d);
 												node.children.add(subNode);
 
-												Enumeration<String> e = debugInfoEntry.debugInfoAbbrevEntries.keys();
+												Enumeration<String> e = d.debugInfoAbbrevEntries.keys();
 												while (e.hasMoreElements()) {
 													String key = e.nextElement();
-													DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoEntry.debugInfoAbbrevEntries.get(key)
-															.toString(), subNode, debugInfoEntry.debugInfoAbbrevEntries.get(key));
+													DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString(), subNode,
+															d.debugInfoAbbrevEntries.get(key));
 													subNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
 												}
 

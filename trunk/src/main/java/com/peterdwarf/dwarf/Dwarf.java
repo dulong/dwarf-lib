@@ -308,7 +308,7 @@ public class Dwarf {
 					debugInfoAbbrevEntry.form = entry.form;
 					debugInfoAbbrevEntry.position = debugInfoBytes.position();
 					if (DwarfGlobal.debug) {
-						System.out.print("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + debugInfoAbbrevEntry.name);
+						System.out.print("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + entry.form + " = " + debugInfoAbbrevEntry.name);
 					}
 
 					if (entry.form == Definition.DW_FORM_string) {
@@ -362,25 +362,25 @@ public class Dwarf {
 						}
 					} else if (entry.form == Definition.DW_FORM_ref1) {
 						byte data = debugInfoBytes.get();
-						debugInfoAbbrevEntry.value = Integer.toHexString(data);
+						debugInfoAbbrevEntry.value = Integer.toHexString(data + cu.offset);
 						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref2) {
 						short data = debugInfoBytes.getShort();
-						debugInfoAbbrevEntry.value = Integer.toHexString(data);
+						debugInfoAbbrevEntry.value = Integer.toHexString(data + cu.offset);
 						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref4) {
 						int data = debugInfoBytes.getInt();
-						debugInfoAbbrevEntry.value = Integer.toHexString(data);
+						debugInfoAbbrevEntry.value = Integer.toHexString(data + cu.offset);
 						if (DwarfGlobal.debug) {
 							System.out.printf("\t:\t%x %x", data, data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref8) {
 						long data = debugInfoBytes.getLong();
-						debugInfoAbbrevEntry.value = Long.toHexString(data);
+						debugInfoAbbrevEntry.value = Long.toHexString(data + cu.offset);
 						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t" + data);
 						}
