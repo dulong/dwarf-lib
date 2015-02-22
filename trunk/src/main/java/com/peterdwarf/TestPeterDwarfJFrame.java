@@ -9,11 +9,10 @@ import java.io.File;
 import java.util.Vector;
 
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
 import com.peterdwarf.dwarf.DebugInfoEntry;
@@ -27,6 +26,11 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 	private PeterDwarfPanel peterDwarfPanel1;
 
 	public static void main(String[] args) {
+		try {
+			UIManager.setLookAndFeel("com.peterswing.white.PeterSwingWhiteLookAndFeel");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				TestPeterDwarfJFrame inst = new TestPeterDwarfJFrame();

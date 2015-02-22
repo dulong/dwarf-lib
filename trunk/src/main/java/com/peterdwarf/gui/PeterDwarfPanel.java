@@ -17,9 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
@@ -336,14 +334,17 @@ public class PeterDwarfPanel extends JPanel {
 				} finally {
 					exec.shutdown();
 				}
+				try {
+					while (!exec.awaitTermination(200, TimeUnit.SECONDS)) {
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		};
-		try {
-			while (!exec.awaitTermination(200, TimeUnit.MILLISECONDS)) {
-			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		dialog.thread = longRunningThread;
+		dialog.setVisible(true);
+
 		filterTreeModel.nodeChanged(root);
 	}
 
