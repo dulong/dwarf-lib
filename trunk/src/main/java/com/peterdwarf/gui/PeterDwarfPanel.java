@@ -129,7 +129,7 @@ public class PeterDwarfPanel extends JPanel {
 						for (final Elf32_Shdr section : dwarf.sections) {
 							executorService.execute(new Runnable() {
 								public void run() {
-									showProgress(dialog, "loading dwarf : " + dwarf + ", section : " + section.section_name);
+									showProgress(dialog, "Loading debug info : " + dwarf + ", section : " + section.section_name);
 									DwarfTreeNode sectionSubNode = new DwarfTreeNode(section.section_name + ", offset: 0x" + Long.toHexString(section.sh_offset) + ", size: 0x"
 											+ Long.toHexString(section.sh_size) + ", addr: 0x" + Long.toHexString(section.sh_addr), sectionNodes, section);
 									String str = "<html><table>";
@@ -164,7 +164,7 @@ public class PeterDwarfPanel extends JPanel {
 							for (final Integer abbrevOffset : abbrevList.keySet()) {
 								executorService.execute(new Runnable() {
 									public void run() {
-										showProgress(dialog, "loading dwarf : " + dwarf + ", Abbrev offset : " + abbrevOffset);
+										showProgress(dialog, "Loading debug info : " + dwarf + ", Abbrev offset : " + abbrevOffset);
 										DwarfTreeNode abbrevSubnode = new DwarfTreeNode("Abbrev offset=" + abbrevOffset, abbrevNode, null);
 										abbrevNode.children.add(abbrevSubnode);
 										LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
