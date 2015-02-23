@@ -240,6 +240,15 @@ public class PeterDwarfPanel extends JPanel {
 
 												addTreeNode(compileUnitDebugInfoNode, debugInfoEntry);
 											}
+
+//											Collections.sort(compileUnitSubnode.children, new Comparator<DwarfTreeNode>() {
+//												@Override
+//												public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
+//													DebugInfoEntry c1 = (DebugInfoEntry) o1.object;
+//													DebugInfoEntry c2 = (DebugInfoEntry) o2.object;
+//													return new Integer(c1.offset).compareTo(new Integer(c2.offset));
+//												}
+//											});
 										}
 
 										private void addTreeNode(DwarfTreeNode node, DebugInfoEntry debugInfoEntry) {
@@ -271,7 +280,7 @@ public class PeterDwarfPanel extends JPanel {
 									public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
 										CompileUnit c1 = (CompileUnit) o1.object;
 										CompileUnit c2 = (CompileUnit) o2.object;
-										return new Integer(c1.offset).compareTo(new Integer(c2.offset));
+										return new Integer((int) c1.DW_AT_low_pc).compareTo(new Integer((int) c2.DW_AT_low_pc));
 									}
 								});
 								// end init compile unit nodes
