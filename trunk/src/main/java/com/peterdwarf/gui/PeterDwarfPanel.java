@@ -241,17 +241,20 @@ public class PeterDwarfPanel extends JPanel {
 												addTreeNode(compileUnitDebugInfoNode, debugInfoEntry);
 											}
 
-//											Collections.sort(compileUnitSubnode.children, new Comparator<DwarfTreeNode>() {
-//												@Override
-//												public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
-//													DebugInfoEntry c1 = (DebugInfoEntry) o1.object;
-//													DebugInfoEntry c2 = (DebugInfoEntry) o2.object;
-//													return new Integer(c1.offset).compareTo(new Integer(c2.offset));
-//												}
-//											});
+											//											Collections.sort(compileUnitSubnode.children, new Comparator<DwarfTreeNode>() {
+											//												@Override
+											//												public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
+											//													DebugInfoEntry c1 = (DebugInfoEntry) o1.object;
+											//													DebugInfoEntry c2 = (DebugInfoEntry) o2.object;
+											//													return new Integer(c1.offset).compareTo(new Integer(c2.offset));
+											//												}
+											//											});
 										}
 
 										private void addTreeNode(DwarfTreeNode node, DebugInfoEntry debugInfoEntry) {
+											if (showDialog) {
+												dialog.progressBar.setString("Loading debug info : " + dwarf + ", " + node.getText());
+											}
 											if (debugInfoEntry.debugInfoEntries.size() == 0) {
 												return;
 											}

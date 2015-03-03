@@ -40,10 +40,10 @@ public class Dwarf {
 	public String loadingMessage;
 	public Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
 
-	List<Integer> addSubNode = Arrays.asList(Definition.DW_TAG_union_type, Definition.DW_TAG_array_type, Definition.DW_TAG_structure_type, Definition.DW_TAG_subprogram,
-			Definition.DW_TAG_lexical_block);
-	List<Integer> returnSubNode = Arrays.asList(Definition.DW_TAG_member, Definition.DW_TAG_subrange_type, Definition.DW_TAG_unspecified_parameters, Definition.DW_TAG_variable,
-			Definition.DW_TAG_formal_parameter);
+	//	List<Integer> addSubNode = Arrays.asList(Definition.DW_TAG_union_type, Definition.DW_TAG_array_type, Definition.DW_TAG_structure_type, Definition.DW_TAG_subprogram,
+	//			Definition.DW_TAG_lexical_block);
+	//	List<Integer> returnSubNode = Arrays.asList(Definition.DW_TAG_member, Definition.DW_TAG_subrange_type, Definition.DW_TAG_unspecified_parameters, Definition.DW_TAG_variable,
+	//			Definition.DW_TAG_formal_parameter);
 
 	public int initElf(File file, String realFilename, long memoryOffset) {
 		this.file = file;
@@ -261,7 +261,7 @@ public class Dwarf {
 			//			DebugInfoEntry currentDebugInfoEntry = null;
 			Stack<Vector<DebugInfoEntry>> originalDebugInfoEntry = new Stack<Vector<DebugInfoEntry>>();
 			Vector<DebugInfoEntry> currentDebugInfoEntry = cu.debugInfoEntries;
-			long siblingValue = -1;
+			Stack<Long> siblingValue = new Stack<Long>();
 
 			while (debugInfoBytes.position() <= cu.offset + cu.length + 1) {
 				loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
@@ -269,8 +269,10 @@ public class Dwarf {
 
 				debugInfoEntry.position = debugInfoBytes.position();
 
-				if (debugInfoEntry.position == siblingValue) {
+				if (siblingValue.size() > 0 && debugInfoEntry.position == siblingValue.peek()) {
 					currentDebugInfoEntry = originalDebugInfoEntry.pop();
+					siblingValue.pop();
+					System.out.println("   <   pop=" + originalDebugInfoEntry.size() + " , " + siblingValue.size());
 				}
 
 				debugInfoEntry.abbrevNo = (int) DwarfLib.getULEB128(debugInfoBytes);
@@ -512,15 +514,20 @@ public class Dwarf {
 					}
 				}
 				currentDebugInfoEntry.add(debugInfoEntry);
-				if (abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo).has_children) {
+				DebugInfoAbbrevEntry debugInfoAbbrevEntry = debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_sibling");
+//				if (abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo).has_children) {
+//					originalDebugInfoEntry.push(currentDebugInfoEntry);
+//					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
+//				}
+				if (debugInfoAbbrevEntry != null) {
 					originalDebugInfoEntry.push(currentDebugInfoEntry);
 					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
-					DebugInfoAbbrevEntry debugInfoAbbrevEntry = debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_sibling");
-					if (debugInfoAbbrevEntry != null) {
-						siblingValue = CommonLib.convertFilesize("0x" + debugInfoAbbrevEntry.value);
+					siblingValue.push(CommonLib.convertFilesize("0x" + debugInfoAbbrevEntry.value));
+					System.out.println("0x" + debugInfoAbbrevEntry.value + " = " + originalDebugInfoEntry.size() + " , " + siblingValue);
+					if (CommonLib.convertFilesize("0x" + (String) debugInfoAbbrevEntry.value) == 0x4e25) {
+						System.out.println("fuck");
 					}
 				}
-
 			}
 
 			start += cu.length + initial_length_size;
