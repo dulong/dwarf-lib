@@ -272,7 +272,6 @@ public class Dwarf {
 				if (siblingValue.size() > 0 && debugInfoEntry.position == siblingValue.peek()) {
 					currentDebugInfoEntry = originalDebugInfoEntry.pop();
 					siblingValue.pop();
-					System.out.println("   <   pop=" + originalDebugInfoEntry.size() + " , " + siblingValue.size());
 				}
 
 				debugInfoEntry.abbrevNo = (int) DwarfLib.getULEB128(debugInfoBytes);
@@ -523,10 +522,6 @@ public class Dwarf {
 					originalDebugInfoEntry.push(currentDebugInfoEntry);
 					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
 					siblingValue.push(CommonLib.convertFilesize("0x" + debugInfoAbbrevEntry.value));
-					System.out.println("0x" + debugInfoAbbrevEntry.value + " = " + originalDebugInfoEntry.size() + " , " + siblingValue);
-					if (CommonLib.convertFilesize("0x" + (String) debugInfoAbbrevEntry.value) == 0x4e25) {
-						System.out.println("fuck");
-					}
 				}
 			}
 
