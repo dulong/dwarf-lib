@@ -50,6 +50,8 @@ public class PeterDwarfPanel extends JPanel {
 	Vector<File> files = new Vector<File>();
 	public Vector<Dwarf> dwarfs = new Vector<Dwarf>();
 	boolean showDialog;
+	
+	final int maxExpandLevel=5;
 
 	public PeterDwarfPanel() {
 		setLayout(new BorderLayout(0, 0));
@@ -67,7 +69,7 @@ public class PeterDwarfPanel extends JPanel {
 		JButton expandAllButton = new JButton("expand");
 		expandAllButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				CommonLib.expandAll(tree, true, 4);
+				CommonLib.expandAll(tree, true, maxExpandLevel);
 			}
 		});
 		toolBar.add(expandAllButton);
@@ -87,7 +89,7 @@ public class PeterDwarfPanel extends JPanel {
 			public void keyReleased(KeyEvent e) {
 				filterTreeModel.filter = searchTextField.getText();
 				filterTreeModel.reload();
-				CommonLib.expandAll(tree, true, 4);
+				CommonLib.expandAll(tree, true, maxExpandLevel);
 			}
 		});
 		searchTextField.setMaximumSize(new Dimension(300, 20));
