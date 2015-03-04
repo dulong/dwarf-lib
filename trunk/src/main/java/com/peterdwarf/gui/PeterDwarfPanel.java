@@ -253,7 +253,7 @@ public class PeterDwarfPanel extends JPanel {
 
 										private void addTreeNode(DwarfTreeNode node, DebugInfoEntry debugInfoEntry) {
 											if (showDialog) {
-												dialog.progressBar.setString("Loading debug info : " + dwarf + ", " + node.getText());
+												dialog.progressBar.setString("Loading debug info : " + dwarf + ", " + node.getText().split(",")[0]);
 											}
 											if (debugInfoEntry.debugInfoEntries.size() == 0) {
 												return;
