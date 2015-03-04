@@ -458,7 +458,7 @@ public class Dwarf {
 						debugInfoAbbrevEntry.value = "";
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
-							debugInfoAbbrevEntry.value += bytes[z] + ", ";
+							debugInfoAbbrevEntry.value += (bytes[z] & 0xFF) + ", ";
 							if (DwarfGlobal.debug) {
 								System.out.print(bytes[z] + "\t");
 							}
