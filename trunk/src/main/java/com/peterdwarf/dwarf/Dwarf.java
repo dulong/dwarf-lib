@@ -268,9 +268,6 @@ public class Dwarf {
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
 
 				debugInfoEntry.position = debugInfoBytes.position();
-				if (debugInfoEntry.position == 0x5046) {
-					System.out.println(123);
-				}
 
 				if (siblingValue.size() > 0 && debugInfoEntry.position == siblingValue.peek()) {
 					currentDebugInfoEntry = originalDebugInfoEntry.pop();

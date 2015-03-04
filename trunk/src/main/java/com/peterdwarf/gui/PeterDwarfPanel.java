@@ -50,8 +50,8 @@ public class PeterDwarfPanel extends JPanel {
 	Vector<File> files = new Vector<File>();
 	public Vector<Dwarf> dwarfs = new Vector<Dwarf>();
 	boolean showDialog;
-	
-	final int maxExpandLevel=5;
+
+	final int maxExpandLevel = 5;
 
 	public PeterDwarfPanel() {
 		setLayout(new BorderLayout(0, 0));
@@ -135,7 +135,7 @@ public class PeterDwarfPanel extends JPanel {
 								DwarfTreeNode node = new DwarfTreeNode(dwarf, root, null);
 								root.children.add(node);
 
-								ExecutorService executorService = Executors.newFixedThreadPool(10);
+								final ExecutorService executorService = Executors.newFixedThreadPool(20);
 
 								// init section nodes
 								final DwarfTreeNode sectionNodes = new DwarfTreeNode("section", node, null);
@@ -222,35 +222,30 @@ public class PeterDwarfPanel extends JPanel {
 								for (final CompileUnit compileUnit : compileUnits) {
 									executorService.execute(new Runnable() {
 										public void run() {
-											DwarfTreeNode compileUnitSubnode = new DwarfTreeNode("0x" + Long.toHexString(compileUnit.DW_AT_low_pc) + " - " + "0x"
+											final DwarfTreeNode compileUnitSubnode = new DwarfTreeNode("0x" + Long.toHexString(compileUnit.DW_AT_low_pc) + " - " + "0x"
 													+ Long.toHexString(compileUnit.DW_AT_low_pc + compileUnit.DW_AT_high_pc - 1) + " - " + compileUnit.DW_AT_name + ", offset="
 													+ compileUnit.abbrev_offset + ", length=" + compileUnit.length + " (size " + compileUnit.addr_size + ")", compileUnitNode,
 													compileUnit);
 											compileUnitNode.children.add(compileUnitSubnode);
 
-											for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntries) {
-												DwarfTreeNode compileUnitDebugInfoNode = new DwarfTreeNode(debugInfoEntry.toString(), compileUnitSubnode, debugInfoEntry);
-												compileUnitSubnode.children.add(compileUnitDebugInfoNode);
+											executorService.execute(new Runnable() {
+												public void run() {
+													for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntries) {
+														DwarfTreeNode compileUnitDebugInfoNode = new DwarfTreeNode(debugInfoEntry.toString(), compileUnitSubnode, debugInfoEntry);
+														compileUnitSubnode.children.add(compileUnitDebugInfoNode);
 
-												Enumeration<String> e = debugInfoEntry.debugInfoAbbrevEntries.keys();
-												while (e.hasMoreElements()) {
-													String key = e.nextElement();
-													DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoEntry.debugInfoAbbrevEntries.get(key)
-															.toString(), compileUnitDebugInfoNode, debugInfoEntry.debugInfoAbbrevEntries.get(key));
-													compileUnitDebugInfoNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
+														Enumeration<String> e = debugInfoEntry.debugInfoAbbrevEntries.keys();
+														while (e.hasMoreElements()) {
+															String key = e.nextElement();
+															DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoEntry.debugInfoAbbrevEntries.get(key)
+																	.toString(), compileUnitDebugInfoNode, debugInfoEntry.debugInfoAbbrevEntries.get(key));
+															compileUnitDebugInfoNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
+														}
+
+														addTreeNode(compileUnitDebugInfoNode, debugInfoEntry);
+													}
 												}
-
-												addTreeNode(compileUnitDebugInfoNode, debugInfoEntry);
-											}
-
-											//											Collections.sort(compileUnitSubnode.children, new Comparator<DwarfTreeNode>() {
-											//												@Override
-											//												public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
-											//													DebugInfoEntry c1 = (DebugInfoEntry) o1.object;
-											//													DebugInfoEntry c2 = (DebugInfoEntry) o2.object;
-											//													return new Integer(c1.offset).compareTo(new Integer(c2.offset));
-											//												}
-											//											});
+											});
 										}
 
 										private void addTreeNode(DwarfTreeNode node, DebugInfoEntry debugInfoEntry) {
