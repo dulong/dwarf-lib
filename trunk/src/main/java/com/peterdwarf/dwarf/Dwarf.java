@@ -268,6 +268,9 @@ public class Dwarf {
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
 
 				debugInfoEntry.position = debugInfoBytes.position();
+				if (debugInfoEntry.position == 0x5046) {
+					System.out.println(123);
+				}
 
 				if (siblingValue.size() > 0 && debugInfoEntry.position == siblingValue.peek()) {
 					currentDebugInfoEntry = originalDebugInfoEntry.pop();
@@ -280,21 +283,6 @@ public class Dwarf {
 					continue;
 				}
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
-
-				//				currentDebugInfoEntry.add(debugInfoEntry);
-				//				if (addSubNode.contains(abbrev.tag)) {
-				//					originalDebugInfoEntry.push(currentDebugInfoEntry);
-				//					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
-				//				} else if (!returnSubNode.contains(abbrev.tag)) {
-				//					if (originalDebugInfoEntry.size() > 0) {
-				//						currentDebugInfoEntry = originalDebugInfoEntry.pop();
-				//					}
-				//				}
-
-				//				System.out.println(abbrevList);
-				//				System.out.println(cu.offset);
-				//				System.out.println(debugInfoEntry.abbrevNo);
-				//				System.out.println(abbrevList.get(cu.offset));
 
 				if (DwarfGlobal.debug) {
 					System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
@@ -467,8 +455,10 @@ public class Dwarf {
 						if (DwarfGlobal.debug) {
 							System.out.print("\t:\t");
 						}
+						debugInfoAbbrevEntry.value = "";
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
+							debugInfoAbbrevEntry.value += bytes[z] + ", ";
 							if (DwarfGlobal.debug) {
 								System.out.print(bytes[z] + "\t");
 							}
@@ -514,10 +504,10 @@ public class Dwarf {
 				}
 				currentDebugInfoEntry.add(debugInfoEntry);
 				DebugInfoAbbrevEntry debugInfoAbbrevEntry = debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_sibling");
-//				if (abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo).has_children) {
-//					originalDebugInfoEntry.push(currentDebugInfoEntry);
-//					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
-//				}
+				//				if (abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo).has_children) {
+				//					originalDebugInfoEntry.push(currentDebugInfoEntry);
+				//					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
+				//				}
 				if (debugInfoAbbrevEntry != null) {
 					originalDebugInfoEntry.push(currentDebugInfoEntry);
 					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
