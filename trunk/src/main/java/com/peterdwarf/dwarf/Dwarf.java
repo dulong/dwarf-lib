@@ -29,6 +29,7 @@ public class Dwarf {
 	public ByteBuffer debug_bytes;
 	public ByteBuffer symtab_bytes;
 	private ByteBuffer strtab_bytes;
+	public ByteBuffer debug_loc;
 	public Vector<DwarfDebugLineHeader> headers = new Vector<DwarfDebugLineHeader>();
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
@@ -77,6 +78,11 @@ public class Dwarf {
 		compileUnits.clear();
 
 		try {
+			debug_loc = SectionFinder.findSectionByte(ehdr, file, ".debug_loc");
+			
+
+			System.exit(-1);
+
 			debug_bytes = SectionFinder.findSectionByte(ehdr, file, ".debug_str");
 			if (debug_bytes == null) {
 				System.err.println("missing section .debug_str");
