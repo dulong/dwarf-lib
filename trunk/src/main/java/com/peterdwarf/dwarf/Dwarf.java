@@ -92,7 +92,8 @@ public class Dwarf {
 				byte[] block = new byte[blockSize];
 				debug_loc.get(block);
 
-				System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block));
+				System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block) + " , "
+						+ Definition.getOPName(block[0]));
 			}
 
 			System.exit(-1);
