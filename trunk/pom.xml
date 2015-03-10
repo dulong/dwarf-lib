@@ -104,5 +104,10 @@
 			<artifactId>peter-swing</artifactId>
 			<version>20150128</version>
 		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.10</version>
+		</dependency>
 	</dependencies>
 </project>

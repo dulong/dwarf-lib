@@ -8,12 +8,12 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
+
+import org.apache.commons.codec.binary.Hex;
 
 import com.peterdwarf.DwarfGlobal;
 import com.peterdwarf.elf.Elf32_Ehdr;
@@ -79,7 +79,21 @@ public class Dwarf {
 
 		try {
 			debug_loc = SectionFinder.findSectionByte(ehdr, file, ".debug_loc");
-			
+			while (debug_loc.hasRemaining()) {
+				int start = debug_loc.getInt();
+				int end = debug_loc.getInt();
+				if (start == 0 && end == 0) {
+					continue;
+				}
+				int blockSize = debug_loc.getShort();
+				if (blockSize < 0) {
+					System.exit(-1);
+				}
+				byte[] block = new byte[blockSize];
+				debug_loc.get(block);
+
+				System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block));
+			}
 
 			System.exit(-1);
 
