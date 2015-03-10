@@ -93,7 +93,7 @@ public class Dwarf {
 				debug_loc.get(block);
 
 				System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block) + " , "
-						+ Definition.getOPName(block[0]));
+						+ Definition.getOPName(0xff & block[0]));
 			}
 
 			System.exit(-1);
