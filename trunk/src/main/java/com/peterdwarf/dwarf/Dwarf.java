@@ -33,6 +33,7 @@ public class Dwarf {
 	public Vector<DwarfDebugLineHeader> headers = new Vector<DwarfDebugLineHeader>();
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
+	public Vector<DebugLocEntry> debugLocEntries = new Vector<DebugLocEntry>();
 	public LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
 	public File file;
 	public String realFilename;
@@ -40,11 +41,6 @@ public class Dwarf {
 	public boolean isLoading;
 	public String loadingMessage;
 	public Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
-
-	//	List<Integer> addSubNode = Arrays.asList(Definition.DW_TAG_union_type, Definition.DW_TAG_array_type, Definition.DW_TAG_structure_type, Definition.DW_TAG_subprogram,
-	//			Definition.DW_TAG_lexical_block);
-	//	List<Integer> returnSubNode = Arrays.asList(Definition.DW_TAG_member, Definition.DW_TAG_subrange_type, Definition.DW_TAG_unspecified_parameters, Definition.DW_TAG_variable,
-	//			Definition.DW_TAG_formal_parameter);
 
 	public int initElf(File file, String realFilename, long memoryOffset) {
 		this.file = file;
@@ -87,13 +83,21 @@ public class Dwarf {
 				}
 				int blockSize = debug_loc.getShort();
 				if (blockSize < 0) {
-					System.exit(-1);
+					break;
 				}
 				byte[] block = new byte[blockSize];
 				debug_loc.get(block);
 
 				System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block) + " , "
 						+ Definition.getOPName(0xff & block[0]));
+
+				DebugLocEntry debugLocEntry = new DebugLocEntry();
+				debugLocEntry.start = start;
+				debugLocEntry.end = debugLocEntry.end;
+				debugLocEntry.blockSize = blockSize;
+				debugLocEntry.blocks = block;
+				debugLocEntry.name = Definition.getOPName(0xff & block[0]);
+				debugLocEntries.add(debugLocEntry);
 			}
 
 			System.exit(-1);
