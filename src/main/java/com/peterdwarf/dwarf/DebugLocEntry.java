@@ -6,4 +6,5 @@ public class DebugLocEntry {
 	public int blockSize;
 	public byte[] blocks;
 	public String name;
+	public int op_count;
 }
