@@ -42,6 +42,7 @@ public class Dwarf {
 	public boolean isLoading;
 	public String loadingMessage;
 	public Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
+	public int addressSize;
 
 	public int initElf(File file, String realFilename, long memoryOffset) {
 		this.file = file;
@@ -59,6 +60,14 @@ public class Dwarf {
 
 		try {
 			sections = SectionFinder.getAllSections(file);
+			if (SectionFinder.getElf32_Ehdr(file).is32Bits()){
+				addressSize=4;
+			}else if (SectionFinder.getElf32_Ehdr(file).is64Bits()){
+				addressSize=8;
+			}else{
+				System.err.println("Invalid address size");
+				System.exit(12);
+			}
 		} catch (IOException e2) {
 			return 23;
 		}
@@ -190,8 +199,9 @@ public class Dwarf {
 
 						case Definition.DW_OP_addr:
 							READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, address_size);
+							operand1=
 							loc_ptr += address_size;
-							offset += address_size;
+							offset += addressSize;
 							break;
 
 						case Definition.DW_OP_const1u:

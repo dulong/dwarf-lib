@@ -67,4 +67,12 @@ public class Elf32_Ehdr {
 		str.append(" ]");
 		return str.toString();
 	}
+
+	public boolean is32Bits() {
+		return e_ident[5] == 1;
+	}
+
+	public boolean is64Bits() {
+		return e_ident[5] == 2;
+	}
 }

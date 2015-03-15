@@ -46,6 +46,14 @@ public class SectionFinder {
 		return null;
 	}
 
+	public static Elf32_Ehdr getElf32_Ehdr(File file) throws IOException {
+		Elf32_Ehdr ehdr = new Elf32_Ehdr();
+		RandomAccessFile f = new RandomAccessFile(file, "r");
+		ehdr.read(f);
+		f.close();
+		return ehdr;
+	}
+
 	public static Vector<Elf32_Shdr> getAllSections(File file) throws IOException {
 		Vector<Elf32_Shdr> vector = new Vector<Elf32_Shdr>();
 		RandomAccessFile f = new RandomAccessFile(file, "r");
@@ -79,6 +87,7 @@ public class SectionFinder {
 			shdr.section_name = sectionName;
 			vector.add(shdr);
 		}
+		f.close();
 		return vector;
 	}
 
