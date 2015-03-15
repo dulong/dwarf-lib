@@ -145,13 +145,13 @@ public class DwarfLib {
 		return new String(bytes);
 	}
 
-	public static long getULEB128(ByteBuffer buf) {
+	public static long getULEB128(ByteBuffer buffer) {
 		long val = 0;
 		byte b;
 		int shift = 0;
 
 		while (true) {
-			b = buf.get();
+			b = buffer.get();
 			val |= ((long) (b & 0x7f)) << shift;
 			if ((b & 0x80) == 0)
 				break;
@@ -161,7 +161,7 @@ public class DwarfLib {
 		return val;
 	}
 
-	public static int getULEB128Count(ByteBuffer buf) {
+	public static int getULEB128Count(ByteBuffer buffer) {
 		long val = 0;
 		byte b;
 		int shift = 0;
@@ -169,7 +169,7 @@ public class DwarfLib {
 		int count = 0;
 
 		while (true) {
-			b = buf.get();
+			b = buffer.get();
 			count++;
 			val |= ((long) (b & 0x7f)) << shift;
 			if ((b & 0x80) == 0)
@@ -192,6 +192,22 @@ public class DwarfLib {
 			}
 		}
 		return result;
+	}
+
+	public static int getSLEB128Count(ByteBuffer buffer) {
+		int result = 0;
+		int count = 0;
+		for (int i = 0; i < 5; i++) {
+			byte b = buffer.get();
+			count++;
+			result |= ((b & 0x7f) << (7 * i));
+			if ((b & 0x80) == 0) {
+				int s = 32 - (7 * (i + 1));
+				result = (result << s) >> s;
+				break;
+			}
+		}
+		return count;
 	}
 
 	public static String getString(ByteBuffer buf, int offset) {
