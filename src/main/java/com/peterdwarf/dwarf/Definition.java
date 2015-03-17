@@ -1,6 +1,10 @@
 package com.peterdwarf.dwarf;
 
 public class Definition {
+	public static final int DW_DLV_NO_ENTRY = -1;
+	public static final int DW_DLV_OK = 0;
+	public static final int DW_DLV_ERROR = 1;
+
 	public static final int DW_TAG_array_type = 0x01;
 	public static final int DW_TAG_class_type = 0x02;
 	public static final int DW_TAG_entry_point = 0x03;
