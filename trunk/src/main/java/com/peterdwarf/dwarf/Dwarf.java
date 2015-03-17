@@ -284,6 +284,8 @@ public class Dwarf {
 
 						case Definition.DW_OP_fbreg:
 							//operand1 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
+							System.out.println(offset);
+							System.out.println(debugLocEntry.blocks.length);
 							operand1 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length - offset)));
 							//loc_ptr = loc_ptr + leb128_length;
 							//offset = offset + leb128_length;
