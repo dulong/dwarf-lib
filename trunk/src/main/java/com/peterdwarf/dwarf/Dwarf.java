@@ -121,7 +121,7 @@ public class Dwarf {
 						int atom = 0;
 
 						debugLocEntry.op_count++;
-						atom = debugLocEntry.blocks[offset];
+						atom = debugLocEntry.blocks[offset] & 0xff;
 						offset++;
 						switch (atom) {
 						case Definition.DW_OP_reg0:
