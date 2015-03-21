@@ -101,6 +101,8 @@ public class Dwarf {
 				byte[] block = new byte[blockSize];
 				debug_loc.get(block);
 
+
+				System.out.println("---------------------------");
 				System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block) + " , "
 						+ Definition.getOPName(0xff & block[0]));
 
@@ -115,14 +117,12 @@ public class Dwarf {
 				int loc_len = debugLocEntry.blockSize;
 				while (offset < loc_len) {
 					debugLocEntry.op_count = 0;
-					System.out.println("---------------------------");
 					while (offset < loc_len) {
 						long operand1 = 0;
 						long operand2 = 0;
 						int atom = 0;
 
 						debugLocEntry.op_count++;
-						System.out.println("\t\t\tatom=" + offset);
 						atom = debugLocEntry.blocks[offset] & 0xff;
 						offset++;
 						System.out.println(Definition.getOPName(atom));
