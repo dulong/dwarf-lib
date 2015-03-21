@@ -6,6 +6,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -26,6 +28,10 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 	private PeterDwarfPanel peterDwarfPanel1;
 
 	public static void main(String[] args) {
+		byte bb[] = new byte[] { 0, 1, 2, 3, 4, 5, 6 };
+
+		System.out.println("len=" + Arrays.copyOfRange(bb, 1, 1).length);
+		ByteBuffer.wrap(Arrays.copyOfRange(bb, 1, 1));
 		try {
 			UIManager.setLookAndFeel("com.peterswing.white.PeterSwingWhiteLookAndFeel");
 		} catch (Exception e) {
