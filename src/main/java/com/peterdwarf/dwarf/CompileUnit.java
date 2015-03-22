@@ -17,6 +17,7 @@ public class CompileUnit implements Comparable<CompileUnit> {
 	public long DW_AT_low_pc;
 	public long DW_AT_high_pc;
 	public String DW_AT_stmt_list;
+	public DwarfDebugLineHeader dwarfDebugLineHeader;
 
 	public String toString() {
 		String str = "";
