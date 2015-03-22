@@ -293,10 +293,7 @@ public class PeterDwarfPanel extends JPanel {
 								for (final DwarfDebugLineHeader header : headers) {
 									executorService.execute(new Runnable() {
 										public void run() {
-											DwarfTreeNode headerSubnode = new DwarfTreeNode("offset=0x" + Long.toHexString(header.offset) + ", Length=" + header.total_length
-													+ ", DWARF Version=" + header.version + ", Prologue Length=" + header.prologue_length + ", Minimum Instruction Length="
-													+ header.minimum_instruction_length + ", Initial value of 'is_stmt'=" + (header.default_is_stmt ? 1 : 0) + ", Line Base="
-													+ header.line_base + ", Line Range=" + header.line_range + ", Opcode Base=" + header.opcode_base, headNode, header);
+											DwarfTreeNode headerSubnode = new DwarfTreeNode(header.toString(), headNode, header);
 											String str = "<html><table>";
 											str += "<tr><td>offset</td><td>:</td><td>0x" + Long.toHexString(header.offset) + "</td></tr>";
 											str += "<tr><td>total length</td><td>:</td><td>" + header.total_length + "</td></tr>";

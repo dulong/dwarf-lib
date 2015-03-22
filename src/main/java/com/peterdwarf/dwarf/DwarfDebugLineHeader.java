@@ -19,16 +19,19 @@ public class DwarfDebugLineHeader {
 	public Vector<DwarfLine> lines = new Vector<DwarfLine>();
 
 	public String toString() {
-		System.out.printf("Offset:                      0x%x\n", offset);
-		System.out.printf("Length:                      %d\n", total_length);
-		System.out.printf("DWARF Version:               %d\n", version);
-		System.out.printf("Prologue Length:             %d\n", prologue_length);
-		System.out.printf("Minimum Instruction Length:  %d\n", minimum_instruction_length);
-		System.out.printf("Initial value of 'is_stmt':  %d\n", default_is_stmt ? 1 : 0);
-		System.out.printf("Line Base:                   %d\n", line_base);
-		System.out.printf("Line Range:                  %d\n", line_range);
-		System.out.printf("Opcode Base:                 %d\n", opcode_base);
-		return "";
+		//		System.out.printf("Offset:                      0x%x\n", offset);
+		//		System.out.printf("Length:                      %d\n", total_length);
+		//		System.out.printf("DWARF Version:               %d\n", version);
+		//		System.out.printf("Prologue Length:             %d\n", prologue_length);
+		//		System.out.printf("Minimum Instruction Length:  %d\n", minimum_instruction_length);
+		//		System.out.printf("Initial value of 'is_stmt':  %d\n", default_is_stmt ? 1 : 0);
+		//		System.out.printf("Line Base:                   %d\n", line_base);
+		//		System.out.printf("Line Range:                  %d\n", line_range);
+		//		System.out.printf("Opcode Base:                 %d\n", opcode_base);
+
+		return "offset=0x" + Long.toHexString(offset) + ", Length=" + total_length + ", DWARF Version=" + version + ", Prologue Length=" + prologue_length
+				+ ", Minimum Instruction Length=" + minimum_instruction_length + ", Initial value of 'is_stmt'=" + (default_is_stmt ? 1 : 0) + ", Line Base=" + line_base
+				+ ", Line Range=" + line_range + ", Opcode Base=" + opcode_base;
 	}
 
 }
