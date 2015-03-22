@@ -183,7 +183,6 @@ public class DwarfLib {
 	public static int getSLEB128(ByteBuffer buffer) {
 		int result = 0;
 		for (int i = 0; i < 5; i++) {
-			System.out.println(">>"+i);
 			byte b = buffer.get();
 			result |= ((b & 0x7f) << (7 * i));
 			if ((b & 0x80) == 0) {
