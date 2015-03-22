@@ -101,7 +101,6 @@ public class Dwarf {
 				byte[] block = new byte[blockSize];
 				debug_loc.get(block);
 
-
 				System.out.println("---------------------------");
 				System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block) + " , "
 						+ Definition.getOPName(0xff & block[0]));
@@ -735,35 +734,10 @@ public class Dwarf {
 							System.err.println("DW_DLE_LOC_EXPR_BAD");
 							return Definition.DW_DLV_ERROR;
 						}
-
-						/* If offset == loc_len this would be normal end-of-expression. */
-						//						if (offset > loc_len) {
-						//							/*  We stepped past the end of the expression.
-						//							 This has to be a compiler bug.
-						//							 Operators missing their values cannot be detected
-						//							 as such except at the end of an expression (like this).
-						//							 The results would be wrong if returned.
-						//							 Some memory may leak here.
-						//							 */
-						//							_dwarf_error(dbg, error, DW_DLE_LOC_BAD_TERMINATION);
-						//							return null;
-						//						}
-
-						//						curr_loc->lc_number = operand1;
-						//						curr_loc->lc_number2 = operand2;
-						//
-						//						if (head_loc == NULL)
-						//							head_loc = prev_loc = curr_loc;
-						//						else {
-						//							prev_loc->lc_next = curr_loc;
-						//							prev_loc = curr_loc;
-						//						}
 					}
 				}
 				debugLocEntries.add(debugLocEntry);
 			}
-
-			System.exit(-1);
 
 			debug_bytes = SectionFinder.findSectionByte(ehdr, file, ".debug_str");
 			if (debug_bytes == null) {
