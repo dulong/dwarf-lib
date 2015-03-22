@@ -77,31 +77,31 @@ public class TestPeterDwarf {
 
 			System.out.println();
 
-			for (DwarfDebugLineHeader header : dwarf.headers) {
-				System.out.println();
-				System.out.println(header);
-				System.out.println();
-
-				System.out.println("dirnames:");
-				for (String s : header.dirnames) {
-					System.out.println(s);
-				}
-				System.out.println();
-
-				System.out.println("entry\tdir\ttime\tlen\tfilename");
-				for (DwarfHeaderFilename filename : header.filenames) {
-					System.out.println(filename.entryNo + "\t" + filename.dir + "\t" + filename.time + "\t" + filename.len + "\t" + filename.file.getAbsolutePath());
-				}
-				System.out.println();
-
-				System.out.println("address\tfile no.\tline no.\tcolumn no.\taddress");
-
-				for (DwarfLine line : header.lines) {
-					System.out.println("\t" + line.file_num + "\t\t" + line.line_num + "\t\t" + line.column_num + "\t\t" + line.address.toString(16));
-				}
-				System.out.println();
-				System.out.println();
-			}
+//			for (DwarfDebugLineHeader header : dwarf.headers) {
+//				System.out.println();
+//				System.out.println(header);
+//				System.out.println();
+//
+//				System.out.println("dirnames:");
+//				for (String s : header.dirnames) {
+//					System.out.println(s);
+//				}
+//				System.out.println();
+//
+//				System.out.println("entry\tdir\ttime\tlen\tfilename");
+//				for (DwarfHeaderFilename filename : header.filenames) {
+//					System.out.println(filename.entryNo + "\t" + filename.dir + "\t" + filename.time + "\t" + filename.len + "\t" + filename.file.getAbsolutePath());
+//				}
+//				System.out.println();
+//
+//				System.out.println("address\tfile no.\tline no.\tcolumn no.\taddress");
+//
+//				for (DwarfLine line : header.lines) {
+//					System.out.println("\t" + line.file_num + "\t\t" + line.line_num + "\t\t" + line.column_num + "\t\t" + line.address.toString(16));
+//				}
+//				System.out.println();
+//				System.out.println();
+//			}
 
 		}
 		// DwarfLib.printMappedByteBuffer(dwarf.byteBuffer);

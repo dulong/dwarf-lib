@@ -228,71 +228,11 @@ public class PeterDwarfPanel extends JPanel {
 													compileUnit);
 											compileUnitNode.children.add(compileUnitSubnode);
 
-											executorService.execute(new Runnable() {
-												public void run() {
-													for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntries) {
-														DwarfTreeNode compileUnitDebugInfoNode = new DwarfTreeNode(debugInfoEntry.toString(), compileUnitSubnode, debugInfoEntry);
-														compileUnitSubnode.children.add(compileUnitDebugInfoNode);
+											// init headers
+											final DwarfTreeNode headNode = new DwarfTreeNode("header", compileUnitSubnode, null);
+											compileUnitSubnode.children.add(headNode);
 
-														Enumeration<String> e = debugInfoEntry.debugInfoAbbrevEntries.keys();
-														while (e.hasMoreElements()) {
-															String key = e.nextElement();
-															DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoEntry.debugInfoAbbrevEntries.get(key)
-																	.toString(), compileUnitDebugInfoNode, debugInfoEntry.debugInfoAbbrevEntries.get(key));
-															compileUnitDebugInfoNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
-														}
-
-														addTreeNode(compileUnitDebugInfoNode, debugInfoEntry);
-													}
-												}
-											});
-										}
-
-										private void addTreeNode(DwarfTreeNode node, DebugInfoEntry debugInfoEntry) {
-											if (showDialog) {
-												dialog.progressBar.setString("Loading debug info : " + dwarf + ", " + node.getText().split(",")[0]);
-											}
-											if (debugInfoEntry.debugInfoEntries.size() == 0) {
-												return;
-											}
-
-											for (DebugInfoEntry d : debugInfoEntry.debugInfoEntries) {
-												DwarfTreeNode subNode = new DwarfTreeNode(d.toString(), node, d);
-												node.children.add(subNode);
-
-												Enumeration<String> e = d.debugInfoAbbrevEntries.keys();
-												while (e.hasMoreElements()) {
-													String key = e.nextElement();
-													DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString(), subNode,
-															d.debugInfoAbbrevEntries.get(key));
-													subNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
-												}
-
-												addTreeNode(subNode, d);
-											}
-										}
-									});
-								}
-								while (dwarf.compileUnits.size() != compileUnitNode.children.size())
-									;
-								Collections.sort(compileUnitNode.children, new Comparator<DwarfTreeNode>() {
-									@Override
-									public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
-										CompileUnit c1 = (CompileUnit) o1.object;
-										CompileUnit c2 = (CompileUnit) o2.object;
-										return new Integer((int) c1.DW_AT_low_pc).compareTo(new Integer((int) c2.DW_AT_low_pc));
-									}
-								});
-								// end init compile unit nodes
-
-								// init headers
-								final DwarfTreeNode headNode = new DwarfTreeNode("header", node, null);
-								node.children.add(headNode);
-
-								Vector<DwarfDebugLineHeader> headers = dwarf.headers;
-								for (final DwarfDebugLineHeader header : headers) {
-									executorService.execute(new Runnable() {
-										public void run() {
+											DwarfDebugLineHeader header = compileUnit.dwarfDebugLineHeader;
 											DwarfTreeNode headerSubnode = new DwarfTreeNode(header.toString(), headNode, header);
 											String str = "<html><table>";
 											str += "<tr><td>offset</td><td>:</td><td>0x" + Long.toHexString(header.offset) + "</td></tr>";
@@ -327,13 +267,77 @@ public class PeterDwarfPanel extends JPanel {
 														+ line.column_num + ", address=0x" + line.address.toString(16), lineInfoNode, line);
 												lineInfoNode.children.add(lineSubnode);
 											}
+											// end init headers
+
+											executorService.execute(new Runnable() {
+												public void run() {
+													for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntries) {
+														DwarfTreeNode compileUnitDebugInfoNode = new DwarfTreeNode(debugInfoEntry.toString(), compileUnitSubnode, debugInfoEntry);
+														compileUnitSubnode.children.add(compileUnitDebugInfoNode);
+
+														Enumeration<String> e = debugInfoEntry.debugInfoAbbrevEntries.keys();
+														while (e.hasMoreElements()) {
+															String key = e.nextElement();
+															DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoEntry.debugInfoAbbrevEntries.get(key)
+																	.toString(), compileUnitDebugInfoNode, debugInfoEntry.debugInfoAbbrevEntries.get(key));
+															compileUnitDebugInfoNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
+														}
+
+														addTreeNode(compileUnit, compileUnitDebugInfoNode, debugInfoEntry);
+													}
+												}
+											});
+										}
+
+										private void addTreeNode(CompileUnit compileUnit, DwarfTreeNode node, DebugInfoEntry debugInfoEntry) {
+											if (showDialog) {
+												dialog.progressBar.setString("Loading debug info : " + dwarf + ", " + node.getText().split(",")[0]);
+											}
+											if (debugInfoEntry.debugInfoEntries.size() == 0) {
+												return;
+											}
+
+											for (DebugInfoEntry d : debugInfoEntry.debugInfoEntries) {
+												DwarfTreeNode subNode = new DwarfTreeNode(d.toString(), node, d);
+												node.children.add(subNode);
+
+												Enumeration<String> e = d.debugInfoAbbrevEntries.keys();
+												while (e.hasMoreElements()) {
+													String key = e.nextElement();
+
+													if (d.debugInfoAbbrevEntries.get(key).name.equals("DW_AT_decl_file")) {
+														DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString()
+																+ " , "
+																+ compileUnit.dwarfDebugLineHeader.filenames.get(Integer.parseInt(d.debugInfoAbbrevEntries.get(key).value
+																		.toString()) - 1).file.getAbsolutePath(), subNode, d.debugInfoAbbrevEntries.get(key));
+
+														subNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
+													} else {
+
+														DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString(),
+																subNode, d.debugInfoAbbrevEntries.get(key));
+
+														subNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
+													}
+												}
+
+												addTreeNode(compileUnit, subNode, d);
+											}
 										}
 									});
 								}
-
-								while (headers.size() != headNode.children.size())
+								while (dwarf.compileUnits.size() != compileUnitNode.children.size())
 									;
-								// end init headers
+								Collections.sort(compileUnitNode.children, new Comparator<DwarfTreeNode>() {
+									@Override
+									public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
+										CompileUnit c1 = (CompileUnit) o1.object;
+										CompileUnit c2 = (CompileUnit) o2.object;
+										return new Integer((int) c1.DW_AT_low_pc).compareTo(new Integer((int) c2.DW_AT_low_pc));
+									}
+								});
+								// end init compile unit nodes
+
 							}
 						});
 					}

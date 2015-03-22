@@ -31,7 +31,7 @@ public class Dwarf {
 	public ByteBuffer symtab_bytes;
 	private ByteBuffer strtab_bytes;
 	public ByteBuffer debug_loc;
-	public Vector<DwarfDebugLineHeader> headers = new Vector<DwarfDebugLineHeader>();
+
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
 	public Vector<DebugLocEntry> debugLocEntries = new Vector<DebugLocEntry>();
@@ -1512,7 +1512,7 @@ public class Dwarf {
 			Collections.sort(dwarfDebugLineHeader.lines);
 			debugLineBytes.position(end);
 
-			headers.add(dwarfDebugLineHeader);
+			compileUnit.dwarfDebugLineHeader = dwarfDebugLineHeader;
 			return 0;
 		} catch (Exception ex) {
 			return 18;
