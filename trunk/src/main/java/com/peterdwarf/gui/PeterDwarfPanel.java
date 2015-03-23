@@ -169,6 +169,15 @@ public class PeterDwarfPanel extends JPanel {
 								}
 								while (dwarf.sections.size() != sectionNodes.children.size())
 									;
+
+								Collections.sort(sectionNodes.children, new Comparator<DwarfTreeNode>() {
+									@Override
+									public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
+										Elf32_Shdr c1 = (Elf32_Shdr) o1.object;
+										Elf32_Shdr c2 = (Elf32_Shdr) o2.object;
+										return new Integer(c1.number).compareTo(new Integer(c2.number));
+									}
+								});
 								// enf init section nodes
 
 								// init abbrev nodes
@@ -326,8 +335,21 @@ public class PeterDwarfPanel extends JPanel {
 										}
 									});
 								}
-								while (dwarf.compileUnits.size() != compileUnitNode.children.size())
-									;
+								//								try {
+								//									executorService.awaitTermination(10000, TimeUnit.SECONDS);
+								//								} catch (InterruptedException e) {
+								//									e.printStackTrace();
+								//								}
+								try {
+									while (!executorService.awaitTermination(2, TimeUnit.SECONDS)) {
+										System.out.println("shit");
+									}
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+								System.out.println("good");
+								//								while (dwarf.compileUnits.size() != compileUnitNode.children.size())
+								;
 								Collections.sort(compileUnitNode.children, new Comparator<DwarfTreeNode>() {
 									@Override
 									public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
