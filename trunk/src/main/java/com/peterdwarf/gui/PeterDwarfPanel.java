@@ -335,11 +335,13 @@ public class PeterDwarfPanel extends JPanel {
 										}
 									});
 								}
+
 								//								try {
 								//									executorService.awaitTermination(10000, TimeUnit.SECONDS);
 								//								} catch (InterruptedException e) {
 								//									e.printStackTrace();
 								//								}
+
 								try {
 									while (!executorService.awaitTermination(2, TimeUnit.SECONDS)) {
 										System.out.println("shit");
