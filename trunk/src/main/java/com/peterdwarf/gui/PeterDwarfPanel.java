@@ -94,7 +94,7 @@ public class PeterDwarfPanel extends JPanel {
 				filterTreeModel.shouldStop = true;
 				while (filterTreeModel.isRunning) {
 					try {
-						Thread.sleep(100);
+						Thread.sleep(10);
 					} catch (InterruptedException e1) {
 						e1.printStackTrace();
 					}
