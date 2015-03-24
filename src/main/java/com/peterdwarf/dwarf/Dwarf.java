@@ -955,6 +955,10 @@ public class Dwarf {
 					debugInfoEntry.debugInfoAbbrevEntries.put(debugInfoAbbrevEntry.name, debugInfoAbbrevEntry);
 					debugInfoAbbrevEntry.form = entry.form;
 					debugInfoAbbrevEntry.position = debugInfoBytes.position();
+					
+					//System.out.println("debugInfoAbbrevEntry="+debugInfoAbbrevEntry.position+","+debugInfoAbbrevEntry.name);
+			
+					
 					if (DwarfGlobal.debug) {
 						System.out.print("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + entry.form + " = " + debugInfoAbbrevEntry.name);
 					}
@@ -1163,10 +1167,6 @@ public class Dwarf {
 				}
 				currentDebugInfoEntry.add(debugInfoEntry);
 				DebugInfoAbbrevEntry debugInfoAbbrevEntry = debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_sibling");
-				//				if (abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo).has_children) {
-				//					originalDebugInfoEntry.push(currentDebugInfoEntry);
-				//					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
-				//				}
 				if (debugInfoAbbrevEntry != null) {
 					originalDebugInfoEntry.push(currentDebugInfoEntry);
 					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
