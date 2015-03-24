@@ -45,7 +45,7 @@ public class PeterDwarfPanel extends JPanel {
 	DwarfTreeCellRenderer treeCellRenderer = new DwarfTreeCellRenderer();
 	DwarfTreeNode root = new DwarfTreeNode("Elf files", null, null);
 	DefaultTreeModel treeModel = new DefaultTreeModel(root);
-	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel, 10, true);
+	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel, 10, false);
 	JTree tree = new JTree(filterTreeModel);
 	Vector<File> files = new Vector<File>();
 	public Vector<Dwarf> dwarfs = new Vector<Dwarf>();
@@ -105,7 +105,7 @@ public class PeterDwarfPanel extends JPanel {
 
 	public void clear() {
 		root.children.clear();
-		treeModel.nodeChanged(root);
+		treeModel.nodeStructureChanged(root);
 	}
 
 	public void init(final File file, long memoryOffset) {
@@ -234,7 +234,7 @@ public class PeterDwarfPanel extends JPanel {
 											+ Long.toHexString(compileUnit.DW_AT_low_pc + compileUnit.DW_AT_high_pc - 1) + " - " + compileUnit.DW_AT_name + ", offset="
 											+ compileUnit.abbrev_offset + ", length=" + compileUnit.length + " (size " + compileUnit.addr_size + ")", compileUnitNode, compileUnit);
 									compileUnitNode.children.add(compileUnitSubnode);
-									filterTreeModel.nodeChanged(compileUnitNode);
+									filterTreeModel.nodeStructureChanged(compileUnitNode);
 
 									// init headers
 									final DwarfTreeNode headNode = new DwarfTreeNode("header", compileUnitSubnode, null);
@@ -281,7 +281,7 @@ public class PeterDwarfPanel extends JPanel {
 									for (final DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntries) {
 										final DwarfTreeNode compileUnitDebugInfoNode = new DwarfTreeNode(debugInfoEntry.toString(), compileUnitSubnode, debugInfoEntry);
 										compileUnitSubnode.children.add(compileUnitDebugInfoNode);
-										filterTreeModel.nodeChanged(compileUnitSubnode);
+										filterTreeModel.nodeStructureChanged(compileUnitSubnode);
 
 										Enumeration<String> e = debugInfoEntry.debugInfoAbbrevEntries.keys();
 										while (e.hasMoreElements()) {
@@ -289,7 +289,7 @@ public class PeterDwarfPanel extends JPanel {
 											DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoEntry.debugInfoAbbrevEntries.get(key).toString(),
 													compileUnitDebugInfoNode, debugInfoEntry.debugInfoAbbrevEntries.get(key));
 											compileUnitDebugInfoNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
-											filterTreeModel.nodeChanged(compileUnitDebugInfoNode);
+											filterTreeModel.nodeStructureChanged(compileUnitDebugInfoNode);
 										}
 
 										addTreeNode(dialog, compileUnit, compileUnitDebugInfoNode, debugInfoEntry);
@@ -329,7 +329,7 @@ public class PeterDwarfPanel extends JPanel {
 		dialog.thread = longRunningThread;
 		dialog.setVisible(true);
 
-		filterTreeModel.nodeChanged(root);
+		filterTreeModel.nodeStructureChanged(root);
 	}
 
 	private void addTreeNode(JProgressBarDialog dialog, final CompileUnit compileUnit, DwarfTreeNode node, DebugInfoEntry debugInfoEntry) {
@@ -343,7 +343,7 @@ public class PeterDwarfPanel extends JPanel {
 		for (final DebugInfoEntry d : debugInfoEntry.debugInfoEntries) {
 			final DwarfTreeNode subNode = new DwarfTreeNode(d.toString(), node, d);
 			node.children.add(subNode);
-			filterTreeModel.nodeChanged(node);
+			filterTreeModel.nodeStructureChanged(node);
 
 			executorService.execute(new Runnable() {
 				public void run() {
@@ -358,14 +358,14 @@ public class PeterDwarfPanel extends JPanel {
 											.getAbsolutePath(), subNode, d.debugInfoAbbrevEntries.get(key));
 
 							subNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
-							filterTreeModel.nodeChanged(subNode);
+							filterTreeModel.nodeStructureChanged(subNode);
 						} else {
 
 							DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString(), subNode,
 									d.debugInfoAbbrevEntries.get(key));
 
 							subNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
-							filterTreeModel.nodeChanged(subNode);
+							filterTreeModel.nodeStructureChanged(subNode);
 						}
 					}
 				}

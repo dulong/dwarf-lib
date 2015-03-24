@@ -55,7 +55,7 @@ public class TestTree extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				DwarfTreeNode node1 = new DwarfTreeNode("node1", null, null);
 				root.children.add(node1);
-				filterTreeModel.nodeChanged(root);
+				filterTreeModel.nodeStructureChanged(root);
 			}
 		});
 		panel.add(btnNewButton);
