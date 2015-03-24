@@ -91,6 +91,16 @@ public class PeterDwarfPanel extends JPanel {
 		searchTextField.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
+				filterTreeModel.shouldStop = true;
+				while (filterTreeModel.isRunning) {
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e1) {
+						e1.printStackTrace();
+					}
+				}
+				filterTreeModel.shouldStop = false;
+
 				if (searchTextField.getText().equals("")) {
 					filterTreeModel.setAllChildVisible(root, true);
 					filterTreeModel.nodeStructureChanged((TreeNode) root);
@@ -340,14 +350,13 @@ public class PeterDwarfPanel extends JPanel {
 		Enumeration<DwarfTreeNode> topLevelNodes = ((DwarfTreeNode) tree.getModel().getRoot()).children();
 		while (topLevelNodes.hasMoreElements()) {
 			DwarfTreeNode node = (DwarfTreeNode) topLevelNodes.nextElement();
-			System.out.println(">>" + node.getText());
 			tree.expandPath(new TreePath(node.getPath()));
 		}
 	}
 
 	private void addTreeNode(JProgressBarDialog dialog, final CompileUnit compileUnit, DwarfTreeNode node, DebugInfoEntry debugInfoEntry) {
 		if (showDialog) {
-			dialog.progressBar.setString("Loading debug info : cu, " + compileUnit.offset + ", " + compileUnit.DW_AT_name);
+			dialog.progressBar.setString("Loading debug info : cu, " + compileUnit.offset + ", " + new File(compileUnit.DW_AT_name).getName());
 		}
 		if (debugInfoEntry.debugInfoEntries.size() == 0) {
 			return;
