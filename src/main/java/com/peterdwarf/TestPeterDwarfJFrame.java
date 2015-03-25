@@ -6,8 +6,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Vector;
 
 import javax.swing.JButton;
