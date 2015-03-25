@@ -35,4 +35,27 @@ public class CompileUnit implements Comparable<CompileUnit> {
 	public int compareTo(CompileUnit a) {
 		return DW_AT_name.compareTo(a.DW_AT_name);
 	}
+
+	public DebugInfoEntry getDebugInfoEntryByPosition(int position) {
+		for (DebugInfoEntry d : debugInfoEntries) {
+			DebugInfoEntry t = getDebugInfoEntryByPosition(d, position);
+			if (t != null) {
+				return t;
+			}
+		}
+		return null;
+	}
+
+	public DebugInfoEntry getDebugInfoEntryByPosition(DebugInfoEntry debugInfoEntry, int position) {
+		if (debugInfoEntry.position == position) {
+			return debugInfoEntry;
+		}
+		for (DebugInfoEntry dd : debugInfoEntry.debugInfoEntries) {
+			DebugInfoEntry t = getDebugInfoEntryByPosition(dd, position);
+			if (t != null) {
+				return t;
+			}
+		}
+		return null;
+	}
 }
