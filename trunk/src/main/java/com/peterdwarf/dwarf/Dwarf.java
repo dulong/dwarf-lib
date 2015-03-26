@@ -101,9 +101,11 @@ public class Dwarf {
 				byte[] block = new byte[blockSize];
 				debug_loc.get(block);
 
-				System.out.println("---------------------------");
-				System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block) + " , "
-						+ Definition.getOPName(0xff & block[0]));
+				if (DwarfGlobal.debug) {
+					System.out.println("---------------------------");
+					System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block) + " , "
+							+ Definition.getOPName(0xff & block[0]));
+				}
 
 				DebugLocEntry debugLocEntry = new DebugLocEntry();
 				debugLocEntry.start = start;
@@ -124,7 +126,9 @@ public class Dwarf {
 						debugLocEntry.op_count++;
 						atom = debugLocEntry.blocks[offset] & 0xff;
 						offset++;
-						System.out.println(Definition.getOPName(atom));
+						if (DwarfGlobal.debug) {
+							System.out.println(Definition.getOPName(atom));
+						}
 						switch (atom) {
 						case Definition.DW_OP_reg0:
 						case Definition.DW_OP_reg1:
@@ -286,12 +290,9 @@ public class Dwarf {
 
 						case Definition.DW_OP_fbreg:
 							//operand1 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
-							System.out.println(debugLocEntry.blocks.length + " > " + debugLocEntry.blocks.length + " - " + offset);
-							System.out.println("len=" + Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length).length);
 							operand1 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
 							//loc_ptr = loc_ptr + leb128_length;
 							//offset = offset + leb128_length;
-							System.out.println("   operand1=" + operand1);
 							offset = offset + DwarfLib.getSLEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
 							break;
 
@@ -328,7 +329,6 @@ public class Dwarf {
 						case Definition.DW_OP_breg30:
 						case Definition.DW_OP_breg31:
 							//operand1 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
-							System.out.println(debugLocEntry.blocks.length + " > " + debugLocEntry.blocks.length + " - " + offset);
 							operand1 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
 							//loc_ptr = loc_ptr + leb128_length;
 							//offset = offset + leb128_length;
@@ -372,7 +372,6 @@ public class Dwarf {
 							operand1 = debugLocEntry.blocks[offset];
 							//loc_ptr = loc_ptr + 1;
 							offset = offset + 1;
-							System.out.println("operand1=" + operand1);
 							break;
 
 						case Definition.DW_OP_xderef:
@@ -955,10 +954,9 @@ public class Dwarf {
 					debugInfoEntry.debugInfoAbbrevEntries.put(debugInfoAbbrevEntry.name, debugInfoAbbrevEntry);
 					debugInfoAbbrevEntry.form = entry.form;
 					debugInfoAbbrevEntry.position = debugInfoBytes.position();
-					
+
 					//System.out.println("debugInfoAbbrevEntry="+debugInfoAbbrevEntry.position+","+debugInfoAbbrevEntry.name);
-			
-					
+
 					if (DwarfGlobal.debug) {
 						System.out.print("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + entry.form + " = " + debugInfoAbbrevEntry.name);
 					}
