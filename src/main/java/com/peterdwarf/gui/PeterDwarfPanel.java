@@ -94,13 +94,13 @@ public class PeterDwarfPanel extends JPanel {
 		searchTextField.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
+				filterTreeModel.filter = searchTextField.getText();
+				filterTreeModel.reload();
+
 				if (searchTextField.getText().equals("")) {
-					filterTreeModel.setAllChildVisible(root, true);
-					filterTreeModel.nodeStructureChanged((TreeNode) root);
 					expandFirstLevel();
 				} else {
-					filterTreeModel.filter = searchTextField.getText();
-					filterTreeModel.reload();
+
 					CommonLib.expandAll(tree, true, maxExpandLevel);
 				}
 			}
