@@ -385,33 +385,11 @@ public class PeterDwarfPanel extends JPanel {
 							subNode, d.debugInfoAbbrevEntries.get(key));
 				} else if (d.debugInfoAbbrevEntries.get(key).name.equals("DW_AT_type")) {
 					int value = CommonLib.string2int("0x" + d.debugInfoAbbrevEntries.get(key).value.toString());
-
-					//					if (value == 0x9f) {
-					//						System.out.println("value=" + value);
-					//					}
+					String type = DwarfLib.getParameterType(compileUnit, value);
 					DebugInfoEntry temp = compileUnit.getDebugInfoEntryByPosition(value);
-					DebugInfoAbbrevEntry debugInfoAbbrevEntry = null;
-					if (temp != null) {
-						debugInfoAbbrevEntry = temp.debugInfoAbbrevEntries.get("DW_AT_name");
-						if (debugInfoAbbrevEntry == null) {
-							debugInfoAbbrevEntry = temp.debugInfoAbbrevEntries.get("DW_AT_type");
-						}
-					} else {
-						System.out.println("temp null");
-					}
-					//					for (String aaa : debugInfoEntry.debugInfoAbbrevEntries.keySet()) {
-					//						System.out.println("====" + debugInfoEntry.debugInfoAbbrevEntries.get(aaa));
-					//					}
-					if (temp != null && temp.name.equals("DW_TAG_union_type")) {
-						compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString() + ", union", subNode,
-								d.debugInfoAbbrevEntries.get(key));
-					} else if (temp != null && temp.name.equals("DW_TAG_enumeration_type")) {
-						compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString() + ", enum", subNode,
-								d.debugInfoAbbrevEntries.get(key));
-					} else if (debugInfoAbbrevEntry == null) {
+					if (type == null) {
 						compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString(), subNode, d.debugInfoAbbrevEntries.get(key));
 					} else {
-						String type = debugInfoAbbrevEntry.value.toString();
 						compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString() + ", " + type, subNode,
 								d.debugInfoAbbrevEntries.get(key));
 					}

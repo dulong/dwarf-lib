@@ -13,6 +13,8 @@ import java.util.Vector;
 
 import com.peterar.AR;
 import com.peterar.PeterAR;
+import com.peterdwarf.gui.DwarfTreeNode;
+import com.peterswing.CommonLib;
 
 public class DwarfLib {
 	private static final boolean WORDS_BIGENDIAN = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
@@ -283,5 +285,32 @@ public class DwarfLib {
 			}
 		}
 		return null;
+	}
+
+	public static String getParameterType(CompileUnit compileUnit, int value) {
+		DebugInfoEntry temp = compileUnit.getDebugInfoEntryByPosition(value);
+
+		if (temp != null && temp.name.equals("DW_TAG_union_type")) {
+			return "union";
+		} else if (temp != null && temp.name.equals("DW_TAG_enumeration_type")) {
+			return "enum";
+		}
+		DebugInfoAbbrevEntry debugInfoAbbrevEntry = null;
+		if (temp != null) {
+			debugInfoAbbrevEntry = temp.debugInfoAbbrevEntries.get("DW_AT_name");
+			if (debugInfoAbbrevEntry == null) {
+				debugInfoAbbrevEntry = temp.debugInfoAbbrevEntries.get("DW_AT_type");
+
+				if (debugInfoAbbrevEntry == null) {
+					return null;
+				}
+				return getParameterType(compileUnit, CommonLib.string2int("0x" + debugInfoAbbrevEntry.value));
+			}
+		} else {
+			return null;
+		}
+
+		String type = debugInfoAbbrevEntry.value.toString();
+		return type;
 	}
 }
