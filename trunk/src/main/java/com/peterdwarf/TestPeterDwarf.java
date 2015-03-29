@@ -8,10 +8,7 @@ import com.peterdwarf.dwarf.CompileUnit;
 import com.peterdwarf.dwarf.DebugInfoAbbrevEntry;
 import com.peterdwarf.dwarf.DebugInfoEntry;
 import com.peterdwarf.dwarf.Dwarf;
-import com.peterdwarf.dwarf.DwarfDebugLineHeader;
-import com.peterdwarf.dwarf.DwarfHeaderFilename;
 import com.peterdwarf.dwarf.DwarfLib;
-import com.peterdwarf.dwarf.DwarfLine;
 
 public class TestPeterDwarf {
 	public static void main(String[] args) {
