@@ -21,6 +21,7 @@ import com.peterdwarf.gui.PeterDwarfPanel;
 import com.peterswing.CommonLib;
 
 public class TestPeterDwarfJFrame extends javax.swing.JFrame {
+
 	private JToolBar toolBar1;
 	private JButton openButton;
 	private PeterDwarfPanel peterDwarfPanel1;
