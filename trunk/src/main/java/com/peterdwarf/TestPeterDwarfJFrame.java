@@ -82,7 +82,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 	}
 
 	private void openButtonActionPerformed(ActionEvent evt) {
-		File file = new File("../PeterI/kernel/kernel");
+		File file = new File("c:\\vmlinuz-3.8.0-29-generic");
 		peterDwarfPanel1.init(file, 0, true, this);
 
 		DebugInfoEntry debugInfoEntry = DwarfLib.getSubProgram(peterDwarfPanel1.dwarfs, CommonLib.convertFilesize("0x1600000"));
