@@ -295,7 +295,6 @@ public class Dwarf {
 							//offset = offset + leb128_length;
 							offset = offset + DwarfLib.getSLEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
 							break;
-
 						case Definition.DW_OP_breg0:
 						case Definition.DW_OP_breg1:
 						case Definition.DW_OP_breg2:
@@ -1119,7 +1118,7 @@ public class Dwarf {
 						debugInfoAbbrevEntry.value = "";
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
-							debugInfoAbbrevEntry.value += (bytes[z] & 0xFF) + ", ";
+							debugInfoAbbrevEntry.value += (bytes[z] & 0xFF) + ",";
 							if (DwarfGlobal.debug) {
 								System.out.print(bytes[z] + "\t");
 							}
