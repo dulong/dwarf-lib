@@ -379,22 +379,34 @@ public class PeterDwarfPanel extends JPanel {
 			while (e.hasMoreElements()) {
 				String key = e.nextElement();
 				DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode;
-				if (d.debugInfoAbbrevEntries.get(key).name.equals("DW_AT_decl_file")) {
-					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString() + ", "
-							+ compileUnit.dwarfDebugLineHeader.filenames.get(Integer.parseInt(d.debugInfoAbbrevEntries.get(key).value.toString()) - 1).file.getAbsolutePath(),
-							subNode, d.debugInfoAbbrevEntries.get(key));
-				} else if (d.debugInfoAbbrevEntries.get(key).name.equals("DW_AT_type")) {
-					int value = CommonLib.string2int("0x" + d.debugInfoAbbrevEntries.get(key).value.toString());
+
+				DebugInfoAbbrevEntry debugInfoAbbrevEntry = d.debugInfoAbbrevEntries.get(key);
+
+				if (debugInfoAbbrevEntry.name.equals("DW_AT_decl_file")) {
+					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString() + ", "
+							+ compileUnit.dwarfDebugLineHeader.filenames.get(Integer.parseInt(debugInfoAbbrevEntry.value.toString()) - 1).file.getAbsolutePath(), subNode,
+							debugInfoAbbrevEntry);
+				} else if (debugInfoAbbrevEntry.name.equals("DW_AT_type")) {
+					int value = CommonLib.string2int("0x" + debugInfoAbbrevEntry.value.toString());
 					String type = DwarfLib.getParameterType(compileUnit, value);
 					DebugInfoEntry temp = compileUnit.getDebugInfoEntryByPosition(value);
 					if (type == null) {
-						compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString(), subNode, d.debugInfoAbbrevEntries.get(key));
+						compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString(), subNode, debugInfoAbbrevEntry);
 					} else {
-						compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString() + ", " + type, subNode,
-								d.debugInfoAbbrevEntries.get(key));
+						compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString() + ", " + type, subNode, debugInfoAbbrevEntry);
 					}
+				} else if (debugInfoAbbrevEntry.name.equals("DW_AT_location")) {
+					String values[] = debugInfoAbbrevEntry.value.toString().split(",");
+					String value = "";
+					if (values.length > 1) {
+						value = Definition.getOPName(CommonLib.string2int(values[0]));
+						value += " +" + values[1];
+					} else {
+						value = Definition.getOPName(CommonLib.string2int(values[0]));
+					}
+					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString() + ", " + value, subNode, debugInfoAbbrevEntry);
 				} else {
-					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(d.debugInfoAbbrevEntries.get(key).toString(), subNode, d.debugInfoAbbrevEntries.get(key));
+					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString(), subNode, debugInfoAbbrevEntry);
 				}
 				subNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
 			}
