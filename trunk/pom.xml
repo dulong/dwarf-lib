@@ -97,12 +97,12 @@
 		<dependency>
 			<groupId>com.peter</groupId>
 			<artifactId>peter-ar</artifactId>
-			<version>20150128</version>
+			<version>20150330</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.mcheung63</groupId>
 			<artifactId>peter-swing</artifactId>
-			<version>20150128</version>
+			<version>20150330</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
