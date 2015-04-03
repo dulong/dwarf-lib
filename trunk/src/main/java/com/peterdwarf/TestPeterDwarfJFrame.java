@@ -85,12 +85,6 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 	private void openButtonActionPerformed(ActionEvent evt) {
 		File file = new File("../PeterI/kernel/kernel");
 		peterDwarfPanel1.init(file, 0, true, this);
-
-		DebugInfoEntry debugInfoEntry = DwarfLib.getSubProgram(peterDwarfPanel1.dwarfs, CommonLib.convertFilesize("0x1600000"));
-		Vector<DebugInfoEntry> v = debugInfoEntry.getDebugInfoEntryByName("DW_TAG_formal_parameter");
-		for (DebugInfoEntry d : v) {
-			System.out.println(d.debugInfoAbbrevEntries.get("DW_AT_name").value);
-		}
 	}
 
 }
