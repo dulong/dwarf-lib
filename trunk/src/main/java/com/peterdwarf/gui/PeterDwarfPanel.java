@@ -388,7 +388,7 @@ public class PeterDwarfPanel extends JPanel {
 				} else if (debugInfoAbbrevEntry.name.equals("DW_AT_type")) {
 					int value = CommonLib.string2int("0x" + debugInfoAbbrevEntry.value.toString());
 					String type = DwarfLib.getParameterType(compileUnit, value);
-					DebugInfoEntry temp = compileUnit.getDebugInfoEntryByPosition(value);
+					//DebugInfoEntry temp = compileUnit.getDebugInfoEntryByPosition(value);
 					if (type == null) {
 						compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString(), subNode, debugInfoAbbrevEntry);
 					} else {

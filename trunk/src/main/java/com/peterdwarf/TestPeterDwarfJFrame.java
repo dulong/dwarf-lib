@@ -6,7 +6,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -15,10 +14,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
-import com.peterdwarf.dwarf.DebugInfoEntry;
-import com.peterdwarf.dwarf.DwarfLib;
 import com.peterdwarf.gui.PeterDwarfPanel;
-import com.peterswing.CommonLib;
 
 public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 

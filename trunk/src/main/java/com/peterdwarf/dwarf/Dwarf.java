@@ -952,6 +952,7 @@ public class Dwarf {
 					debugInfoAbbrevEntry.name = Definition.getATName(entry.at);
 					debugInfoEntry.debugInfoAbbrevEntries.put(debugInfoAbbrevEntry.name, debugInfoAbbrevEntry);
 					debugInfoAbbrevEntry.form = entry.form;
+					debugInfoAbbrevEntry.formStr = Definition.getFormName(entry.form);
 					debugInfoAbbrevEntry.position = debugInfoBytes.position();
 
 					//System.out.println("debugInfoAbbrevEntry="+debugInfoAbbrevEntry.position+","+debugInfoAbbrevEntry.name);
