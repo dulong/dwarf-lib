@@ -77,6 +77,10 @@ public class Dwarf {
 
 		// read program header
 		try {
+//			if (!isElf32(file)) {
+//				System.err.println("Not support ELF64");
+//				System.exit(1);
+//			}
 			ehdr.read(new RandomAccessFile(file, "r"));
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -803,6 +807,19 @@ public class Dwarf {
 		}
 		isLoading = false;
 		return 0;
+	}
+
+	private boolean isElf32(File file) throws IOException {
+		RandomAccessFile f = new RandomAccessFile(file, "r");
+		byte[] e_ident = new byte[Elf32_Ehdr.EI_NIDENT];
+		f.readFully(e_ident);
+		int e_type = DwarfLib.readUHalf(f);
+		f.close();
+		if (e_type == 1) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public boolean isELF(File file) {

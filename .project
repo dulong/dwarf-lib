@@ -16,6 +16,11 @@
 			</arguments>
 		</buildCommand>
 		<buildCommand>
+			<name>org.zeroturnaround.eclipse.rebelXmlBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
 			<name>org.eclipse.m2e.core.maven2Builder</name>
 			<arguments>
 			</arguments>
@@ -26,5 +31,6 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>com.soyatec.additional.Nature</nature>
 		<nature>javafx.eclipse.f3editor.builder.F3Nature</nature>
+		<nature>org.zeroturnaround.eclipse.jrebelNature</nature>
 	</natures>
 </projectDescription>
