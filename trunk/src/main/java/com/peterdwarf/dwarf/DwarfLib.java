@@ -7,13 +7,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Vector;
 
 import com.peterar.AR;
 import com.peterar.PeterAR;
-import com.peterdwarf.gui.DwarfTreeNode;
 import com.peterswing.CommonLib;
 
 public class DwarfLib {
@@ -99,6 +99,17 @@ public class DwarfLib {
 		else {
 			long l = (f.readUnsignedByte() | (f.readUnsignedByte() << 8) | (f.readUnsignedByte() << 16) | (f.readUnsignedByte() << 24));
 			return (l & 0xFFFFFFFFL);
+		}
+	}
+
+	public static BigInteger readU64Bits(RandomAccessFile f) throws IOException {
+		if (WORDS_BIGENDIAN) {
+			System.err.println("unsupport WORDS_BIGENDIAN");
+			return BigInteger.valueOf(-1L);
+		} else {
+			byte b[] = new byte[8];
+			f.readFully(b);
+			return new BigInteger(b);
 		}
 	}
 
