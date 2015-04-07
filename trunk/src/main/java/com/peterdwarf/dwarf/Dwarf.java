@@ -39,7 +39,7 @@ public class Dwarf {
 	public LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
 	public File file;
 	public String realFilename;
-	public Elf_Ehdr ehdr = (Elf_Ehdr) new Elf32_Ehdr();
+	public Elf32_Ehdr ehdr = new Elf32_Ehdr();
 	public boolean isLoading;
 	public String loadingMessage;
 	public Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
