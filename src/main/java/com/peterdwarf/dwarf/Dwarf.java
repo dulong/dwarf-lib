@@ -17,6 +17,7 @@ import java.util.Vector;
 import org.apache.commons.codec.binary.Hex;
 
 import com.peterdwarf.DwarfGlobal;
+import com.peterdwarf.elf.Elf32_Ehdr;
 import com.peterdwarf.elf.Elf32_Shdr;
 import com.peterdwarf.elf.Elf32_Sym;
 import com.peterdwarf.elf.Elf_Common;
@@ -38,7 +39,7 @@ public class Dwarf {
 	public LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
 	public File file;
 	public String realFilename;
-	public Elf_Ehdr ehdr = new Elf_Ehdr();
+	public Elf_Ehdr ehdr = (Elf_Ehdr) new Elf32_Ehdr();
 	public boolean isLoading;
 	public String loadingMessage;
 	public Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
