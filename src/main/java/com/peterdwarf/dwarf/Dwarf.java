@@ -809,18 +809,18 @@ public class Dwarf {
 		return 0;
 	}
 
-	private boolean isElf32(File file) throws IOException {
-		RandomAccessFile f = new RandomAccessFile(file, "r");
-		byte[] e_ident = new byte[Elf32_Ehdr.EI_NIDENT];
-		f.readFully(e_ident);
-		int e_type = DwarfLib.readUHalf(f);
-		f.close();
-		if (e_type == 1) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+//	private boolean isElf32(File file) throws IOException {
+//		RandomAccessFile f = new RandomAccessFile(file, "r");
+//		byte[] e_ident = new byte[Elf32_Ehdr.EI_NIDENT];
+//		f.readFully(e_ident);
+//		int e_type = DwarfLib.readUHalf(f);
+//		f.close();
+//		if (e_type == 1) {
+//			return true;
+//		} else {
+//			return false;
+//		}
+//	}
 
 	public boolean isELF(File file) {
 		InputStream is;
