@@ -2,19 +2,20 @@ package com.peterdwarf.elf;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.math.BigInteger;
 
 import com.peterdwarf.dwarf.DwarfLib;
 
-public class Elf32_Ehdr extends Elf_Ehdr{
+public class Elf64_Ehdr implements Elf_Ehdr {
 	public static final int EI_NIDENT = 16;
 
 	public final byte[] e_ident = new byte[EI_NIDENT];/* Magic number and other info. */
 	public int e_type; /* Object file type. */
 	public int e_machine; /* Architecture type. */
 	public int e_version; /* Object file version. */
-	public long e_entry; /* Entry point virtual address. */
-	public long e_phoff; /* Program header table file offset. */
-	public long e_shoff; /* Section header table file offset. */
+	public BigInteger e_entry; /* Entry point virtual address. */
+	public BigInteger e_phoff; /* Program header table file offset. */
+	public BigInteger e_shoff; /* Section header table file offset. */
 	public int e_flags; /* Processor-specific flags. */
 	public int e_ehsize; /* ELF header size in bytes. */
 	public int e_phentsize; /* Program header table entry size. */
@@ -23,7 +24,7 @@ public class Elf32_Ehdr extends Elf_Ehdr{
 	public int e_shnum; /* Section header table entry count. */
 	public int e_shstrndx; /* Section header string table index. */
 
-	public Elf32_Ehdr() {
+	public Elf64_Ehdr() {
 	}
 
 	public void read(RandomAccessFile f) throws IOException {
@@ -31,9 +32,9 @@ public class Elf32_Ehdr extends Elf_Ehdr{
 		e_type = DwarfLib.readUHalf(f);
 		e_machine = DwarfLib.readUHalf(f);
 		e_version = DwarfLib.readWord(f);
-		e_entry = DwarfLib.readUWord(f);
-		e_phoff = DwarfLib.readUWord(f);
-		e_shoff = DwarfLib.readUWord(f);
+		e_entry = DwarfLib.readU64Bits(f);
+		e_phoff = DwarfLib.readU64Bits(f);
+		e_shoff = DwarfLib.readU64Bits(f);
 		e_flags = DwarfLib.readWord(f);
 		e_ehsize = DwarfLib.readUHalf(f);
 		e_phentsize = DwarfLib.readUHalf(f);
@@ -54,9 +55,9 @@ public class Elf32_Ehdr extends Elf_Ehdr{
 		str.append("; e_type: ").append(e_type & 0xFFFF);
 		str.append("; e_machine: ").append(e_machine & 0xFFFF);
 		str.append("; e_version: ").append(e_version & 0xFFFF);
-		str.append("; e_entry: 0x").append(Long.toHexString(e_entry));
-		str.append("; e_phoff: ").append((long) e_phoff & 0xFFFFFFFFL);
-		str.append("; e_shoff: ").append((long) e_shoff & 0xFFFFFFFFL);
+		str.append("; e_entry: 0x").append("0x" + e_entry.toString(16));
+		str.append("; e_phoff: ").append("0x" + e_phoff.toString(16));
+		str.append("; e_shoff: ").append("0x" + e_shoff.toString(16));
 		str.append("; e_flags: 0x").append(Integer.toHexString(e_flags));
 		str.append("; e_ehsize: ").append(e_ehsize & 0xFFFF);
 		str.append("; e_phentsize: ").append(e_phentsize & 0xFFFF);

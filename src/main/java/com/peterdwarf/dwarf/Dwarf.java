@@ -17,10 +17,10 @@ import java.util.Vector;
 import org.apache.commons.codec.binary.Hex;
 
 import com.peterdwarf.DwarfGlobal;
-import com.peterdwarf.elf.Elf32_Ehdr;
 import com.peterdwarf.elf.Elf32_Shdr;
 import com.peterdwarf.elf.Elf32_Sym;
 import com.peterdwarf.elf.Elf_Common;
+import com.peterdwarf.elf.Elf_Ehdr;
 import com.peterdwarf.elf.SectionFinder;
 import com.peterswing.CommonLib;
 
@@ -38,7 +38,7 @@ public class Dwarf {
 	public LinkedHashMap<Integer, LinkedHashMap<Integer, Abbrev>> abbrevList;
 	public File file;
 	public String realFilename;
-	public Elf32_Ehdr ehdr = new Elf32_Ehdr();
+	public Elf_Ehdr ehdr = new Elf_Ehdr();
 	public boolean isLoading;
 	public String loadingMessage;
 	public Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
@@ -77,10 +77,6 @@ public class Dwarf {
 
 		// read program header
 		try {
-//			if (!isElf32(file)) {
-//				System.err.println("Not support ELF64");
-//				System.exit(1);
-//			}
 			ehdr.read(new RandomAccessFile(file, "r"));
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -808,19 +804,6 @@ public class Dwarf {
 		isLoading = false;
 		return 0;
 	}
-
-//	private boolean isElf32(File file) throws IOException {
-//		RandomAccessFile f = new RandomAccessFile(file, "r");
-//		byte[] e_ident = new byte[Elf32_Ehdr.EI_NIDENT];
-//		f.readFully(e_ident);
-//		int e_type = DwarfLib.readUHalf(f);
-//		f.close();
-//		if (e_type == 1) {
-//			return true;
-//		} else {
-//			return false;
-//		}
-//	}
 
 	public boolean isELF(File file) {
 		InputStream is;
