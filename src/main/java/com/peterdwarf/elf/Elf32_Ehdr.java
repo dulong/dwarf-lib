@@ -5,7 +5,7 @@ import java.io.RandomAccessFile;
 
 import com.peterdwarf.dwarf.DwarfLib;
 
-public class Elf32_Ehdr extends Elf_Ehdr{
+public class Elf32_Ehdr {
 	public static final int EI_NIDENT = 16;
 
 	public final byte[] e_ident = new byte[EI_NIDENT];/* Magic number and other info. */
