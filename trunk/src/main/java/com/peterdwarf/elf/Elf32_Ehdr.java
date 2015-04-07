@@ -69,10 +69,10 @@ public class Elf32_Ehdr {
 	}
 
 	public boolean is32Bits() {
-		return e_ident[5] == 1;
+		return e_ident[4] == 1;
 	}
 
 	public boolean is64Bits() {
-		return e_ident[5] == 2;
+		return e_ident[4] == 2;
 	}
 }

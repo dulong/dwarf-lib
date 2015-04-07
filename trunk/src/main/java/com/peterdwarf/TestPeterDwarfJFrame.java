@@ -79,7 +79,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 	}
 
 	private void openButtonActionPerformed(ActionEvent evt) {
-		File file = new File("C:\\linux-4.0-rc5\\vmlinux");
+		File file = new File("/Users/peter/linux-4.0-rc5/");
 		peterDwarfPanel1.init(file, 0, true, this);
 	}
 
