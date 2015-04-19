@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -21,7 +22,6 @@ import com.peterdwarf.elf.Elf32_Ehdr;
 import com.peterdwarf.elf.Elf32_Shdr;
 import com.peterdwarf.elf.Elf32_Sym;
 import com.peterdwarf.elf.Elf_Common;
-import com.peterdwarf.elf.Elf_Ehdr;
 import com.peterdwarf.elf.SectionFinder;
 import com.peterswing.CommonLib;
 
@@ -32,6 +32,7 @@ public class Dwarf {
 	public ByteBuffer symtab_bytes;
 	private ByteBuffer strtab_bytes;
 	public ByteBuffer debug_loc;
+	public ByteBuffer eh_frame_bytes;
 
 	public Vector<CompileUnit> compileUnits = new Vector<CompileUnit>();
 	public Vector<Elf32_Sym> symbols = new Vector<Elf32_Sym>();
@@ -793,6 +794,88 @@ public class Dwarf {
 					return r;
 				}
 			}
+
+			Elf32_Shdr ehFrameSection = SectionFinder.getSection(file, ".eh_frame");
+			eh_frame_bytes = SectionFinder.findSectionByte(ehdr, file, ".eh_frame");
+			System.out.println("eh_frame_bytes=" + eh_frame_bytes.limit());
+			System.out.println(ehFrameSection.sh_size);
+
+			long start = 0;
+			long end = ehFrameSection.sh_size;
+			int offset_size;
+			int initial_length_size;
+			while (start < end) {
+				long length = eh_frame_bytes.getInt() & 0xffffffffL;
+				if (length == 0xffffffff) {
+					length = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
+					offset_size = 8;
+					initial_length_size = 12;
+				} else {
+					offset_size = 4;
+					initial_length_size = 4;
+				}
+
+				int cieID = (int) (eh_frame_bytes.getInt() & 0xffffffffL);
+				System.out.println("cieID=" + cieID);
+
+				int version = eh_frame_bytes.get();
+				System.out.println("version=" + version);
+
+				String augmentation = "";
+				int temp;
+				do {
+					temp = eh_frame_bytes.get();
+					augmentation += (char) temp;
+				} while (temp != 0);
+				System.out.println("augmentation=" + augmentation);
+
+				long ehData = 0;
+				if (augmentation.contains("eh")) {
+					if (SectionFinder.getElf32_Ehdr(file).is32Bits()) {
+						ehData = eh_frame_bytes.getInt() & 0xffffffffL;
+					} else {
+						ehData = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
+					}
+				}
+				System.out.println("ehData=" + ehData);
+
+				int codeAlignmentFactor = (int) DwarfLib.getULEB128(eh_frame_bytes);
+				System.out.println("codeAlignmentFactor=" + codeAlignmentFactor);
+
+				int dataAlignmentFactor = (int) DwarfLib.getSLEB128(eh_frame_bytes);
+				System.out.println("dataAlignmentFactor=" + dataAlignmentFactor);
+
+				if (version == 1) {
+					eh_frame_bytes.get();
+				} else {
+					DwarfLib.getULEB128(eh_frame_bytes);
+				}
+
+				System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
+				int augmentationLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
+				System.out.println("augmentationLength=" + augmentationLength);
+
+				System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
+
+				byte augmentationData[] = new byte[augmentationLength];
+				if (augmentation.contains("z")) {
+					for (int z = 0; z < augmentationLength; z++) {
+						augmentationData[z] = eh_frame_bytes.get();
+					}
+					System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
+				}
+
+				System.exit(0);
+			}
+
+			byte b[] = new byte[] { 0x12, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
+			ByteBuffer bf = ByteBuffer.wrap(b);
+
+			//			long xxx = bf.getInt() & 0xffffffffL;
+			BigInteger xxx = CommonLib.get64BitsInt(bf);
+			System.out.println(xxx);
+			System.exit(0);
+
 		} catch (OutOfMemoryError e) {
 			e.printStackTrace();
 			loadingMessage = file.getAbsolutePath() + " : out of memory error";
