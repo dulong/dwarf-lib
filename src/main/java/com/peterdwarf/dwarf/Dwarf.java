@@ -868,7 +868,7 @@ public class Dwarf {
 				}
 
 				System.out.println(eh_frame_bytes.position());
-				long pc_begin;
+				long pc_begin = 0;
 				while (eh_frame_bytes.position() < block_end) {
 					int op = eh_frame_bytes.get();
 					byte opa = (byte) (op & 0x3fL);
@@ -878,9 +878,20 @@ public class Dwarf {
 
 					switch (op) {
 					case Definition.DW_CFA_advance_loc:
-						System.out.printf("  DW_CFA_advance_loc: %d to %s\n", opa * codeAlignmentFactor, dwarf_vmatoa_1(NULL, fc->pc_begin + opa * fc->code_factor, fc->ptr_size));
+						System.out.printf("  DW_CFA_advance_loc: %d\n", opa * codeAlignmentFactor);
 						pc_begin += opa * codeAlignmentFactor;
 						break;
+				case Definition.DW_CFA_offset:
+					long roffs = DwarfLib.getULEB128(eh_frame_bytes);
+					if (opa >= (unsigned int) fc->ncols)
+						reg_prefix = bad_reg;
+					if (!do_debug_frames_interp || *reg_prefix != '\0')
+						printf("  DW_CFA_offset: %s%s at cfa%+ld\n", reg_prefix, regname(opa, 0), roffs * fc->data_factor);
+					if (*reg_prefix == '\0') {
+						fc->col_type[opa] = DW_CFA_offset;
+						fc->col_offset[opa] = roffs * fc->data_factor;
+					}
+					break;
 					}
 				}
 
