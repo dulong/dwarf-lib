@@ -815,6 +815,8 @@ public class Dwarf {
 					initial_length_size = 4;
 				}
 
+				long block_end = eh_frame_bytes.position() + length + initial_length_size;
+
 				int cieID = (int) (eh_frame_bytes.getInt() & 0xffffffffL);
 				System.out.println("cieID=" + cieID);
 
@@ -863,6 +865,23 @@ public class Dwarf {
 						augmentationData[z] = eh_frame_bytes.get();
 					}
 					System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
+				}
+
+				System.out.println(eh_frame_bytes.position());
+				long pc_begin;
+				while (eh_frame_bytes.position() < block_end) {
+					int op = eh_frame_bytes.get();
+					byte opa = (byte) (op & 0x3fL);
+					if ((op & 0xc0L) > 0) {
+						op &= 0xc0;
+					}
+
+					switch (op) {
+					case Definition.DW_CFA_advance_loc:
+						System.out.printf("  DW_CFA_advance_loc: %d to %s\n", opa * codeAlignmentFactor, dwarf_vmatoa_1(NULL, fc->pc_begin + opa * fc->code_factor, fc->ptr_size));
+						pc_begin += opa * codeAlignmentFactor;
+						break;
+					}
 				}
 
 				System.exit(0);
