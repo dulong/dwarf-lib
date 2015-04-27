@@ -820,79 +820,93 @@ public class Dwarf {
 				int cieID = (int) (eh_frame_bytes.getInt() & 0xffffffffL);
 				System.out.println("cieID=" + cieID);
 
-				int version = eh_frame_bytes.get();
-				System.out.println("version=" + version);
+				if (cieID == 0) {
+					// read CIE
+					int version = eh_frame_bytes.get();
+					System.out.println("version=" + version);
 
-				String augmentation = "";
-				int temp;
-				do {
-					temp = eh_frame_bytes.get();
-					augmentation += (char) temp;
-				} while (temp != 0);
-				System.out.println("augmentation=" + augmentation);
+					String augmentation = "";
+					int temp;
+					do {
+						temp = eh_frame_bytes.get();
+						augmentation += (char) temp;
+					} while (temp != 0);
+					System.out.println("augmentation=" + augmentation);
+					
+					if (version>=4){
+						System.out.println("version>=4");
+						System.exit(-2);
+					}else{
+						ptr_size=eh_addr_size;
+					}
 
-				long ehData = 0;
-				if (augmentation.contains("eh")) {
-					if (SectionFinder.getElf32_Ehdr(file).is32Bits()) {
-						ehData = eh_frame_bytes.getInt() & 0xffffffffL;
+					long ehData = 0;
+					if (augmentation.contains("eh")) {
+						if (SectionFinder.getElf32_Ehdr(file).is32Bits()) {
+							ehData = eh_frame_bytes.getInt() & 0xffffffffL;
+						} else {
+							ehData = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
+						}
+					}
+					System.out.println("ehData=" + ehData);
+
+					int codeAlignmentFactor = (int) DwarfLib.getULEB128(eh_frame_bytes);
+					System.out.println("codeAlignmentFactor=" + codeAlignmentFactor);
+
+					int dataAlignmentFactor = (int) DwarfLib.getSLEB128(eh_frame_bytes);
+					System.out.println("dataAlignmentFactor=" + dataAlignmentFactor);
+
+					if (version == 1) {
+						eh_frame_bytes.get();
 					} else {
-						ehData = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
-					}
-				}
-				System.out.println("ehData=" + ehData);
-
-				int codeAlignmentFactor = (int) DwarfLib.getULEB128(eh_frame_bytes);
-				System.out.println("codeAlignmentFactor=" + codeAlignmentFactor);
-
-				int dataAlignmentFactor = (int) DwarfLib.getSLEB128(eh_frame_bytes);
-				System.out.println("dataAlignmentFactor=" + dataAlignmentFactor);
-
-				if (version == 1) {
-					eh_frame_bytes.get();
-				} else {
-					DwarfLib.getULEB128(eh_frame_bytes);
-				}
-
-				System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
-				int augmentationLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
-				System.out.println("augmentationLength=" + augmentationLength);
-
-				System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
-
-				byte augmentationData[] = new byte[augmentationLength];
-				if (augmentation.contains("z")) {
-					for (int z = 0; z < augmentationLength; z++) {
-						augmentationData[z] = eh_frame_bytes.get();
-					}
-					System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
-				}
-
-				System.out.println(eh_frame_bytes.position());
-				long pc_begin = 0;
-				while (eh_frame_bytes.position() < block_end) {
-					int op = eh_frame_bytes.get();
-					byte opa = (byte) (op & 0x3fL);
-					if ((op & 0xc0L) > 0) {
-						op &= 0xc0;
+						DwarfLib.getULEB128(eh_frame_bytes);
 					}
 
-					switch (op) {
-					case Definition.DW_CFA_advance_loc:
-						System.out.printf("  DW_CFA_advance_loc: %d\n", opa * codeAlignmentFactor);
-						pc_begin += opa * codeAlignmentFactor;
+					System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
+					int augmentationLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
+					System.out.println("augmentationLength=" + augmentationLength);
+
+					System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
+
+					byte augmentationData[] = new byte[augmentationLength];
+					if (augmentation.contains("z")) {
+						for (int z = 0; z < augmentationLength; z++) {
+							augmentationData[z] = eh_frame_bytes.get();
+						}
+						System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
+					}
+					
+					// read CIE end
+
+					System.out.println(eh_frame_bytes.position());
+					long pc_begin = 0;
+					while (eh_frame_bytes.position() < block_end) {
+						int op = eh_frame_bytes.get();
+						byte opa = (byte) (op & 0x3fL);
+						if ((op & 0xc0L) > 0) {
+							op &= 0xc0;
+						}
+
+						switch (op) {
+						case Definition.DW_CFA_advance_loc:
+							System.out.printf("  DW_CFA_advance_loc: %d\n", opa * codeAlignmentFactor);
+							pc_begin += opa * codeAlignmentFactor;
+							break;
+					case Definition.DW_CFA_offset:
+						long roffs = DwarfLib.getULEB128(eh_frame_bytes);
+						if (opa >= (unsigned int) fc->ncols)
+							reg_prefix = bad_reg;
+						if (!do_debug_frames_interp || *reg_prefix != '\0')
+							printf("  DW_CFA_offset: %s%s at cfa%+ld\n", reg_prefix, regname(opa, 0), roffs * fc->data_factor);
+						if (*reg_prefix == '\0') {
+							fc->col_type[opa] = DW_CFA_offset;
+							fc->col_offset[opa] = roffs * fc->data_factor;
+						}
 						break;
-				case Definition.DW_CFA_offset:
-					long roffs = DwarfLib.getULEB128(eh_frame_bytes);
-					if (opa >= (unsigned int) fc->ncols)
-						reg_prefix = bad_reg;
-					if (!do_debug_frames_interp || *reg_prefix != '\0')
-						printf("  DW_CFA_offset: %s%s at cfa%+ld\n", reg_prefix, regname(opa, 0), roffs * fc->data_factor);
-					if (*reg_prefix == '\0') {
-						fc->col_type[opa] = DW_CFA_offset;
-						fc->col_offset[opa] = roffs * fc->data_factor;
+						}
 					}
-					break;
-					}
+				} else {
+
 				}
 
 				System.exit(0);
