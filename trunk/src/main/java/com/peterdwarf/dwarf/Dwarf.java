@@ -90,7 +90,7 @@ public class Dwarf {
 
 		try {
 			debug_loc = SectionFinder.findSectionByte(ehdr, file, ".debug_loc");
-			while (debug_loc.hasRemaining()) {
+			while (debug_loc!=null && debug_loc.hasRemaining()) {
 				int start = debug_loc.getInt();
 				int end = debug_loc.getInt();
 				if (start == 0 && end == 0) {
@@ -795,6 +795,7 @@ public class Dwarf {
 				}
 			}
 
+			/*
 			Elf32_Shdr ehFrameSection = SectionFinder.getSection(file, ".eh_frame");
 			eh_frame_bytes = SectionFinder.findSectionByte(ehdr, file, ".eh_frame");
 			System.out.println("eh_frame_bytes=" + eh_frame_bytes.limit());
@@ -911,14 +912,15 @@ public class Dwarf {
 
 				System.exit(0);
 			}
+			*/
 
-			byte b[] = new byte[] { 0x12, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
-			ByteBuffer bf = ByteBuffer.wrap(b);
-
-			//			long xxx = bf.getInt() & 0xffffffffL;
-			BigInteger xxx = CommonLib.get64BitsInt(bf);
-			System.out.println(xxx);
-			System.exit(0);
+//			byte b[] = new byte[] { 0x12, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
+//			ByteBuffer bf = ByteBuffer.wrap(b);
+//
+//			//			long xxx = bf.getInt() & 0xffffffffL;
+//			BigInteger xxx = CommonLib.get64BitsInt(bf);
+//			System.out.println(xxx);
+//			System.exit(0);
 
 		} catch (OutOfMemoryError e) {
 			e.printStackTrace();
