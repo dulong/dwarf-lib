@@ -90,7 +90,7 @@ public class Dwarf {
 
 		try {
 			debug_loc = SectionFinder.findSectionByte(ehdr, file, ".debug_loc");
-			while (debug_loc!=null && debug_loc.hasRemaining()) {
+			while (debug_loc != null && debug_loc.hasRemaining()) {
 				int start = debug_loc.getInt();
 				int end = debug_loc.getInt();
 				if (start == 0 && end == 0) {
@@ -795,7 +795,7 @@ public class Dwarf {
 				}
 			}
 
-			/*
+			
 			Elf32_Shdr ehFrameSection = SectionFinder.getSection(file, ".eh_frame");
 			eh_frame_bytes = SectionFinder.findSectionByte(ehdr, file, ".eh_frame");
 			System.out.println("eh_frame_bytes=" + eh_frame_bytes.limit());
@@ -820,6 +820,8 @@ public class Dwarf {
 
 				int cieID = (int) (eh_frame_bytes.getInt() & 0xffffffffL);
 				System.out.println("cieID=" + cieID);
+				
+				int eh_addr_size=4;
 
 				if (cieID == 0) {
 					// read CIE
@@ -834,11 +836,15 @@ public class Dwarf {
 					} while (temp != 0);
 					System.out.println("augmentation=" + augmentation);
 					
+					if (augmentation.equals("eh")){
+						start += eh_addr_size;
+				}
+					
 					if (version>=4){
 						System.out.println("version>=4");
 						System.exit(-2);
 					}else{
-						ptr_size=eh_addr_size;
+						//ptr_size=eh_addr_size;
 					}
 
 					long ehData = 0;
@@ -912,15 +918,14 @@ public class Dwarf {
 
 				System.exit(0);
 			}
-			*/
 
-//			byte b[] = new byte[] { 0x12, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
-//			ByteBuffer bf = ByteBuffer.wrap(b);
-//
-//			//			long xxx = bf.getInt() & 0xffffffffL;
-//			BigInteger xxx = CommonLib.get64BitsInt(bf);
-//			System.out.println(xxx);
-//			System.exit(0);
+			//			byte b[] = new byte[] { 0x12, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
+			//			ByteBuffer bf = ByteBuffer.wrap(b);
+			//
+			//			//			long xxx = bf.getInt() & 0xffffffffL;
+			//			BigInteger xxx = CommonLib.get64BitsInt(bf);
+			//			System.out.println(xxx);
+			//			System.exit(0);
 
 		} catch (OutOfMemoryError e) {
 			e.printStackTrace();
