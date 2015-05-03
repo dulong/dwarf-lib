@@ -795,7 +795,6 @@ public class Dwarf {
 				}
 			}
 
-			
 			Elf32_Shdr ehFrameSection = SectionFinder.getSection(file, ".eh_frame");
 			eh_frame_bytes = SectionFinder.findSectionByte(ehdr, file, ".eh_frame");
 			System.out.println("eh_frame_bytes=" + eh_frame_bytes.limit());
@@ -820,8 +819,10 @@ public class Dwarf {
 
 				int cieID = (int) (eh_frame_bytes.getInt() & 0xffffffffL);
 				System.out.println("cieID=" + cieID);
-				
-				int eh_addr_size=4;
+
+				int eh_addr_size = 4;
+				int ptr_size;
+				int segment_size;
 
 				if (cieID == 0) {
 					// read CIE
@@ -835,27 +836,28 @@ public class Dwarf {
 						augmentation += (char) temp;
 					} while (temp != 0);
 					System.out.println("augmentation=" + augmentation);
-					
-					if (augmentation.equals("eh")){
+
+					if (augmentation.equals("eh")) {
 						start += eh_addr_size;
-				}
-					
-					if (version>=4){
-						System.out.println("version>=4");
-						System.exit(-2);
-					}else{
-						//ptr_size=eh_addr_size;
 					}
 
-					long ehData = 0;
-					if (augmentation.contains("eh")) {
-						if (SectionFinder.getElf32_Ehdr(file).is32Bits()) {
-							ehData = eh_frame_bytes.getInt() & 0xffffffffL;
-						} else {
-							ehData = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
-						}
+					if (version >= 4) {
+						System.out.println("not support version>=4");
+						System.exit(-2);
+					} else {
+						ptr_size = eh_addr_size;
+						segment_size = 0;
 					}
-					System.out.println("ehData=" + ehData);
+
+//					long ehData = 0;
+//					if (augmentation.contains("eh")) {
+//						if (SectionFinder.getElf32_Ehdr(file).is32Bits()) {
+//							ehData = eh_frame_bytes.getInt() & 0xffffffffL;
+//						} else {
+//							ehData = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
+//						}
+//					}
+//					System.out.println("ehData=" + ehData);
 
 					int codeAlignmentFactor = (int) DwarfLib.getULEB128(eh_frame_bytes);
 					System.out.println("codeAlignmentFactor=" + codeAlignmentFactor);
@@ -882,7 +884,7 @@ public class Dwarf {
 						}
 						System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
 					}
-					
+
 					// read CIE end
 
 					System.out.println(eh_frame_bytes.position());
@@ -899,17 +901,17 @@ public class Dwarf {
 							System.out.printf("  DW_CFA_advance_loc: %d\n", opa * codeAlignmentFactor);
 							pc_begin += opa * codeAlignmentFactor;
 							break;
-					case Definition.DW_CFA_offset:
-						long roffs = DwarfLib.getULEB128(eh_frame_bytes);
-						if (opa >= (unsigned int) fc->ncols)
-							reg_prefix = bad_reg;
-						if (!do_debug_frames_interp || *reg_prefix != '\0')
-							printf("  DW_CFA_offset: %s%s at cfa%+ld\n", reg_prefix, regname(opa, 0), roffs * fc->data_factor);
-						if (*reg_prefix == '\0') {
-							fc->col_type[opa] = DW_CFA_offset;
-							fc->col_offset[opa] = roffs * fc->data_factor;
-						}
-						break;
+						case Definition.DW_CFA_offset:
+							//						long roffs = DwarfLib.getULEB128(eh_frame_bytes);
+							//						if (opa >= (unsigned int) fc->ncols)
+							//							reg_prefix = bad_reg;
+							//						if (!do_debug_frames_interp || *reg_prefix != '\0')
+							//							printf("  DW_CFA_offset: %s%s at cfa%+ld\n", reg_prefix, regname(opa, 0), roffs * fc->data_factor);
+							//						if (*reg_prefix == '\0') {
+							//							fc->col_type[opa] = DW_CFA_offset;
+							//							fc->col_offset[opa] = roffs * fc->data_factor;
+							//						}
+							break;
 						}
 					}
 				} else {
