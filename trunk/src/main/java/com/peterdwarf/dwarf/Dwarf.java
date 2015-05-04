@@ -823,6 +823,7 @@ public class Dwarf {
 				int eh_addr_size = 4;
 				int ptr_size;
 				int segment_size;
+				long ra;
 
 				if (cieID == 0) {
 					// read CIE
@@ -849,15 +850,15 @@ public class Dwarf {
 						segment_size = 0;
 					}
 
-//					long ehData = 0;
-//					if (augmentation.contains("eh")) {
-//						if (SectionFinder.getElf32_Ehdr(file).is32Bits()) {
-//							ehData = eh_frame_bytes.getInt() & 0xffffffffL;
-//						} else {
-//							ehData = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
-//						}
-//					}
-//					System.out.println("ehData=" + ehData);
+					//					long ehData = 0;
+					//					if (augmentation.contains("eh")) {
+					//						if (SectionFinder.getElf32_Ehdr(file).is32Bits()) {
+					//							ehData = eh_frame_bytes.getInt() & 0xffffffffL;
+					//						} else {
+					//							ehData = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
+					//						}
+					//					}
+					//					System.out.println("ehData=" + ehData);
 
 					int codeAlignmentFactor = (int) DwarfLib.getULEB128(eh_frame_bytes);
 					System.out.println("codeAlignmentFactor=" + codeAlignmentFactor);
@@ -866,23 +867,28 @@ public class Dwarf {
 					System.out.println("dataAlignmentFactor=" + dataAlignmentFactor);
 
 					if (version == 1) {
-						eh_frame_bytes.get();
+						ra = eh_frame_bytes.get();
 					} else {
-						DwarfLib.getULEB128(eh_frame_bytes);
+						ra = DwarfLib.getULEB128(eh_frame_bytes);
 					}
 
-					System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
-					int augmentationLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
-					System.out.println("augmentationLength=" + augmentationLength);
+					//					System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
+					//					System.out.println("augmentationLength=" + augmentationLength);
+					//					System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
 
-					System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
+					int augmentationDataLength = 0;
+					if (augmentation.charAt(0) == 'z') {
+						augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
+						byte augmentationData[] = new byte[augmentationDataLength];
 
-					byte augmentationData[] = new byte[augmentationLength];
-					if (augmentation.contains("z")) {
-						for (int z = 0; z < augmentationLength; z++) {
+						for (int z = 0; z < augmentationDataLength; z++) {
 							augmentationData[z] = eh_frame_bytes.get();
 						}
 						System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
+					}
+
+					if (augmentationDataLength > 0) {
+
 					}
 
 					// read CIE end
