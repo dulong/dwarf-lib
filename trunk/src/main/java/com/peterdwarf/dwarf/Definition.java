@@ -1788,4 +1788,37 @@ public class Definition {
 	public static final int DW_CFA_GNU_window_save = 0x2d;
 	public static final int DW_CFA_GNU_args_size = 0x2e;
 	public static final int DW_CFA_GNU_negative_offset_extended = 0x2f;
+
+	public static String dwarf_regnames_x86_64[] = { "rax", "rdx", "rcx", "rbx", "rsi", "rdi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rip", "xmm0",
+			"xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15", "st0", "st1", "st2", "st3", "st4", "st5",
+			"st6", "st7", "mm0", "mm1", "mm2", "mm3", "mm4", "mm5", "mm6", "mm7", "rflags", "es", "cs", "ss", "ds", "fs", "gs", null, null, "fs.base", "gs.base", null, null, "tr",
+			"ldtr", "mxcsr", "fcw", "fsw", "xmm16", "xmm17", "xmm18", "xmm19", "xmm20", "xmm21", "xmm22", "xmm23", "xmm24", "xmm25", "xmm26", "xmm27", "xmm28", "xmm29", "xmm30",
+			"xmm31", null, null, null, null, null, null, null, null, /* 83 - 90  */
+			null, null, null, null, null, null, null, null, /* 91 - 98  */
+			null, null, null, null, null, null, null, null, /* 99 - 106  */
+			null, null, null, null, null, null, null, null, /* 107 - 114  */
+			null, null, null, /* 115 - 117  */
+			"k0", "k1", "k2", "k3", "k4", "k5", "k6", "k7" };
+
+	public static String dwarf_regnames_i386[] = { "eax", "ecx", "edx", "ebx", /* 0 - 3  */
+	"esp", "ebp", "esi", "edi", /* 4 - 7  */
+	"eip", "eflags", null, /* 8 - 10  */
+	"st0", "st1", "st2", "st3", /* 11 - 14  */
+	"st4", "st5", "st6", "st7", /* 15 - 18  */
+	null, null, /* 19 - 20  */
+	"xmm0", "xmm1", "xmm2", "xmm3", /* 21 - 24  */
+	"xmm4", "xmm5", "xmm6", "xmm7", /* 25 - 28  */
+	"mm0", "mm1", "mm2", "mm3", /* 29 - 32  */
+	"mm4", "mm5", "mm6", "mm7", /* 33 - 36  */
+	"fcw", "fsw", "mxcsr", /* 37 - 39  */
+	"es", "cs", "ss", "ds", "fs", "gs", null, null, /* 40 - 47  */
+	"tr", "ldtr", /* 48 - 49  */
+	null, null, null, null, null, null, null, null, /* 50 - 57  */
+	null, null, null, null, null, null, null, null, /* 58 - 65  */
+	null, null, null, null, null, null, null, null, /* 66 - 73  */
+	null, null, null, null, null, null, null, null, /* 74 - 81  */
+	null, null, null, null, null, null, null, null, /* 82 - 89  */
+	null, null, null, /* 90 - 92  */
+	"k0", "k1", "k2", "k3", "k4", "k5", "k6", "k7" /* 93 - 100  */
+	};
 }

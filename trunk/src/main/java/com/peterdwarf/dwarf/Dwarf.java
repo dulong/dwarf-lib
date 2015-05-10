@@ -894,6 +894,7 @@ public class Dwarf {
 
 					System.out.println(eh_frame_bytes.position());
 					long pc_begin = 0;
+					String reg_prefix="";
 					while (eh_frame_bytes.position() < block_end) {
 						int op = eh_frame_bytes.get();
 						byte opa = (byte) (op & 0x3fL);
@@ -907,16 +908,26 @@ public class Dwarf {
 							pc_begin += opa * codeAlignmentFactor;
 							break;
 						case Definition.DW_CFA_offset:
-							//						long roffs = DwarfLib.getULEB128(eh_frame_bytes);
-							//						if (opa >= (unsigned int) fc->ncols)
-							//							reg_prefix = bad_reg;
-							//						if (!do_debug_frames_interp || *reg_prefix != '\0')
-							//							printf("  DW_CFA_offset: %s%s at cfa%+ld\n", reg_prefix, regname(opa, 0), roffs * fc->data_factor);
-							//						if (*reg_prefix == '\0') {
-							//							fc->col_type[opa] = DW_CFA_offset;
-							//							fc->col_offset[opa] = roffs * fc->data_factor;
-							//						}
+							long roffs = DwarfLib.getULEB128(eh_frame_bytes);
+							if (opa >=fc->ncols){
+																					reg_prefix = bad_reg;
+																					}
+							//													if (!do_debug_frames_interp || *reg_prefix != '\0')
+							//														printf("  DW_CFA_offset: %s%s at cfa%+ld\n", reg_prefix, regname(opa, 0), roffs * fc->data_factor);
+							//													if (*reg_prefix == '\0') {
+							//														fc->col_type[opa] = DW_CFA_offset;
+							//														fc->col_offset[opa] = roffs * fc->data_factor;
+							//													}
+							
+							printf("  DW_CFA_offset: %s%s at cfa%+ld\n", reg_prefix, regname(opa, 0), roffs * fc->data_factor);
 							break;
+						case Definition.DW_CFA_def_cfa:
+							long cfa_reg = DwarfLib.getULEB128(eh_frame_bytes);
+							long cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
+							long cfa_exp = 0;
+							System.out.println("  DW_CFA_def_cfa: r"+cfa_reg+" " + Definition.dwarf_regnames_i386[(int) cfa_reg] + " ofs " + cfa_offset);
+							break;
+
 						}
 					}
 				} else {
