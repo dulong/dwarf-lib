@@ -804,6 +804,7 @@ public class Dwarf {
 			long end = ehFrameSection.sh_size;
 			int offset_size;
 			int initial_length_size;
+			Vector <FrameChunk> ehFrames=new Vector<FrameChunk>();
 			while (start < end) {
 				long length = eh_frame_bytes.getInt() & 0xffffffffL;
 				if (length == 0xffffffff) {
@@ -823,22 +824,23 @@ public class Dwarf {
 				int eh_addr_size = 4;
 				int ptr_size;
 				int segment_size;
-				long ra;
+				
 
 				if (cieID == 0) {
 					// read CIE
+					FrameChunk fc=new FrameChunk();
 					int version = eh_frame_bytes.get();
 					System.out.println("version=" + version);
 
-					String augmentation = "";
+					
 					int temp;
 					do {
 						temp = eh_frame_bytes.get();
-						augmentation += (char) temp;
+						fc.augmentation += (char) temp;
 					} while (temp != 0);
-					System.out.println("augmentation=" + augmentation);
+					System.out.println("augmentation=" + fc.augmentation);
 
-					if (augmentation.equals("eh")) {
+					if (fc.augmentation.equals("eh")) {
 						start += eh_addr_size;
 					}
 
@@ -846,8 +848,8 @@ public class Dwarf {
 						System.out.println("not support version>=4");
 						System.exit(-2);
 					} else {
-						ptr_size = eh_addr_size;
-						segment_size = 0;
+						fc.ptr_size = eh_addr_size;
+						fc.segment_size = 0;
 					}
 
 					//					long ehData = 0;
@@ -860,16 +862,16 @@ public class Dwarf {
 					//					}
 					//					System.out.println("ehData=" + ehData);
 
-					int codeAlignmentFactor = (int) DwarfLib.getULEB128(eh_frame_bytes);
-					System.out.println("codeAlignmentFactor=" + codeAlignmentFactor);
+					fc.code_factor = (int) DwarfLib.getULEB128(eh_frame_bytes);
+					System.out.println("codeAlignmentFactor=" + fc.code_factor);
 
-					int dataAlignmentFactor = (int) DwarfLib.getSLEB128(eh_frame_bytes);
-					System.out.println("dataAlignmentFactor=" + dataAlignmentFactor);
+					fc.data_factor = (int) DwarfLib.getSLEB128(eh_frame_bytes);
+					System.out.println("dataAlignmentFactor=" + fc.data_factor);
 
 					if (version == 1) {
-						ra = eh_frame_bytes.get();
+						fc.ra = eh_frame_bytes.get();
 					} else {
-						ra = DwarfLib.getULEB128(eh_frame_bytes);
+						fc.ra = DwarfLib.getULEB128(eh_frame_bytes);
 					}
 
 					//					System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
@@ -877,7 +879,7 @@ public class Dwarf {
 					//					System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
 
 					int augmentationDataLength = 0;
-					if (augmentation.charAt(0) == 'z') {
+					if (fc.augmentation.charAt(0) == 'z') {
 						augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
 						byte augmentationData[] = new byte[augmentationDataLength];
 
@@ -890,6 +892,10 @@ public class Dwarf {
 					if (augmentationDataLength > 0) {
 
 					}
+					
+					ehFrames.add(fc);
+					
+					frame_need_space();
 					// read CIE end
 
 					System.out.println(eh_frame_bytes.position());
@@ -956,6 +962,57 @@ public class Dwarf {
 		}
 		isLoading = false;
 		return 0;
+	}
+
+	private int frame_need_space() {
+		System.out.println("---------------- frame_need_space ------------\n");
+		 int prev = fc->ncols;
+
+		if (reg < (unsigned int) fc->ncols)
+			return 0;
+
+		if (dwarf_regnames_count && reg > dwarf_regnames_count)
+			return -1;
+
+		fc->ncols = reg + 1;
+		printf("fc->ncols = reg + 1; >> %d\n", fc->ncols);
+		printf("fc->ncols = reg + 1, %d\n", fc->ncols);
+		/* PR 17512: file: 10450-2643-0.004.
+		 If reg == -1 then this can happen...  */
+		if (fc->ncols == 0) {
+			printf("---------------- frame_need_space end ------------\n");
+			return -1;
+		}
+
+		/* PR 17512: file: 2844a11d.  */
+		if (fc->ncols > 1024) {
+			error(_("Unfeasibly large register number: %u\n"), reg);
+			fc->ncols = 0;
+			/* FIXME: 1024 is an arbitrary limit.  Increase it if
+			 we ever encounter a valid binary that exceeds it.  */
+			printf("---------------- frame_need_space end ------------\n");
+			return -1;
+		}
+
+		fc->col_type = (short int *) xcrealloc(fc->col_type, fc->ncols, sizeof(short int));
+		fc->col_offset = (int *) xcrealloc(fc->col_offset, fc->ncols, sizeof(int));
+		/* PR 17512: file:002-10025-0.005.  */
+		if (fc->col_type == NULL || fc->col_offset == NULL) {
+			error(_("Out of memory allocating %u columns in dwarf frame arrays\n"), fc->ncols);
+			fc->ncols = 0;
+			System.out.println("---------------- frame_need_space end ------------\n");
+			return -1;
+		}
+
+		while (prev < fc->ncols) {
+			fc->col_type[prev] = DW_CFA_unreferenced;
+			fc->col_offset[prev] = 0;
+			System.out.println("\t\t%d, %d\n", fc->col_type[prev], fc->col_offset[prev]);
+			prev++;
+		}
+
+		System.out.println("---------------- frame_need_space end ------------\n");
+		return 1;
 	}
 
 	public boolean isELF(File file) {
