@@ -4,8 +4,8 @@ public class FrameChunk {
 	String chunk_start;
 	int ncols;
 	/* DW_CFA_{undefined,same_value,offset,register,unreferenced}  */
-	int col_type;
-	int col_offset;
+	long col_type[];
+	long col_offset[];
 	String augmentation;
 	int code_factor;
 	int data_factor;

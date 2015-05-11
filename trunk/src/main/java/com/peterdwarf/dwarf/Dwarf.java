@@ -804,7 +804,9 @@ public class Dwarf {
 			long end = ehFrameSection.sh_size;
 			int offset_size;
 			int initial_length_size;
-			Vector <FrameChunk> ehFrames=new Vector<FrameChunk>();
+			int max_regs = 0;
+			String bad_reg = "bad register: ";
+			Vector<FrameChunk> ehFrames = new Vector<FrameChunk>();
 			while (start < end) {
 				long length = eh_frame_bytes.getInt() & 0xffffffffL;
 				if (length == 0xffffffff) {
@@ -824,15 +826,13 @@ public class Dwarf {
 				int eh_addr_size = 4;
 				int ptr_size;
 				int segment_size;
-				
 
 				if (cieID == 0) {
 					// read CIE
-					FrameChunk fc=new FrameChunk();
+					FrameChunk fc = new FrameChunk();
 					int version = eh_frame_bytes.get();
 					System.out.println("version=" + version);
 
-					
 					int temp;
 					do {
 						temp = eh_frame_bytes.get();
@@ -892,16 +892,20 @@ public class Dwarf {
 					if (augmentationDataLength > 0) {
 
 					}
-					
+
 					ehFrames.add(fc);
 					// read CIE end
-				
-					
-					frame_need_space(fc);
+
+					int mreg = max_regs > 0 ? max_regs - 1 : 0;
+					if (mreg < fc.ra) {
+						mreg = (int) fc.ra;
+					}
+
+					frame_need_space(fc, mreg);
 
 					System.out.println(eh_frame_bytes.position());
 					long pc_begin = 0;
-					String reg_prefix="";
+					String reg_prefix = "";
 					while (eh_frame_bytes.position() < block_end) {
 						int op = eh_frame_bytes.get();
 						byte opa = (byte) (op & 0x3fL);
@@ -910,29 +914,28 @@ public class Dwarf {
 						}
 
 						switch (op) {
-						case Definition.DW_CFA_advance_loc:
-							System.out.printf("  DW_CFA_advance_loc: %d\n", opa * codeAlignmentFactor);
-							pc_begin += opa * codeAlignmentFactor;
-							break;
+						//						case Definition.DW_CFA_advance_loc:
+						//							System.out.printf("  DW_CFA_advance_loc:"+fc->code_factor+"\n", opa * codeAlignmentFactor);
+						//							pc_begin += opa * codeAlignmentFactor;
+						//							break;
 						case Definition.DW_CFA_offset:
 							long roffs = DwarfLib.getULEB128(eh_frame_bytes);
-							if (opa >=fc.ncols){
-																					reg_prefix = bad_reg;
-																					}
-							//													if (!do_debug_frames_interp || *reg_prefix != '\0')
-							//														printf("  DW_CFA_offset: %s%s at cfa%+ld\n", reg_prefix, regname(opa, 0), roffs * fc.data_factor);
-							//													if (*reg_prefix == '\0') {
-							//														fc.col_type[opa] = DW_CFA_offset;
-							//														fc.col_offset[opa] = roffs * fc.data_factor;
-							//													}
-							
-							printf("  DW_CFA_offset: %s%s at cfa%+ld\n", reg_prefix, regname(opa, 0), roffs * fc.data_factor);
+							if (opa >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix != null) {
+								System.out.printf("  DW_CFA_offset: r(%d) %s%s at cfa %d\n", opa, reg_prefix, Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor);
+							}
+							if (reg_prefix == null) {
+								fc.col_type[opa] = Definition.DW_CFA_offset;
+								fc.col_offset[opa] = roffs * fc.data_factor;
+							}
 							break;
 						case Definition.DW_CFA_def_cfa:
 							long cfa_reg = DwarfLib.getULEB128(eh_frame_bytes);
 							long cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
 							long cfa_exp = 0;
-							System.out.println("  DW_CFA_def_cfa: r"+cfa_reg+" " + Definition.dwarf_regnames_i386[(int) cfa_reg] + " ofs " + cfa_offset);
+							System.out.println("  DW_CFA_def_cfa: r" + cfa_reg + " " + Definition.dwarf_regnames_i386[(int) cfa_reg] + " ofs " + cfa_offset);
 							break;
 
 						}
@@ -965,50 +968,44 @@ public class Dwarf {
 		return 0;
 	}
 
-	private int frame_need_space(FrameChunk fc) {
+	private int frame_need_space(FrameChunk fc, int reg) {
 		System.out.println("---------------- frame_need_space ------------\n");
-		 int prev = fc.ncols;
+		int prev = fc.ncols;
 
-		if (reg < (unsigned int) fc.ncols)
+		if (reg < fc.ncols)
 			return 0;
 
-		if (dwarf_regnames_count && reg > dwarf_regnames_count)
+		if (reg > Definition.dwarf_regnames_x86_64.length) {
 			return -1;
+		}
 
 		fc.ncols = reg + 1;
-		printf("fc.ncols = reg + 1; >> %d\n", fc.ncols);
-		printf("fc.ncols = reg + 1, %d\n", fc.ncols);
+		System.out.println("fc.ncols = reg + 1; >>  fc.ncols");
 		/* PR 17512: file: 10450-2643-0.004.
 		 If reg == -1 then this can happen...  */
 		if (fc.ncols == 0) {
-			printf("---------------- frame_need_space end ------------\n");
+			System.out.println("---------------- frame_need_space end ------------\n");
 			return -1;
 		}
 
 		/* PR 17512: file: 2844a11d.  */
 		if (fc.ncols > 1024) {
-			error(_("Unfeasibly large register number: %u\n"), reg);
+			System.out.println("Unfeasibly large register number: " + reg);
 			fc.ncols = 0;
 			/* FIXME: 1024 is an arbitrary limit.  Increase it if
 			 we ever encounter a valid binary that exceeds it.  */
-			printf("---------------- frame_need_space end ------------\n");
-			return -1;
-		}
-
-		fc.col_type = (short int *) xcrealloc(fc.col_type, fc.ncols, sizeof(short int));
-		fc.col_offset = (int *) xcrealloc(fc.col_offset, fc.ncols, sizeof(int));
-		/* PR 17512: file:002-10025-0.005.  */
-		if (fc.col_type == NULL || fc.col_offset == NULL) {
-			error(_("Out of memory allocating %u columns in dwarf frame arrays\n"), fc.ncols);
-			fc.ncols = 0;
 			System.out.println("---------------- frame_need_space end ------------\n");
 			return -1;
 		}
 
+		fc.col_type = new long[fc.ncols];
+		fc.col_offset = new long[fc.ncols];
+		/* PR 17512: file:002-10025-0.005.  */
+
 		while (prev < fc.ncols) {
-			fc.col_type[prev] = DW_CFA_unreferenced;
+			fc.col_type[prev] = Definition.DW_CFA_unreferenced;
 			fc.col_offset[prev] = 0;
-			System.out.println("\t\t%d, %d\n", fc.col_type[prev], fc.col_offset[prev]);
+			System.out.println("\t\t" + fc.col_type[prev] + ", " + fc.col_offset[prev]);
 			prev++;
 		}
 
