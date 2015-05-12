@@ -852,16 +852,6 @@ public class Dwarf {
 						fc.segment_size = 0;
 					}
 
-					//					long ehData = 0;
-					//					if (augmentation.contains("eh")) {
-					//						if (SectionFinder.getElf32_Ehdr(file).is32Bits()) {
-					//							ehData = eh_frame_bytes.getInt() & 0xffffffffL;
-					//						} else {
-					//							ehData = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
-					//						}
-					//					}
-					//					System.out.println("ehData=" + ehData);
-
 					fc.code_factor = (int) DwarfLib.getULEB128(eh_frame_bytes);
 					System.out.println("codeAlignmentFactor=" + fc.code_factor);
 
@@ -873,10 +863,6 @@ public class Dwarf {
 					} else {
 						fc.ra = DwarfLib.getULEB128(eh_frame_bytes);
 					}
-
-					//					System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
-					//					System.out.println("augmentationLength=" + augmentationLength);
-					//					System.out.println("eh_frame_bytes.position=" + eh_frame_bytes.position());
 
 					int augmentationDataLength = 0;
 					if (fc.augmentation.charAt(0) == 'z') {
@@ -937,10 +923,12 @@ public class Dwarf {
 							long cfa_exp = 0;
 							System.out.println("  DW_CFA_def_cfa: r" + cfa_reg + " " + Definition.dwarf_regnames_i386[(int) cfa_reg] + " ofs " + cfa_offset);
 							break;
-
+						case Definition.DW_CFA_nop:
+							System.out.println("  DW_CFA_nop");
 						}
 					}
 				} else {
+					// start FDE
 
 				}
 
