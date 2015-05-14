@@ -929,11 +929,11 @@ public class Dwarf {
 					}
 				} else {
 					// start FDE
-
+					System.out.println("FDE");
 				}
 
-				System.exit(0);
 			}
+			System.exit(0);
 
 			//			byte b[] = new byte[] { 0x12, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
 			//			ByteBuffer bf = ByteBuffer.wrap(b);
