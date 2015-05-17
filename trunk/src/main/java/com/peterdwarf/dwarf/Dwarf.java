@@ -1011,18 +1011,18 @@ public class Dwarf {
 						encoded_ptr_size = size_of_encoded_value(fc.fde_encoding, eh_addr_size);
 					}
 
-									segment_selector = 0;
-									// useless, segment_size must be zero
-//										if (fc.segment_size>0) {
-//											if (fc.segment_size > sizeof(segment_selector)) {
-//												/* PR 17512: file: 9e196b3e.  */
-//												warn(_("Probably corrupt segment size: %d - using 4 instead\n"), fc->segment_size);
-//												fc->segment_size = 4;
-//											}
-//											SAFE_BYTE_GET_AND_INC(segment_selector, start, fc->segment_size, end);
-//										}
+					segment_selector = 0;
+					// useless, segment_size must be zero
+					//										if (fc.segment_size>0) {
+					//											if (fc.segment_size > sizeof(segment_selector)) {
+					//												/* PR 17512: file: 9e196b3e.  */
+					//												warn(_("Probably corrupt segment size: %d - using 4 instead\n"), fc->segment_size);
+					//												fc->segment_size = 4;
+					//											}
+					//											SAFE_BYTE_GET_AND_INC(segment_selector, start, fc->segment_size, end);
+					//										}
 					//
-										fc.pc_begin = get_encoded_value(&start, fc.fde_encoding, section, end);
+					fc.pc_begin = get_encoded_value(eh_frame_bytes, fc.fde_encoding, ehFrameSection, eh_addr_size);
 					//
 					//					/* FIXME: It appears that sometimes the final pc_range value is
 					//					 encoded in less than encoded_ptr_size bytes.  See the x86_64
@@ -1149,43 +1149,74 @@ public class Dwarf {
 		}
 	}
 
-	
-	public static  long get_encoded_value(ByteBuffer byteBuffer, int encoding, struct dwarf_section *section, int eh_addr_size) {
+	public static  long get_encoded_value(ByteBuffer byteBuffer, int encoding, Elf32_Shdr section, int eh_addr_size) {
 		 int size = size_of_encoded_value(encoding, eh_addr_size);
-		dwarf_vma val;
+		long val;
 
-		if (data + size >= end) {
-			warn(_("Encoded value extends past end of section\n"));
-			*pdata = end;
-			return 0;
+		if (byteBuffer.position() + size >= byteBuffer.capacity()) {
+			System.out.println("Encoded value extends past end of section");
+			//*pdata = end;
+			//return 0;
+			System.exit(112);
 		}
 
 		/* PR 17512: file: 002-829853-0.004.  */
 		if (size > 8) {
-			warn(_("Encoded size of %d is too large to read\n"), size);
-			*pdata = end;
-			return 0;
+			System.out.println("Encoded size of "+size+" is too large to read");
+			//*pdata = end;
+			//return 0;
+			System.exit(112);
 		}
 
 		/* PR 17512: file: 1085-5603-0.004.  */
 		if (size == 0) {
-			warn(_("Encoded size of 0 is too small to read\n"));
-			*pdata = end;
-			return 0;
+			System.out.println("Encoded size of 0 is too small to read");
+			//*pdata = end;
+			//return 0;
+			System.exit(113);
 		}
 
-		if (encoding & DW_EH_PE_signed)
+		if ((encoding & Definition.DW_EH_PE_signed)>0){
 			val = byte_get_signed(data, size);
-		else
-			val = byte_get(data, size);
+		}else{
+			val = byte_get(data, size);}
 
-		if ((encoding & 0x70) == DW_EH_PE_pcrel)
-			val += section->address + (data - section->start);
+		if ((encoding & 0x70) == DW_EH_PE_pcrel){
+			val += section.sh_addr + (data - section->start);
+			}
 
-		*pdata = data + size;
 		return val;
 	}
 	
+	long 
+	byte_get_signed (unsigned char *field, int size)
+	{
+	  elf_vma x = byte_get (field, size);
+
+	  switch (size)
+	    {
+	    case 1:
+	      return (x ^ 0x80) - 0x80;
+	    case 2:
+	      return (x ^ 0x8000) - 0x8000;
+	    case 3:
+	      return (x ^ 0x800000) - 0x800000;
+	    case 4:
+	      return (x ^ 0x80000000) - 0x80000000;
+	    case 5:
+	    case 6:
+	    case 7:
+	    case 8:
+	      /* Reads of 5-, 6-, and 7-byte numbers are the result of
+	         trying to read past the end of a buffer, and will therefore
+	         not have meaningful values, so we don't try to deal with
+	         the sign in these cases.  */
+	      return x;
+	    default:
+	      abort ();
+	    }
+	}
+
 	public boolean isELF(File file) {
 		InputStream is;
 		try {

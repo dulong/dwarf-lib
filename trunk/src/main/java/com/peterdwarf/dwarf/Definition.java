@@ -1823,4 +1823,14 @@ public class Definition {
 	null, null, null, /* 90 - 92  */
 	"k0", "k1", "k2", "k3", "k4", "k5", "k6", "k7" /* 93 - 100  */
 	};
+
+	public static byte DW_EH_PE_uleb128 = 0x01;
+	public static byte DW_EH_PE_udata2 = 0x02;
+	public static byte DW_EH_PE_udata4 = 0x03;
+	public static byte DW_EH_PE_udata8 = 0x04;
+	public static byte DW_EH_PE_sleb128 = 0x09;
+	public static byte DW_EH_PE_sdata2 = 0x0A;
+	public static byte DW_EH_PE_sdata4 = 0x0B;
+	public static byte DW_EH_PE_sdata8 = 0x0C;
+	public static byte DW_EH_PE_signed = 0x08;
 }
