@@ -930,184 +930,139 @@ public class Dwarf {
 				} else {
 					// start FDE
 					System.out.println("FDE");
-					
-//					unsigned char *look_for;
-//					static Frame_Chunk fde_fc;
-//					unsigned long segment_selector;
-//
-//					if (is_eh) {
-//						printf("dwarf_vma sign = (dwarf_vma) 1 << (offset_size * 8 - 1);\n");
-//						dwarf_vma sign = (dwarf_vma) 1 << (offset_size * 8 - 1);
-//						look_for = start - 4 - ((cie_id ^ sign) - sign);
-//					} else {
-//						look_for = section_start + cie_id;
-//					}
-//
-//					if (look_for <= saved_start) {
-//						printf("loop 1\n");
-//						for (cie = chunks; cie; cie = cie->next) {
-//							if (cie->chunk_start == look_for) {
-//								break;
-//							}
-//						}
-//					} else {
-//						// completely useless, won't get into this else-loop
-//						printf("loop 2\n");
-//						for (cie = forward_refs; cie; cie = cie->next) {
-//							if (cie->chunk_start == look_for) {
-//								break;
-//							}
-//						}
-//						printf("loop b1\n");
-//						if (!cie) {
-//							printf("loop b2\n");
-//							unsigned int off_size;
-//							unsigned char *cie_scan;
-//
-//							cie_scan = look_for;
-//							off_size = 4;
-//							SAFE_BYTE_GET_AND_INC(length, cie_scan, 4, end);
-//							if (length == 0xffffffff) {
-//								printf("loop b3\n");
-//								SAFE_BYTE_GET_AND_INC(length, cie_scan, 8, end);
-//								off_size = 8;
-//							}
-//							printf("loop b4\n");
-//							if (length != 0) {
-//								printf("loop b5\n");
-//								dwarf_vma c_id;
-//
-//								SAFE_BYTE_GET_AND_INC(c_id, cie_scan, off_size, end);
-//								if (is_eh ? c_id == 0 : ((off_size == 4 && c_id == DW_CIE_ID) || (off_size == 8 && c_id == DW64_CIE_ID))) {
-//									int version;
-//									unsigned int mreg;
-//
-//									read_cie(cie_scan, end, &cie, &version, &augmentation_data_len, &augmentation_data);
-//									/* PR 17512: file: 3450-2098-0.004.  */
-//									if (cie == NULL) {
-//										warn(_("Failed to read CIE information\n"));
-//										break;
-//									}
-//									cie->next = forward_refs;
-//									forward_refs = cie;
-//									cie->chunk_start = look_for;
-//									mreg = max_regs > 0 ? max_regs - 1 : 0;
-//									printf(" max_regs=%d. mreg=%d\n", max_regs, mreg);
-//									if (mreg < cie->ra)
-//										mreg = cie->ra;
-//
-//									printf("\t\tshit16\n");
-//									if (frame_need_space(cie, mreg) < 0) {
-//										warn(_("Invalid max register\n"));
-//										break;
-//									}
-//									if (cie->fde_encoding)
-//										encoded_ptr_size = size_of_encoded_value(cie->fde_encoding);
-//								}
-//							}
-//						}
-//					}
-//
-//					fc = &fde_fc;
-//					memset(fc, 0, sizeof(Frame_Chunk));
-//
-//					printf("super cie=%x\n", cie);
-//
-//					if (!cie) {
-//						warn("Invalid CIE pointer 0x%s in FDE at %#08lx\n", dwarf_vmatoa_1(NULL, cie_id, offset_size), (unsigned long) (saved_start - section_start));
-//						fc->ncols = 0;
-//						fc->col_type = (short int *) xmalloc(sizeof(short int));
-//						fc->col_offset = (int *) xmalloc(sizeof(int));
-//						printf("\t\tshit17\n");
-//						if (frame_need_space(fc, max_regs > 0 ? max_regs - 1 : 0) < 0) {
-//							warn(_("Invalid max register\n"));
-//							break;
-//						}
-//						cie = fc;
-//						fc->augmentation = "";
-//						fc->fde_encoding = 0;
-//						fc->ptr_size = eh_addr_size;
-//						fc->segment_size = 0;
-//					} else {
-//						printf(">>>>>>>>>>>>>>>>>>>>>>>> USELESS\n");
-//						printf("cie->ncols=%d\n", cie->ncols);
-//						fc->ncols = cie->ncols;
-//						fc->col_type = (short int *) xcmalloc(fc->ncols, sizeof(short int));
-//						fc->col_offset = (int *) xcmalloc(fc->ncols, sizeof(int));
-//						memcpy(fc->col_type, cie->col_type, fc->ncols * sizeof(short int));
-//						memcpy(fc->col_offset, cie->col_offset, fc->ncols * sizeof(int));
-//						fc->augmentation = cie->augmentation;
-//						fc->ptr_size = cie->ptr_size;
-//						eh_addr_size = cie->ptr_size;
-//						printf("3 eh_addr_size = cie->ptr_size;\n");
-//						fc->segment_size = cie->segment_size;
-//						fc->code_factor = cie->code_factor;
-//						fc->data_factor = cie->data_factor;
-//						fc->cfa_reg = cie->cfa_reg;
-//						fc->cfa_offset = cie->cfa_offset;
-//						fc->ra = cie->ra;
-//						printf("\t\tshit1\n");
-//						if (frame_need_space(fc, max_regs > 0 ? max_regs - 1 : 0) < 0) {
-//							warn(_("Invalid max register\n"));
-//							break;
-//						}
-//						fc->fde_encoding = cie->fde_encoding;
-//					}
-//
-//					if (fc->fde_encoding)
-//						encoded_ptr_size = size_of_encoded_value(fc->fde_encoding);
-//
-//					segment_selector = 0;
-//					if (fc->segment_size) {
-//						if (fc->segment_size > sizeof(segment_selector)) {
-//							/* PR 17512: file: 9e196b3e.  */
-//							warn(_("Probably corrupt segment size: %d - using 4 instead\n"), fc->segment_size);
-//							fc->segment_size = 4;
-//						}
-//						SAFE_BYTE_GET_AND_INC(segment_selector, start, fc->segment_size, end);
-//					}
-//
-//					fc->pc_begin = get_encoded_value(&start, fc->fde_encoding, section, end);
-//
-//					/* FIXME: It appears that sometimes the final pc_range value is
-//					 encoded in less than encoded_ptr_size bytes.  See the x86_64
-//					 run of the "objcopy on compressed debug sections" test for an
-//					 example of this.  */
-//					SAFE_BYTE_GET_AND_INC(fc->pc_range, start, encoded_ptr_size, end);
-//
-//					if (cie->augmentation[0] == 'z') {
-//						augmentation_data_len = LEB ()
-//						;
-//						augmentation_data = start;
-//						start += augmentation_data_len;
-//						/* PR 17512: file: 722-8446-0.004.  */
-//						if (start >= end || ((signed long) augmentation_data_len) < 0) {
-//							warn(_("Corrupt augmentation data length: %lx\n"), augmentation_data_len);
-//							start = end;
-//							augmentation_data = NULL;
-//							augmentation_data_len = 0;
-//						}
-//					}
-//
-//					printf("\n%08lx %s %s FDE cie=%08lx pc=", (unsigned long) (saved_start - section_start), dwarf_vmatoa_1(NULL, length, fc->ptr_size),
-//							dwarf_vmatoa_1(NULL, cie_id, offset_size), (unsigned long) (cie->chunk_start - section_start));
-//
-//					if (fc->segment_size)
-//						printf("%04lx:", segment_selector);
-//
-//					printf("%s..%s\n", dwarf_vmatoa_1(NULL, fc->pc_begin, fc->ptr_size), dwarf_vmatoa_1(NULL, fc->pc_begin + fc->pc_range, fc->ptr_size));
-//
-//					if (!do_debug_frames_interp && augmentation_data_len) {
-//						unsigned long i;
-//
-//						printf("  Augmentation data:    ");
-//						for (i = 0; i < augmentation_data_len; ++i)
-//							printf(" %02x", augmentation_data[i]);
-//						putchar('\n');
-//						putchar('\n');
-//					}
-//
-//					printf("peter2\n");
+					long segment_selector;
+
+					//					unsigned char *look_for;
+					//					static Frame_Chunk fde_fc;
+					//					unsigned long segment_selector;
+					//
+					//					if (is_eh) {
+					//						printf("dwarf_vma sign = (dwarf_vma) 1 << (offset_size * 8 - 1);\n");
+					//						dwarf_vma sign = (dwarf_vma) 1 << (offset_size * 8 - 1);
+					//						look_for = start - 4 - ((cie_id ^ sign) - sign);
+					//					} else {
+					//						look_for = section_start + cie_id;
+					//					}
+					//
+					//					if (look_for <= saved_start) {
+					//						printf("loop 1\n");
+					//						for (cie = chunks; cie; cie = cie->next) {
+					//							if (cie->chunk_start == look_for) {
+					//								break;
+					//							}
+					//						}
+					//					} else {
+
+					//					}
+					//
+					//					fc = &fde_fc;
+					FrameChunk fc = new FrameChunk();
+					ehFrames.add(fc);
+
+					//					memset(fc, 0, sizeof(Frame_Chunk));
+					//
+					//					printf("super cie=%x\n", cie);
+					//
+					//					if (!cie) {
+					//						warn("Invalid CIE pointer 0x%s in FDE at %#08lx\n", dwarf_vmatoa_1(NULL, cie_id, offset_size), (unsigned long) (saved_start - section_start));
+					//						fc->ncols = 0;
+					//						fc->col_type = (short int *) xmalloc(sizeof(short int));
+					//						fc->col_offset = (int *) xmalloc(sizeof(int));
+					//						printf("\t\tshit17\n");
+					//						if (frame_need_space(fc, max_regs > 0 ? max_regs - 1 : 0) < 0) {
+					//							warn(_("Invalid max register\n"));
+					//							break;
+					//						}
+					//						cie = fc;
+					//						fc->augmentation = "";
+					//						fc->fde_encoding = 0;
+					//						fc->ptr_size = eh_addr_size;
+					//						fc->segment_size = 0;
+					//					} else {
+					//						printf(">>>>>>>>>>>>>>>>>>>>>>>> USELESS\n");
+					//						printf("cie->ncols=%d\n", cie->ncols);
+					FrameChunk cie = ehFrames.get(0);
+					fc.ncols = cie.ncols;
+					fc.col_type = new long[fc.ncols];
+					fc.col_offset = new long[fc.ncols];
+					//						memcpy(fc->col_type, cie->col_type, fc->ncols * sizeof(short int));
+					//						memcpy(fc->col_offset, cie->col_offset, fc->ncols * sizeof(int));
+					fc.augmentation = cie.augmentation;
+					fc.ptr_size = cie.ptr_size;
+					eh_addr_size = cie.ptr_size;
+					//						printf("3 eh_addr_size = cie->ptr_size;\n");
+					fc.segment_size = cie.segment_size;
+					fc.code_factor = cie.code_factor;
+					fc.data_factor = cie.data_factor;
+					fc.cfa_reg = cie.cfa_reg;
+					fc.cfa_offset = cie.cfa_offset;
+					fc.ra = cie.ra;
+					//						printf("\t\tshit1\n");
+					if (frame_need_space(fc, max_regs > 0 ? max_regs - 1 : 0) < 0) {
+						System.err.println("Invalid max register\n");
+						System.exit(111);
+					}
+					fc.fde_encoding = cie.fde_encoding;
+					//					}
+					//
+
+					int encoded_ptr_size;
+					if (fc.fde_encoding > 0) {
+						encoded_ptr_size = size_of_encoded_value(fc.fde_encoding, eh_addr_size);
+					}
+
+									segment_selector = 0;
+									// useless, segment_size must be zero
+//										if (fc.segment_size>0) {
+//											if (fc.segment_size > sizeof(segment_selector)) {
+//												/* PR 17512: file: 9e196b3e.  */
+//												warn(_("Probably corrupt segment size: %d - using 4 instead\n"), fc->segment_size);
+//												fc->segment_size = 4;
+//											}
+//											SAFE_BYTE_GET_AND_INC(segment_selector, start, fc->segment_size, end);
+//										}
+					//
+										fc.pc_begin = get_encoded_value(&start, fc.fde_encoding, section, end);
+					//
+					//					/* FIXME: It appears that sometimes the final pc_range value is
+					//					 encoded in less than encoded_ptr_size bytes.  See the x86_64
+					//					 run of the "objcopy on compressed debug sections" test for an
+					//					 example of this.  */
+					//					SAFE_BYTE_GET_AND_INC(fc->pc_range, start, encoded_ptr_size, end);
+					//
+					//					if (cie->augmentation[0] == 'z') {
+					//						augmentation_data_len = LEB ()
+					//						;
+					//						augmentation_data = start;
+					//						start += augmentation_data_len;
+					//						/* PR 17512: file: 722-8446-0.004.  */
+					//						if (start >= end || ((signed long) augmentation_data_len) < 0) {
+					//							warn(_("Corrupt augmentation data length: %lx\n"), augmentation_data_len);
+					//							start = end;
+					//							augmentation_data = NULL;
+					//							augmentation_data_len = 0;
+					//						}
+					//					}
+					//
+					//					printf("\n%08lx %s %s FDE cie=%08lx pc=", (unsigned long) (saved_start - section_start), dwarf_vmatoa_1(NULL, length, fc->ptr_size),
+					//							dwarf_vmatoa_1(NULL, cie_id, offset_size), (unsigned long) (cie->chunk_start - section_start));
+					//
+					//					if (fc->segment_size)
+					//						printf("%04lx:", segment_selector);
+					//
+					//					printf("%s..%s\n", dwarf_vmatoa_1(NULL, fc->pc_begin, fc->ptr_size), dwarf_vmatoa_1(NULL, fc->pc_begin + fc->pc_range, fc->ptr_size));
+					//
+					//					if (!do_debug_frames_interp && augmentation_data_len) {
+					//						unsigned long i;
+					//
+					//						printf("  Augmentation data:    ");
+					//						for (i = 0; i < augmentation_data_len; ++i)
+					//							printf(" %02x", augmentation_data[i]);
+					//						putchar('\n');
+					//						putchar('\n');
+					//					}
+					//
+					//					printf("peter2\n");
 					// FDE end
 				}
 
@@ -1180,6 +1135,57 @@ public class Dwarf {
 		return 1;
 	}
 
+	public static int size_of_encoded_value(int encoding, int eh_addr_size) {
+		switch (encoding & 0x7) {
+		default: /* ??? */
+		case 0:
+			return eh_addr_size;
+		case 2:
+			return 2;
+		case 3:
+			return 4;
+		case 4:
+			return 8;
+		}
+	}
+
+	
+	public static  long get_encoded_value(ByteBuffer byteBuffer, int encoding, struct dwarf_section *section, int eh_addr_size) {
+		 int size = size_of_encoded_value(encoding, eh_addr_size);
+		dwarf_vma val;
+
+		if (data + size >= end) {
+			warn(_("Encoded value extends past end of section\n"));
+			*pdata = end;
+			return 0;
+		}
+
+		/* PR 17512: file: 002-829853-0.004.  */
+		if (size > 8) {
+			warn(_("Encoded size of %d is too large to read\n"), size);
+			*pdata = end;
+			return 0;
+		}
+
+		/* PR 17512: file: 1085-5603-0.004.  */
+		if (size == 0) {
+			warn(_("Encoded size of 0 is too small to read\n"));
+			*pdata = end;
+			return 0;
+		}
+
+		if (encoding & DW_EH_PE_signed)
+			val = byte_get_signed(data, size);
+		else
+			val = byte_get(data, size);
+
+		if ((encoding & 0x70) == DW_EH_PE_pcrel)
+			val += section->address + (data - section->start);
+
+		*pdata = data + size;
+		return val;
+	}
+	
 	public boolean isELF(File file) {
 		InputStream is;
 		try {
