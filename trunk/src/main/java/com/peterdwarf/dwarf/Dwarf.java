@@ -865,9 +865,10 @@ public class Dwarf {
 					}
 
 					int augmentationDataLength = 0;
+					byte augmentationData[] = null;
 					if (fc.augmentation.charAt(0) == 'z') {
 						augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
-						byte augmentationData[] = new byte[augmentationDataLength];
+						augmentationData = new byte[augmentationDataLength];
 
 						for (int z = 0; z < augmentationDataLength; z++) {
 							augmentationData[z] = eh_frame_bytes.get();
@@ -876,7 +877,29 @@ public class Dwarf {
 					}
 
 					if (augmentationDataLength > 0) {
+						byte q[];
+						q = augmentationData;
+						int qPointer = 0;
 
+						/* PR 17531: file: 015adfaa.  */
+						//						if (qend < q) {
+						//							warn(_("Negative augmentation data length: 0x%lx"), augmentationDataLength);
+						//							augmentation_data_len = 0;
+						//						}
+
+						for (int tempX = 1; tempX < augmentationDataLength; tempX++) {
+							char p = (char) augmentationData[tempX];
+							if (p == 'L') {
+								qPointer++;
+							} else if (p == 'P') {
+								qPointer += 1 + size_of_encoded_value(q[qPointer], eh_addr_size);
+							} else if (p == 'R') {
+								fc.fde_encoding = q[qPointer++];
+							} else if (p == 'S') {
+							} else {
+								break;
+							}
+						}
 					}
 
 					ehFrames.add(fc);
@@ -1149,8 +1172,8 @@ public class Dwarf {
 		}
 	}
 
-	public static  long get_encoded_value(ByteBuffer byteBuffer, int encoding, Elf32_Shdr section, int eh_addr_size) {
-		 int size = size_of_encoded_value(encoding, eh_addr_size);
+	public static long get_encoded_value(ByteBuffer byteBuffer, int encoding, Elf32_Shdr section, int eh_addr_size) {
+		int size = size_of_encoded_value(encoding, eh_addr_size);
 		long val;
 
 		if (byteBuffer.position() + size >= byteBuffer.capacity()) {
@@ -1162,7 +1185,7 @@ public class Dwarf {
 
 		/* PR 17512: file: 002-829853-0.004.  */
 		if (size > 8) {
-			System.out.println("Encoded size of "+size+" is too large to read");
+			System.out.println("Encoded size of " + size + " is too large to read");
 			//*pdata = end;
 			//return 0;
 			System.exit(112);
@@ -1183,9 +1206,9 @@ public class Dwarf {
 			val = byte_get(data, size);
 		}*/
 
-		if ((encoding & 0x70) == Definition.DW_EH_PE_pcrel){
-			val += section.sh_addr + (byteBuffer.position() - section.);
-			}
+		if ((encoding & 0x70) == Definition.DW_EH_PE_pcrel) {
+			//			val += section.sh_addr + (byteBuffer.position() - section.);
+		}
 
 		return val;
 	}

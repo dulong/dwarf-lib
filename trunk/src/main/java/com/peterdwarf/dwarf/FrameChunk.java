@@ -14,7 +14,7 @@ public class FrameChunk {
 	int cfa_reg;
 	long cfa_offset;
 	long ra;
-	char fde_encoding;
+	int fde_encoding;
 	char cfa_exp;
 	int ptr_size;
 	char segment_size;
