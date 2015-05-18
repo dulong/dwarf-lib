@@ -1833,4 +1833,10 @@ public class Definition {
 	public static byte DW_EH_PE_sdata4 = 0x0B;
 	public static byte DW_EH_PE_sdata8 = 0x0C;
 	public static byte DW_EH_PE_signed = 0x08;
+
+	public static byte DW_EH_PE_pcrel = 0x10;
+	public static byte DW_EH_PE_textrel = 0x20;
+	public static byte DW_EH_PE_datarel = 0x30;
+	public static byte DW_EH_PE_funcrel = 0x40;
+	public static byte DW_EH_PE_aligned = 0x50;
 }
