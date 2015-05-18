@@ -1176,45 +1176,35 @@ public class Dwarf {
 			System.exit(113);
 		}
 
-		if ((encoding & Definition.DW_EH_PE_signed)>0){
-			val = byte_get_signed(data, size);
+		val = byte_get_signed(byteBuffer, size);
+		/*if ((encoding & Definition.DW_EH_PE_signed)>0){
+			val = byte_get_signed(byteBuffer, size);
 		}else{
-			val = byte_get(data, size);}
+			val = byte_get(data, size);
+		}*/
 
-		if ((encoding & 0x70) == DW_EH_PE_pcrel){
-			val += section.sh_addr + (data - section->start);
+		if ((encoding & 0x70) == Definition.DW_EH_PE_pcrel){
+			val += section.sh_addr + (byteBuffer.position() - section.);
 			}
 
 		return val;
 	}
-	
-	long 
-	byte_get_signed (unsigned char *field, int size)
-	{
-	  elf_vma x = byte_get (field, size);
 
-	  switch (size)
-	    {
-	    case 1:
-	      return (x ^ 0x80) - 0x80;
-	    case 2:
-	      return (x ^ 0x8000) - 0x8000;
-	    case 3:
-	      return (x ^ 0x800000) - 0x800000;
-	    case 4:
-	      return (x ^ 0x80000000) - 0x80000000;
-	    case 5:
-	    case 6:
-	    case 7:
-	    case 8:
-	      /* Reads of 5-, 6-, and 7-byte numbers are the result of
-	         trying to read past the end of a buffer, and will therefore
-	         not have meaningful values, so we don't try to deal with
-	         the sign in these cases.  */
-	      return x;
-	    default:
-	      abort ();
-	    }
+	public static long byte_get_signed(ByteBuffer byteBuffer, int size) {
+		long x = 0;
+		if (size == 1) {
+			x = byteBuffer.get();
+		} else if (size == 2) {
+			x = byteBuffer.getShort();
+		} else if (size == 4) {
+			x = byteBuffer.getInt();
+		} else if (size == 8) {
+			x = byteBuffer.getLong();
+		} else {
+			System.out.println("byte_get_signed, wrong size = " + size);
+			System.exit(115);
+		}
+		return x;
 	}
 
 	public boolean isELF(File file) {
