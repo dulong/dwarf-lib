@@ -6,7 +6,7 @@ public class FrameChunk {
 	/* DW_CFA_{undefined,same_value,offset,register,unreferenced}  */
 	long col_type[];
 	long col_offset[];
-	String augmentation;
+	String augmentation = "";
 	int code_factor;
 	int data_factor;
 	long pc_begin;

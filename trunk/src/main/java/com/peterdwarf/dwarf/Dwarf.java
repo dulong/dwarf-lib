@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -877,8 +876,7 @@ public class Dwarf {
 					}
 
 					if (augmentationDataLength > 0) {
-						byte q[];
-						q = augmentationData;
+						byte q[] = augmentationData;
 						int qPointer = 0;
 
 						/* PR 17531: file: 015adfaa.  */
@@ -887,8 +885,8 @@ public class Dwarf {
 						//							augmentation_data_len = 0;
 						//						}
 
-						for (int tempX = 1; tempX < augmentationDataLength; tempX++) {
-							char p = (char) augmentationData[tempX];
+						for (int tempX = 0; tempX < augmentationDataLength; tempX++) {
+							char p = (char) fc.augmentation.charAt(tempX + 1);
 							if (p == 'L') {
 								qPointer++;
 							} else if (p == 'P') {
