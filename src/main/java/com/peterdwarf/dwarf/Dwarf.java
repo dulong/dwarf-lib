@@ -1204,8 +1204,9 @@ public class Dwarf {
 			val = byte_get(data, size);
 		}*/
 
+		System.out.println("encoding=" + encoding);
 		if ((encoding & 0x70) == Definition.DW_EH_PE_pcrel) {
-			//			val += section.sh_addr + (byteBuffer.position() - section.);
+			val += section.sh_addr + byteBuffer.position();
 		}
 
 		return val;
