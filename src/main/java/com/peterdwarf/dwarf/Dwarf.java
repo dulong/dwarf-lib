@@ -828,6 +828,7 @@ public class Dwarf {
 
 				if (cieID == 0) {
 					// read CIE
+					System.out.println("+++++++++++++++++ "+eh_frame_bytes.position());
 					FrameChunk fc = new FrameChunk();
 					int version = eh_frame_bytes.get();
 					System.out.println("version=" + version);
@@ -901,6 +902,8 @@ public class Dwarf {
 					}
 
 					ehFrames.add(fc);
+					
+					System.out.println("+++++++++++++++++ "+eh_frame_bytes.position());
 					// read CIE end
 
 					int mreg = max_regs > 0 ? max_regs - 1 : 0;
@@ -914,6 +917,7 @@ public class Dwarf {
 					long pc_begin = 0;
 					String reg_prefix = "";
 					while (eh_frame_bytes.position() < block_end) {
+						System.out.println(eh_frame_bytes.position() + " < " + block_end);
 						int op = eh_frame_bytes.get();
 						byte opa = (byte) (op & 0x3fL);
 						if ((op & 0xc0L) > 0) {
@@ -946,6 +950,7 @@ public class Dwarf {
 							break;
 						case Definition.DW_CFA_nop:
 							System.out.println("  DW_CFA_nop");
+							break;
 						}
 					}
 				} else {
