@@ -807,6 +807,7 @@ public class Dwarf {
 			String bad_reg = "bad register: ";
 			Vector<FrameChunk> ehFrames = new Vector<FrameChunk>();
 			while (start < end) {
+				int saved_start=eh_frame_bytes.position();
 				long length = eh_frame_bytes.getInt() & 0xffffffffL;
 				if (length == 0xffffffff) {
 					length = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
@@ -817,7 +818,8 @@ public class Dwarf {
 					initial_length_size = 4;
 				}
 
-				long block_end = eh_frame_bytes.position() + length + initial_length_size;
+				long block_end = saved_start + length + initial_length_size;
+				System.out.println("block_end="+block_end+","+(length + initial_length_size));
 
 				int cieID = (int) (eh_frame_bytes.getInt() & 0xffffffffL);
 				System.out.println("cieID=" + cieID);
