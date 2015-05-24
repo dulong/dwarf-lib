@@ -866,6 +866,7 @@ public class Dwarf {
 
 					int augmentationDataLength = 0;
 					byte augmentationData[] = null;
+					System.out.println("+++++++++++++++++ "+eh_frame_bytes.position());
 					if (fc.augmentation.charAt(0) == 'z') {
 						augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
 						augmentationData = new byte[augmentationDataLength];
@@ -875,6 +876,8 @@ public class Dwarf {
 						}
 						System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
 					}
+					
+					System.out.println("+++++++++++++++++ "+eh_frame_bytes.position());
 
 					if (augmentationDataLength > 0) {
 						byte q[] = augmentationData;
