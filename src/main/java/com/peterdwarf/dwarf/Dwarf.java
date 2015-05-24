@@ -807,7 +807,7 @@ public class Dwarf {
 			String bad_reg = "bad register: ";
 			Vector<FrameChunk> ehFrames = new Vector<FrameChunk>();
 			while (start < end) {
-				int saved_start=eh_frame_bytes.position();
+				int saved_start = eh_frame_bytes.position();
 				long length = eh_frame_bytes.getInt() & 0xffffffffL;
 				if (length == 0xffffffff) {
 					length = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
@@ -819,7 +819,7 @@ public class Dwarf {
 				}
 
 				long block_end = saved_start + length + initial_length_size;
-				System.out.println("block_end="+block_end+","+(length + initial_length_size));
+				System.out.println("block_end=" + block_end + "," + (length + initial_length_size));
 
 				int cieID = (int) (eh_frame_bytes.getInt() & 0xffffffffL);
 				System.out.println("cieID=" + cieID);
@@ -828,10 +828,12 @@ public class Dwarf {
 				int ptr_size;
 				int segment_size;
 
+				FrameChunk fc;
+
 				if (cieID == 0) {
 					// read CIE
-					System.out.println("+++++++++++++++++ "+eh_frame_bytes.position());
-					FrameChunk fc = new FrameChunk();
+					System.out.println("+++++++++++++++++ " + eh_frame_bytes.position());
+					fc = new FrameChunk();
 					int version = eh_frame_bytes.get();
 					System.out.println("version=" + version);
 
@@ -868,7 +870,7 @@ public class Dwarf {
 
 					int augmentationDataLength = 0;
 					byte augmentationData[] = null;
-					System.out.println("+++++++++++++++++ "+eh_frame_bytes.position());
+					System.out.println("+++++++++++++++++ " + eh_frame_bytes.position());
 					if (fc.augmentation.charAt(0) == 'z') {
 						augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
 						augmentationData = new byte[augmentationDataLength];
@@ -878,8 +880,8 @@ public class Dwarf {
 						}
 						System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
 					}
-					
-					System.out.println("+++++++++++++++++ "+eh_frame_bytes.position());
+
+					System.out.println("+++++++++++++++++ " + eh_frame_bytes.position());
 
 					if (augmentationDataLength > 0) {
 						byte q[] = augmentationData;
@@ -907,8 +909,8 @@ public class Dwarf {
 					}
 
 					ehFrames.add(fc);
-					
-					System.out.println("+++++++++++++++++ "+eh_frame_bytes.position());
+
+					System.out.println("+++++++++++++++++ " + eh_frame_bytes.position());
 					// read CIE end
 
 					int mreg = max_regs > 0 ? max_regs - 1 : 0;
@@ -919,45 +921,7 @@ public class Dwarf {
 					frame_need_space(fc, mreg);
 
 					System.out.println(eh_frame_bytes.position());
-					long pc_begin = 0;
-					String reg_prefix = "";
-					while (eh_frame_bytes.position() < block_end) {
-						System.out.println(eh_frame_bytes.position() + " < " + block_end);
-						int op = eh_frame_bytes.get();
-						byte opa = (byte) (op & 0x3fL);
-						if ((op & 0xc0L) > 0) {
-							op &= 0xc0;
-						}
 
-						switch (op) {
-						//						case Definition.DW_CFA_advance_loc:
-						//							System.out.printf("  DW_CFA_advance_loc:"+fc->code_factor+"\n", opa * codeAlignmentFactor);
-						//							pc_begin += opa * codeAlignmentFactor;
-						//							break;
-						case Definition.DW_CFA_offset:
-							long roffs = DwarfLib.getULEB128(eh_frame_bytes);
-							if (opa >= fc.ncols) {
-								reg_prefix = bad_reg;
-							}
-							if (reg_prefix != null) {
-								System.out.printf("  DW_CFA_offset: r(%d) %s%s at cfa %d\n", opa, reg_prefix, Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor);
-							}
-							if (reg_prefix == null) {
-								fc.col_type[opa] = Definition.DW_CFA_offset;
-								fc.col_offset[opa] = roffs * fc.data_factor;
-							}
-							break;
-						case Definition.DW_CFA_def_cfa:
-							long cfa_reg = DwarfLib.getULEB128(eh_frame_bytes);
-							long cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
-							long cfa_exp = 0;
-							System.out.println("  DW_CFA_def_cfa: r" + cfa_reg + " " + Definition.dwarf_regnames_i386[(int) cfa_reg] + " ofs " + cfa_offset);
-							break;
-						case Definition.DW_CFA_nop:
-							System.out.println("  DW_CFA_nop");
-							break;
-						}
-					}
 				} else {
 					// start FDE
 					System.out.println("FDE");
@@ -987,7 +951,7 @@ public class Dwarf {
 					//					}
 					//
 					//					fc = &fde_fc;
-					FrameChunk fc = new FrameChunk();
+					fc = new FrameChunk();
 					ehFrames.add(fc);
 
 					//					memset(fc, 0, sizeof(Frame_Chunk));
@@ -1074,6 +1038,19 @@ public class Dwarf {
 					//							augmentation_data_len = 0;
 					//						}
 					//					}
+
+					int augmentationDataLength = 0;
+					byte augmentationData[] = null;
+					if (fc.augmentation.charAt(0) == 'z') {
+						augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
+						augmentationData = new byte[augmentationDataLength];
+
+						for (int z = 0; z < augmentationDataLength; z++) {
+							augmentationData[z] = eh_frame_bytes.get();
+						}
+						System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
+					}
+
 					//
 					//					printf("\n%08lx %s %s FDE cie=%08lx pc=", (unsigned long) (saved_start - section_start), dwarf_vmatoa_1(NULL, length, fc->ptr_size),
 					//							dwarf_vmatoa_1(NULL, cie_id, offset_size), (unsigned long) (cie->chunk_start - section_start));
@@ -1095,6 +1072,50 @@ public class Dwarf {
 					//
 					//					printf("peter2\n");
 					// FDE end
+				}
+
+				long pc_begin = 0;
+				String reg_prefix = "";
+				while (eh_frame_bytes.position() < block_end) {
+					//System.out.println(eh_frame_bytes.position() + " < " + block_end);
+					int op = eh_frame_bytes.get();
+					byte opa = (byte) (op & 0x3fL);
+					if ((op & 0xc0L) > 0) {
+						op &= 0xc0;
+					}
+
+					switch (op) {
+					case Definition.DW_CFA_advance_loc:
+						System.out.printf("  DW_CFA_advance_loc: %d to %x\n", opa * fc.code_factor, fc.pc_begin + opa * fc.code_factor);
+						System.out.printf("%x, %x, %x\n", fc.pc_begin, opa, fc.code_factor);
+						fc.pc_begin += opa * fc.code_factor;
+						break;
+					case Definition.DW_CFA_offset:
+						long roffs = DwarfLib.getULEB128(eh_frame_bytes);
+						if (opa >= fc.ncols) {
+							reg_prefix = bad_reg;
+						}
+						if (reg_prefix != null) {
+							System.out.printf("  DW_CFA_offset: r(%d) %s%s at cfa %d\n", opa, reg_prefix, Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor);
+						}
+						if (reg_prefix == null) {
+							fc.col_type[opa] = Definition.DW_CFA_offset;
+							fc.col_offset[opa] = roffs * fc.data_factor;
+						}
+						break;
+					case Definition.DW_CFA_def_cfa:
+						long cfa_reg = DwarfLib.getULEB128(eh_frame_bytes);
+						long cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
+						long cfa_exp = 0;
+						System.out.println("  DW_CFA_def_cfa: r" + cfa_reg + " " + Definition.dwarf_regnames_i386[(int) cfa_reg] + " ofs " + cfa_offset);
+						break;
+					case Definition.DW_CFA_nop:
+						System.out.println("  DW_CFA_nop");
+						break;
+					default:
+						System.out.println("default");
+						System.exit(1);
+					}
 				}
 
 			}
@@ -1207,34 +1228,77 @@ public class Dwarf {
 			System.exit(113);
 		}
 
-		val = byte_get_signed(byteBuffer, size);
-		/*if ((encoding & Definition.DW_EH_PE_signed)>0){
+		if ((encoding & Definition.DW_EH_PE_signed) > 0) {
 			val = byte_get_signed(byteBuffer, size);
-		}else{
-			val = byte_get(data, size);
-		}*/
+		} else {
+			//val = byte_get(byteBuffer, size);
+			val = byte_get_signed(byteBuffer, size);
+		}
 
 		System.out.println("encoding=" + encoding);
 		if ((encoding & 0x70) == Definition.DW_EH_PE_pcrel) {
+			System.out.println("encoding in");
+			System.out.printf("section->address=%x\n", section.sh_addr);
+			//			System.out.printf("section->start  =%x\n", section.start);
+			//			System.out.printf("data  =%x\n", data);
+
+			System.out.printf("%x + %x + ( %x )\n", val, section.sh_addr, byteBuffer.position());
+
 			val += section.sh_addr + byteBuffer.position();
 		}
 
 		return val;
 	}
 
-	public static long byte_get_signed(ByteBuffer byteBuffer, int size) {
+	public static long byte_get(ByteBuffer byteBuffer, int size) {
+		//		System.out.println(byteBuffer.get());
+		//		System.out.println(byteBuffer.get());
+		//		System.out.println(byteBuffer.get());
+		//		System.out.println(byteBuffer.get());
 		long x = 0;
 		if (size == 1) {
 			x = byteBuffer.get();
+			x &= 0xffL;
 		} else if (size == 2) {
 			x = byteBuffer.getShort();
+			x &= 0xffffL;
 		} else if (size == 4) {
 			x = byteBuffer.getInt();
+			x &= 0xffffffffL;
 		} else if (size == 8) {
 			x = byteBuffer.getLong();
+			x &= 0xffffffffffffffffL;
 		} else {
 			System.out.println("byte_get_signed, wrong size = " + size);
 			System.exit(115);
+		}
+		return x;
+	}
+
+	public static long byte_get_signed(ByteBuffer byteBuffer, int size) {
+		long x = byte_get(byteBuffer, size);
+
+		switch (size) {
+		case 1:
+			return (x ^ 0x80) - 0x80;
+		case 2:
+			return (x ^ 0x8000) - 0x8000;
+		case 3:
+			return (x ^ 0x800000) - 0x800000;
+		case 4:
+			return (x ^ 0x80000000) - 0x80000000;
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+			/* Reads of 5-, 6-, and 7-byte numbers are the result of
+			 trying to read past the end of a buffer, and will therefore
+			 not have meaningful values, so we don't try to deal with
+			 the sign in these cases.  */
+			return x;
+		default:
+			System.out.println("byte_get_signed not support size=" + size);
+			System.exit(40);
 		}
 		return x;
 	}
