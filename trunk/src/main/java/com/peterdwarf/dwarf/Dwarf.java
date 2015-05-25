@@ -1001,7 +1001,8 @@ public class Dwarf {
 					//					}
 					//
 
-					int encoded_ptr_size;
+					System.out.printf("check start 1=%x\n", eh_frame_bytes.position());
+					int encoded_ptr_size = 0;
 					if (fc.fde_encoding > 0) {
 						encoded_ptr_size = size_of_encoded_value(fc.fde_encoding, eh_addr_size);
 					}
@@ -1017,12 +1018,16 @@ public class Dwarf {
 					//											SAFE_BYTE_GET_AND_INC(segment_selector, start, fc->segment_size, end);
 					//										}
 					//
+
+					System.out.printf("check start 2=%x\n", eh_frame_bytes.position());
 					fc.pc_begin = get_encoded_value(eh_frame_bytes, fc.fde_encoding, ehFrameSection, eh_addr_size);
-					//
+					System.out.printf("check start 3=%x\n", eh_frame_bytes.position());
+
 					//					/* FIXME: It appears that sometimes the final pc_range value is
 					//					 encoded in less than encoded_ptr_size bytes.  See the x86_64
 					//					 run of the "objcopy on compressed debug sections" test for an
 					//					 example of this.  */
+					fc.pc_range = byte_get(eh_frame_bytes, encoded_ptr_size);
 					//					SAFE_BYTE_GET_AND_INC(fc->pc_range, start, encoded_ptr_size, end);
 					//
 					//					if (cie->augmentation[0] == 'z') {
@@ -1039,17 +1044,23 @@ public class Dwarf {
 					//						}
 					//					}
 
+					System.out.printf("fc.pc_begin = %x\n", fc.pc_begin);
+
 					int augmentationDataLength = 0;
 					byte augmentationData[] = null;
+					System.out.printf("john 1=%x\n", eh_frame_bytes.position());
 					if (fc.augmentation.charAt(0) == 'z') {
 						augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
 						augmentationData = new byte[augmentationDataLength];
 
+						int oldPosition = eh_frame_bytes.position();
 						for (int z = 0; z < augmentationDataLength; z++) {
 							augmentationData[z] = eh_frame_bytes.get();
 						}
+						eh_frame_bytes.position(oldPosition);
 						System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
 					}
+					System.out.printf("john 2=%x\n", eh_frame_bytes.position());
 
 					//
 					//					printf("\n%08lx %s %s FDE cie=%08lx pc=", (unsigned long) (saved_start - section_start), dwarf_vmatoa_1(NULL, length, fc->ptr_size),
@@ -1076,8 +1087,8 @@ public class Dwarf {
 
 				long pc_begin = 0;
 				String reg_prefix = "";
+				System.out.printf("%x < %x\n", eh_frame_bytes.position(), block_end);
 				while (eh_frame_bytes.position() < block_end) {
-					//System.out.println(eh_frame_bytes.position() + " < " + block_end);
 					int op = eh_frame_bytes.get();
 					byte opa = (byte) (op & 0x3fL);
 					if ((op & 0xc0L) > 0) {
@@ -1111,6 +1122,16 @@ public class Dwarf {
 						break;
 					case Definition.DW_CFA_nop:
 						System.out.println("  DW_CFA_nop");
+						break;
+					case Definition.DW_CFA_def_cfa_offset:
+						fc.cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
+						System.out.printf("  DW_CFA_def_cfa_offset: %d\n", fc.cfa_offset);
+						break;
+
+					case Definition.DW_CFA_def_cfa_register:
+						fc.cfa_reg = (int) DwarfLib.getULEB128(eh_frame_bytes);
+						fc.cfa_exp = 0;
+						System.out.printf("  DW_CFA_def_cfa_register: %s\n", Definition.dwarf_regnames_i386[fc.cfa_reg]);
 						break;
 					default:
 						System.out.println("default");
@@ -1228,12 +1249,15 @@ public class Dwarf {
 			System.exit(113);
 		}
 
+		int oldPosition = byteBuffer.position();
 		if ((encoding & Definition.DW_EH_PE_signed) > 0) {
 			val = byte_get_signed(byteBuffer, size);
 		} else {
 			//val = byte_get(byteBuffer, size);
-			val = byte_get_signed(byteBuffer, size);
+			val = byte_get(byteBuffer, size);
 		}
+
+		byteBuffer.position(oldPosition);
 
 		System.out.println("encoding=" + encoding);
 		if ((encoding & 0x70) == Definition.DW_EH_PE_pcrel) {
@@ -1245,7 +1269,10 @@ public class Dwarf {
 			System.out.printf("%x + %x + ( %x )\n", val, section.sh_addr, byteBuffer.position());
 
 			val += section.sh_addr + byteBuffer.position();
+			val &= 0xffffffffL;
 		}
+
+		byteBuffer.position(oldPosition + size);
 
 		return val;
 	}
@@ -1280,22 +1307,21 @@ public class Dwarf {
 
 		switch (size) {
 		case 1:
-			return (x ^ 0x80) - 0x80;
+			x = (x ^ 0x80) - 0x80;
+			x &= 0xffL;
+			break;
 		case 2:
-			return (x ^ 0x8000) - 0x8000;
-		case 3:
-			return (x ^ 0x800000) - 0x800000;
+			x = (x ^ 0x8000) - 0x8000;
+			x &= 0xffffL;
+			break;
 		case 4:
-			return (x ^ 0x80000000) - 0x80000000;
-		case 5:
-		case 6:
-		case 7:
+			x = (x ^ 0x80000000) - 0x80000000;
+			x &= 0xffffffffL;
+			break;
 		case 8:
-			/* Reads of 5-, 6-, and 7-byte numbers are the result of
-			 trying to read past the end of a buffer, and will therefore
-			 not have meaningful values, so we don't try to deal with
-			 the sign in these cases.  */
-			return x;
+			x = (x ^ 0x8000000000000000L) - 0x8000000000000000L;
+			x &= 0xffffffffffffffffL;
+			break;
 		default:
 			System.out.println("byte_get_signed not support size=" + size);
 			System.exit(40);
