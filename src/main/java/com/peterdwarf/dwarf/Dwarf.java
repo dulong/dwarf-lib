@@ -1091,6 +1091,8 @@ public class Dwarf {
 				while (eh_frame_bytes.position() < block_end) {
 					int op = eh_frame_bytes.get();
 					byte opa = (byte) (op & 0x3fL);
+					long ofs;
+
 					if ((op & 0xc0L) > 0) {
 						op &= 0xc0;
 					}
@@ -1133,6 +1135,28 @@ public class Dwarf {
 						fc.cfa_exp = 0;
 						System.out.printf("  DW_CFA_def_cfa_register: %s\n", Definition.dwarf_regnames_i386[fc.cfa_reg]);
 						break;
+
+					case Definition.DW_CFA_advance_loc1:
+						//SAFE_BYTE_GET_AND_INC(ofs, start, 1, end);
+						ofs = byte_get(eh_frame_bytes, 1);
+						System.out.printf("  DW_CFA_advance_loc1: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+						fc.pc_begin += ofs * fc.code_factor;
+						break;
+
+					case Definition.DW_CFA_advance_loc2:
+						//SAFE_BYTE_GET_AND_INC(ofs, start, 2, block_end);
+						ofs = byte_get(eh_frame_bytes, 2);
+						System.out.printf("  DW_CFA_advance_loc2: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+						fc.pc_begin += ofs * fc.code_factor;
+						break;
+
+					case Definition.DW_CFA_advance_loc4:
+						//SAFE_BYTE_GET_AND_INC(ofs, start, 4, block_end);
+						ofs = byte_get(eh_frame_bytes, 4);
+						System.out.printf("  DW_CFA_advance_loc4: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+						fc.pc_begin += ofs * fc.code_factor;
+						break;
+
 					default:
 						System.out.println("default");
 						System.exit(1);
