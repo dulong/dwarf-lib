@@ -822,8 +822,6 @@ public class Dwarf {
 				int cieID = (int) (eh_frame_bytes.getInt() & 0xffffffffL);
 
 				int eh_addr_size = 4;
-				int ptr_size;
-				int segment_size;
 
 				FrameChunk fc;
 				FrameChunk remembered_state = null;
