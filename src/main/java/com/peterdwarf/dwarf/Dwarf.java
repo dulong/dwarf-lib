@@ -865,7 +865,6 @@ public class Dwarf {
 
 					int augmentationDataLength = 0;
 					byte augmentationData[] = null;
-					System.out.println("+++++++++++++++++ " + eh_frame_bytes.position());
 					if (fc.augmentation.charAt(0) == 'z') {
 						augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
 						augmentationData = new byte[augmentationDataLength];
@@ -873,10 +872,7 @@ public class Dwarf {
 						for (int z = 0; z < augmentationDataLength; z++) {
 							augmentationData[z] = eh_frame_bytes.get();
 						}
-						System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
 					}
-
-					System.out.println("+++++++++++++++++ " + eh_frame_bytes.position());
 
 					if (augmentationDataLength > 0) {
 						byte q[] = augmentationData;
@@ -904,8 +900,6 @@ public class Dwarf {
 					}
 
 					ehFrames.add(fc);
-
-					System.out.println("+++++++++++++++++ " + eh_frame_bytes.position());
 					// read CIE end
 
 					int mreg = max_regs > 0 ? max_regs - 1 : 0;
@@ -914,9 +908,6 @@ public class Dwarf {
 					}
 
 					frame_need_space(fc, mreg);
-
-					System.out.println(eh_frame_bytes.position());
-
 				} else {
 					// start FDE
 					System.out.println("FDE");
@@ -947,13 +938,9 @@ public class Dwarf {
 						encoded_ptr_size = size_of_encoded_value(fc.fde_encoding, eh_addr_size);
 					}
 
-					System.out.printf("check start 2=%x\n", eh_frame_bytes.position());
 					fc.pc_begin = get_encoded_value(eh_frame_bytes, fc.fde_encoding, ehFrameSection, eh_addr_size);
-					System.out.printf("check start 3=%x\n", eh_frame_bytes.position());
 
 					fc.pc_range = byte_get(eh_frame_bytes, encoded_ptr_size);
-
-					System.out.printf("fc.pc_begin = %x\n", fc.pc_begin);
 
 					int augmentationDataLength = 0;
 					byte augmentationData[] = null;
@@ -966,8 +953,9 @@ public class Dwarf {
 							augmentationData[z] = eh_frame_bytes.get();
 						}
 						eh_frame_bytes.position(oldPosition);
-						System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
 					}
+
+					System.out.printf("%x..%x\n", fc.pc_begin, fc.pc_begin + fc.pc_range);
 
 					// FDE end
 				}
@@ -975,7 +963,6 @@ public class Dwarf {
 
 				//long pc_begin = 0;
 				String reg_prefix = "";
-				System.out.printf("%x < %x\n", eh_frame_bytes.position(), block_end);
 
 				while (eh_frame_bytes.position() < block_end) {
 					int op = eh_frame_bytes.get();
@@ -989,7 +976,6 @@ public class Dwarf {
 					switch (op) {
 					case Definition.DW_CFA_advance_loc:
 						System.out.printf("  DW_CFA_advance_loc: %d to %x\n", opa * fc.code_factor, fc.pc_begin + opa * fc.code_factor);
-						System.out.printf("%x, %x, %x\n", fc.pc_begin, opa, fc.code_factor);
 						fc.pc_begin += opa * fc.code_factor;
 						break;
 					case Definition.DW_CFA_offset:
@@ -1446,15 +1432,7 @@ public class Dwarf {
 
 		byteBuffer.position(oldPosition);
 
-		System.out.println("encoding=" + encoding);
 		if ((encoding & 0x70) == Definition.DW_EH_PE_pcrel) {
-			System.out.println("encoding in");
-			System.out.printf("section->address=%x\n", section.sh_addr);
-			//			System.out.printf("section->start  =%x\n", section.start);
-			//			System.out.printf("data  =%x\n", data);
-
-			System.out.printf("%x + %x + ( %x )\n", val, section.sh_addr, byteBuffer.position());
-
 			val += section.sh_addr + byteBuffer.position();
 			val &= 0xffffffffL;
 		}
