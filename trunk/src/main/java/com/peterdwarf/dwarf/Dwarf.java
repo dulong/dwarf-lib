@@ -801,7 +801,6 @@ public class Dwarf {
 
 			long start = 0;
 			long end = ehFrameSection.sh_size;
-			int offset_size;
 			int initial_length_size;
 			int max_regs = 0;
 			String bad_reg = "bad register: ";
@@ -819,10 +818,8 @@ public class Dwarf {
 				}
 
 				long block_end = saved_start + length + initial_length_size;
-				System.out.println("block_end=" + block_end + "," + (length + initial_length_size));
 
 				int cieID = (int) (eh_frame_bytes.getInt() & 0xffffffffL);
-				System.out.println("cieID=" + cieID);
 
 				int eh_addr_size = 4;
 				int ptr_size;
@@ -833,7 +830,6 @@ public class Dwarf {
 
 				if (cieID == 0) {
 					// read CIE
-					System.out.println("+++++++++++++++++ " + eh_frame_bytes.position());
 					fc = new FrameChunk();
 					int version = eh_frame_bytes.get();
 					System.out.println("version=" + version);
@@ -926,130 +922,43 @@ public class Dwarf {
 				} else {
 					// start FDE
 					System.out.println("FDE");
-					long segment_selector;
-
-					//					unsigned char *look_for;
-					//					static Frame_Chunk fde_fc;
-					//					unsigned long segment_selector;
-					//
-					//					if (is_eh) {
-					//						printf("dwarf_vma sign = (dwarf_vma) 1 << (offset_size * 8 - 1);\n");
-					//						dwarf_vma sign = (dwarf_vma) 1 << (offset_size * 8 - 1);
-					//						look_for = start - 4 - ((cie_id ^ sign) - sign);
-					//					} else {
-					//						look_for = section_start + cie_id;
-					//					}
-					//
-					//					if (look_for <= saved_start) {
-					//						printf("loop 1\n");
-					//						for (cie = chunks; cie; cie =cie.next) {
-					//							if (cie.chunk_start == look_for) {
-					//								break;
-					//							}
-					//						}
-					//					} else {
-
-					//					}
-					//
-					//					fc = &fde_fc;
 					fc = new FrameChunk();
 					ehFrames.add(fc);
 
-					//					memset(fc, 0, sizeof(Frame_Chunk));
-					//
-					//					printf("super cie=%x\n", cie);
-					//
-					//					if (!cie) {
-					//						warn("Invalid CIE pointer 0x%s in FDE at %#08lx\n", dwarf_vmatoa_1(NULL, cie_id, offset_size), (unsigned long) (saved_start - section_start));
-					//						fc.ncols = 0;
-					//						fc.col_type = (short int *) xmalloc(sizeof(short int));
-					//						fc.col_offset = (int *) xmalloc(sizeof(int));
-					//						printf("\t\tshit17\n");
-					//						if (frame_need_space(fc, max_regs > 0 ? max_regs - 1 : 0) < 0) {
-					//							warn(_("Invalid max register\n"));
-					//							break;
-					//						}
-					//						cie = fc;
-					//						fc.augmentation = "";
-					//						fc.fde_encoding = 0;
-					//						fc.ptr_size = eh_addr_size;
-					//						fc.segment_size = 0;
-					//					} else {
-					//						printf(">>>>>>>>>>>>>>>>>>>>>>>> USELESS\n");
-					//						printf("cie.ncols=%d\n",cie.ncols);
 					FrameChunk cie = ehFrames.get(0);
 					fc.ncols = cie.ncols;
 					fc.col_type = new long[fc.ncols];
 					fc.col_offset = new long[fc.ncols];
-					//						memcpy(fc.col_type,cie.col_type, fc.ncols * sizeof(short int));
-					//						memcpy(fc.col_offset,cie.col_offset, fc.ncols * sizeof(int));
 					fc.augmentation = cie.augmentation;
 					fc.ptr_size = cie.ptr_size;
 					eh_addr_size = cie.ptr_size;
-					//						printf("3 eh_addr_size =cie.ptr_size;\n");
 					fc.segment_size = cie.segment_size;
 					fc.code_factor = cie.code_factor;
 					fc.data_factor = cie.data_factor;
 					fc.cfa_reg = cie.cfa_reg;
 					fc.cfa_offset = cie.cfa_offset;
 					fc.ra = cie.ra;
-					//						printf("\t\tshit1\n");
 					if (frame_need_space(fc, max_regs > 0 ? max_regs - 1 : 0) < 0) {
 						System.err.println("Invalid max register\n");
 						System.exit(111);
 					}
 					fc.fde_encoding = cie.fde_encoding;
-					//					}
-					//
 
-					System.out.printf("check start 1=%x\n", eh_frame_bytes.position());
 					int encoded_ptr_size = 0;
 					if (fc.fde_encoding > 0) {
 						encoded_ptr_size = size_of_encoded_value(fc.fde_encoding, eh_addr_size);
 					}
 
-					segment_selector = 0;
-					// useless, segment_size must be zero
-					//										if (fc.segment_size>0) {
-					//											if (fc.segment_size > sizeof(segment_selector)) {
-					//												/* PR 17512: file: 9e196b3e.  */
-					//												warn(_("Probably corrupt segment size: %d - using 4 instead\n"), fc.segment_size);
-					//												fc.segment_size = 4;
-					//											}
-					//											SAFE_BYTE_GET_AND_INC(segment_selector, start, fc.segment_size, end);
-					//										}
-					//
-
 					System.out.printf("check start 2=%x\n", eh_frame_bytes.position());
 					fc.pc_begin = get_encoded_value(eh_frame_bytes, fc.fde_encoding, ehFrameSection, eh_addr_size);
 					System.out.printf("check start 3=%x\n", eh_frame_bytes.position());
 
-					//					/* FIXME: It appears that sometimes the final pc_range value is
-					//					 encoded in less than encoded_ptr_size bytes.  See the x86_64
-					//					 run of the "objcopy on compressed debug sections" test for an
-					//					 example of this.  */
 					fc.pc_range = byte_get(eh_frame_bytes, encoded_ptr_size);
-					//					SAFE_BYTE_GET_AND_INC(fc.pc_range, start, encoded_ptr_size, end);
-					//
-					//					if (cie.augmentation[0] == 'z') {
-					//						augmentation_data_len = LEB ()
-					//						;
-					//						augmentation_data = start;
-					//						start += augmentation_data_len;
-					//						/* PR 17512: file: 722-8446-0.004.  */
-					//						if (start >= end || ((signed long) augmentation_data_len) < 0) {
-					//							warn(_("Corrupt augmentation data length: %lx\n"), augmentation_data_len);
-					//							start = end;
-					//							augmentation_data = NULL;
-					//							augmentation_data_len = 0;
-					//						}
-					//					}
 
 					System.out.printf("fc.pc_begin = %x\n", fc.pc_begin);
 
 					int augmentationDataLength = 0;
 					byte augmentationData[] = null;
-					System.out.printf("john 1=%x\n", eh_frame_bytes.position());
 					if (fc.augmentation.charAt(0) == 'z') {
 						augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
 						augmentationData = new byte[augmentationDataLength];
@@ -1061,28 +970,7 @@ public class Dwarf {
 						eh_frame_bytes.position(oldPosition);
 						System.out.println("augmentationData=" + Hex.encodeHexString(augmentationData));
 					}
-					System.out.printf("john 2=%x\n", eh_frame_bytes.position());
 
-					//
-					//					printf("\n%08lx %s %s FDE cie=%08lx pc=", (unsigned long) (saved_start - section_start), dwarf_vmatoa_1(NULL, length, fc.ptr_size),
-					//							dwarf_vmatoa_1(NULL, cie_id, offset_size), (unsigned long) (cie.chunk_start - section_start));
-					//
-					//					if (fc.segment_size)
-					//						printf("%04lx:", segment_selector);
-					//
-					//					printf("%s..%s\n", dwarf_vmatoa_1(NULL, fc.pc_begin, fc.ptr_size), dwarf_vmatoa_1(NULL, fc.pc_begin + fc.pc_range, fc.ptr_size));
-					//
-					//					if (!do_debug_frames_interp && augmentation_data_len) {
-					//						unsigned long i;
-					//
-					//						printf("  Augmentation data:    ");
-					//						for (i = 0; i < augmentation_data_len; ++i)
-					//							printf(" %02x", augmentation_data[i]);
-					//						putchar('\n');
-					//						putchar('\n');
-					//					}
-					//
-					//					printf("peter2\n");
 					// FDE end
 				}
 				FrameChunk cie = ehFrames.get(0);
@@ -1272,7 +1160,6 @@ public class Dwarf {
 							fc.cfa_reg = rs.cfa_reg;
 							fc.ra = rs.ra;
 							fc.cfa_exp = rs.cfa_exp;
-							System.out.printf("\t\tshit11\n");
 							if (frame_need_space(fc, rs.ncols - 1) < 0) {
 								System.out.printf("Invalid column number in saved frame state\n");
 								fc.ncols = 0;
@@ -1447,22 +1334,11 @@ public class Dwarf {
 						break;
 
 					default:
-						System.out.println("default");
+						System.out.println("dwarf hs something not supported yet");
 						System.exit(1);
 					}
 				}
-
 			}
-			System.exit(0);
-
-			//			byte b[] = new byte[] { 0x12, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
-			//			ByteBuffer bf = ByteBuffer.wrap(b);
-			//
-			//			//			long xxx = bf.getInt() & 0xffffffffL;
-			//			BigInteger xxx = CommonLib.get64BitsInt(bf);
-			//			System.out.println(xxx);
-			//			System.exit(0);
-
 		} catch (OutOfMemoryError e) {
 			e.printStackTrace();
 			loadingMessage = file.getAbsolutePath() + " : out of memory error";
@@ -1482,7 +1358,6 @@ public class Dwarf {
 	}
 
 	private int frame_need_space(FrameChunk fc, int reg) {
-		System.out.println("---------------- frame_need_space ------------\n");
 		int prev = fc.ncols;
 
 		if (reg < fc.ncols)
@@ -1493,11 +1368,9 @@ public class Dwarf {
 		}
 
 		fc.ncols = reg + 1;
-		System.out.println("fc.ncols = reg + 1; >>  fc.ncols");
 		/* PR 17512: file: 10450-2643-0.004.
 		 If reg == -1 then this can happen...  */
 		if (fc.ncols == 0) {
-			System.out.println("---------------- frame_need_space end ------------\n");
 			return -1;
 		}
 
@@ -1507,7 +1380,6 @@ public class Dwarf {
 			fc.ncols = 0;
 			/* FIXME: 1024 is an arbitrary limit.  Increase it if
 			 we ever encounter a valid binary that exceeds it.  */
-			System.out.println("---------------- frame_need_space end ------------\n");
 			return -1;
 		}
 
@@ -1518,11 +1390,10 @@ public class Dwarf {
 		while (prev < fc.ncols) {
 			fc.col_type[prev] = Definition.DW_CFA_unreferenced;
 			fc.col_offset[prev] = 0;
-			System.out.println("\t\t" + fc.col_type[prev] + ", " + fc.col_offset[prev]);
+			//System.out.println("\t\t" + fc.col_type[prev] + ", " + fc.col_offset[prev]);
 			prev++;
 		}
 
-		System.out.println("---------------- frame_need_space end ------------\n");
 		return 1;
 	}
 
