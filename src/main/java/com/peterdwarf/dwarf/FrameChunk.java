@@ -18,4 +18,5 @@ public class FrameChunk {
 	char cfa_exp;
 	int ptr_size;
 	char segment_size;
+	FrameChunk next;
 }

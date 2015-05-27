@@ -806,7 +806,7 @@ public class Dwarf {
 			int max_regs = 0;
 			String bad_reg = "bad register: ";
 			Vector<FrameChunk> ehFrames = new Vector<FrameChunk>();
-			while (start < end) {
+			while (start < end && eh_frame_bytes.position() < eh_frame_bytes.capacity()) {
 				int saved_start = eh_frame_bytes.position();
 				long length = eh_frame_bytes.getInt() & 0xffffffffL;
 				if (length == 0xffffffff) {
@@ -829,6 +829,7 @@ public class Dwarf {
 				int segment_size;
 
 				FrameChunk fc;
+				FrameChunk remembered_state = null;
 
 				if (cieID == 0) {
 					// read CIE
@@ -941,7 +942,7 @@ public class Dwarf {
 					//
 					//					if (look_for <= saved_start) {
 					//						printf("loop 1\n");
-					//						for (cie = chunks; cie; cie = cie->next) {
+					//						for (cie = chunks; cie; cie =cie.next) {
 					//							if (cie->chunk_start == look_for) {
 					//								break;
 					//							}
@@ -960,32 +961,32 @@ public class Dwarf {
 					//
 					//					if (!cie) {
 					//						warn("Invalid CIE pointer 0x%s in FDE at %#08lx\n", dwarf_vmatoa_1(NULL, cie_id, offset_size), (unsigned long) (saved_start - section_start));
-					//						fc->ncols = 0;
-					//						fc->col_type = (short int *) xmalloc(sizeof(short int));
-					//						fc->col_offset = (int *) xmalloc(sizeof(int));
+					//						fc.ncols = 0;
+					//						fc.col_type = (short int *) xmalloc(sizeof(short int));
+					//						fc.col_offset = (int *) xmalloc(sizeof(int));
 					//						printf("\t\tshit17\n");
 					//						if (frame_need_space(fc, max_regs > 0 ? max_regs - 1 : 0) < 0) {
 					//							warn(_("Invalid max register\n"));
 					//							break;
 					//						}
 					//						cie = fc;
-					//						fc->augmentation = "";
-					//						fc->fde_encoding = 0;
-					//						fc->ptr_size = eh_addr_size;
-					//						fc->segment_size = 0;
+					//						fc.augmentation = "";
+					//						fc.fde_encoding = 0;
+					//						fc.ptr_size = eh_addr_size;
+					//						fc.segment_size = 0;
 					//					} else {
 					//						printf(">>>>>>>>>>>>>>>>>>>>>>>> USELESS\n");
-					//						printf("cie->ncols=%d\n", cie->ncols);
+					//						printf("cie->ncols=%d\n",cie.ncols);
 					FrameChunk cie = ehFrames.get(0);
 					fc.ncols = cie.ncols;
 					fc.col_type = new long[fc.ncols];
 					fc.col_offset = new long[fc.ncols];
-					//						memcpy(fc->col_type, cie->col_type, fc->ncols * sizeof(short int));
-					//						memcpy(fc->col_offset, cie->col_offset, fc->ncols * sizeof(int));
+					//						memcpy(fc.col_type,cie.col_type, fc.ncols * sizeof(short int));
+					//						memcpy(fc.col_offset,cie.col_offset, fc.ncols * sizeof(int));
 					fc.augmentation = cie.augmentation;
 					fc.ptr_size = cie.ptr_size;
 					eh_addr_size = cie.ptr_size;
-					//						printf("3 eh_addr_size = cie->ptr_size;\n");
+					//						printf("3 eh_addr_size =cie.ptr_size;\n");
 					fc.segment_size = cie.segment_size;
 					fc.code_factor = cie.code_factor;
 					fc.data_factor = cie.data_factor;
@@ -1012,10 +1013,10 @@ public class Dwarf {
 					//										if (fc.segment_size>0) {
 					//											if (fc.segment_size > sizeof(segment_selector)) {
 					//												/* PR 17512: file: 9e196b3e.  */
-					//												warn(_("Probably corrupt segment size: %d - using 4 instead\n"), fc->segment_size);
-					//												fc->segment_size = 4;
+					//												warn(_("Probably corrupt segment size: %d - using 4 instead\n"), fc.segment_size);
+					//												fc.segment_size = 4;
 					//											}
-					//											SAFE_BYTE_GET_AND_INC(segment_selector, start, fc->segment_size, end);
+					//											SAFE_BYTE_GET_AND_INC(segment_selector, start, fc.segment_size, end);
 					//										}
 					//
 
@@ -1028,7 +1029,7 @@ public class Dwarf {
 					//					 run of the "objcopy on compressed debug sections" test for an
 					//					 example of this.  */
 					fc.pc_range = byte_get(eh_frame_bytes, encoded_ptr_size);
-					//					SAFE_BYTE_GET_AND_INC(fc->pc_range, start, encoded_ptr_size, end);
+					//					SAFE_BYTE_GET_AND_INC(fc.pc_range, start, encoded_ptr_size, end);
 					//
 					//					if (cie->augmentation[0] == 'z') {
 					//						augmentation_data_len = LEB ()
@@ -1063,13 +1064,13 @@ public class Dwarf {
 					System.out.printf("john 2=%x\n", eh_frame_bytes.position());
 
 					//
-					//					printf("\n%08lx %s %s FDE cie=%08lx pc=", (unsigned long) (saved_start - section_start), dwarf_vmatoa_1(NULL, length, fc->ptr_size),
+					//					printf("\n%08lx %s %s FDE cie=%08lx pc=", (unsigned long) (saved_start - section_start), dwarf_vmatoa_1(NULL, length, fc.ptr_size),
 					//							dwarf_vmatoa_1(NULL, cie_id, offset_size), (unsigned long) (cie->chunk_start - section_start));
 					//
-					//					if (fc->segment_size)
+					//					if (fc.segment_size)
 					//						printf("%04lx:", segment_selector);
 					//
-					//					printf("%s..%s\n", dwarf_vmatoa_1(NULL, fc->pc_begin, fc->ptr_size), dwarf_vmatoa_1(NULL, fc->pc_begin + fc->pc_range, fc->ptr_size));
+					//					printf("%s..%s\n", dwarf_vmatoa_1(NULL, fc.pc_begin, fc.ptr_size), dwarf_vmatoa_1(NULL, fc.pc_begin + fc.pc_range, fc.ptr_size));
 					//
 					//					if (!do_debug_frames_interp && augmentation_data_len) {
 					//						unsigned long i;
@@ -1084,10 +1085,12 @@ public class Dwarf {
 					//					printf("peter2\n");
 					// FDE end
 				}
+				FrameChunk cie = ehFrames.get(0);
 
 				long pc_begin = 0;
 				String reg_prefix = "";
 				System.out.printf("%x < %x\n", eh_frame_bytes.position(), block_end);
+
 				while (eh_frame_bytes.position() < block_end) {
 					int op = eh_frame_bytes.get();
 					byte opa = (byte) (op & 0x3fL);
@@ -1155,6 +1158,56 @@ public class Dwarf {
 						ofs = byte_get(eh_frame_bytes, 4);
 						System.out.printf("  DW_CFA_advance_loc4: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
 						fc.pc_begin += ofs * fc.code_factor;
+						break;
+
+					case Definition.DW_CFA_restore:
+						if (opa >= cie.ncols || opa >= fc.ncols) {
+							reg_prefix = bad_reg;
+						}
+						System.out.printf("  DW_CFA_restore: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[opa]);
+						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+							fc.col_type[opa] = cie.col_type[opa];
+							fc.col_offset[opa] = cie.col_offset[opa];
+							if (fc.col_type[opa] == Definition.DW_CFA_unreferenced) {
+								fc.col_type[opa] = Definition.DW_CFA_undefined;
+							}
+						}
+						break;
+
+					case Definition.DW_CFA_remember_state:
+						System.out.printf("  DW_CFA_remember_state\n");
+						FrameChunk rs = new FrameChunk();
+						rs.cfa_offset = fc.cfa_offset;
+						rs.cfa_reg = fc.cfa_reg;
+						rs.ra = fc.ra;
+						rs.cfa_exp = fc.cfa_exp;
+						rs.ncols = fc.ncols;
+						rs.col_type = fc.col_type;
+						rs.col_offset = fc.col_offset;
+						rs.next = remembered_state;
+						remembered_state = rs;
+						break;
+
+					case Definition.DW_CFA_restore_state:
+						System.out.printf("  DW_CFA_restore_state\n");
+						rs = remembered_state;
+						if (rs != null) {
+							remembered_state = rs.next;
+							fc.cfa_offset = rs.cfa_offset;
+							fc.cfa_reg = rs.cfa_reg;
+							fc.ra = rs.ra;
+							fc.cfa_exp = rs.cfa_exp;
+							System.out.printf("\t\tshit11\n");
+							if (frame_need_space(fc, rs.ncols - 1) < 0) {
+								System.out.printf("Invalid column number in saved frame state\n");
+								fc.ncols = 0;
+								break;
+							}
+							fc.col_type = rs.col_type;
+							fc.col_offset = rs.col_offset;
+						} else {
+							System.out.printf("Mismatched DW_CFA_restore_state\n");
+						}
 						break;
 
 					default:
