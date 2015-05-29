@@ -1066,7 +1066,6 @@ public class Dwarf {
 							fc.col_offset[(int) reg] = roffs * fc.data_factor;
 						}
 						break;
-
 					case Definition.DW_CFA_restore_extended:
 						reg = DwarfLib.getULEB128(eh_frame_bytes);
 						if (reg >= cie.ncols || reg >= fc.ncols) {
@@ -1126,7 +1125,7 @@ public class Dwarf {
 						break;
 					case Definition.DW_CFA_remember_state:
 						System.out.printf("  DW_CFA_remember_state\n");
-						fc.fieDetails.put("DW_CFA_remember_state", null);
+						fc.fieDetails.put("DW_CFA_remember_state", new Object[] {});
 						FrameChunk rs = new FrameChunk();
 						rs.cfa_offset = fc.cfa_offset;
 						rs.cfa_reg = fc.cfa_reg;
@@ -1140,7 +1139,7 @@ public class Dwarf {
 						break;
 					case Definition.DW_CFA_restore_state:
 						System.out.printf("  DW_CFA_restore_state\n");
-						fc.fieDetails.put("DW_CFA_restore_state", null);
+						fc.fieDetails.put("DW_CFA_restore_state", new Object[] {});
 						rs = remembered_state;
 						if (rs != null) {
 							remembered_state = rs.next;
@@ -1179,7 +1178,7 @@ public class Dwarf {
 						break;
 					case Definition.DW_CFA_nop:
 						System.out.println("  DW_CFA_nop");
-						fc.fieDetails.put("DW_CFA_nop", null);
+						fc.fieDetails.put("DW_CFA_nop", new Object[] {});
 						break;
 					case Definition.DW_CFA_def_cfa_expression:
 						long ul = DwarfLib.getULEB128(eh_frame_bytes);
@@ -1192,7 +1191,7 @@ public class Dwarf {
 						System.out.printf("  DW_CFA_def_cfa_expression (");
 						decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
 						System.out.printf(")\n");
-						fc.fieDetails.put("DW_CFA_def_cfa_expression", null);
+						fc.fieDetails.put("DW_CFA_def_cfa_expression", new Object[] {});
 
 						fc.cfa_exp = 1;
 						start += ul;
@@ -1217,7 +1216,7 @@ public class Dwarf {
 							System.out.printf("  DW_CFA_expression: %s%s (", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
 							decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
 							System.out.printf(")\n");
-							fc.fieDetails.put("DW_CFA_expression", null);
+							fc.fieDetails.put("DW_CFA_expression", new Object[] {});
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
 							fc.col_type[(int) reg] = Definition.DW_CFA_expression;
@@ -1240,7 +1239,7 @@ public class Dwarf {
 							System.out.printf("  DW_CFA_val_expression: %s%s (", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
 							decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
 							System.out.printf(")\n");
-							fc.fieDetails.put("DW_CFA_val_expression", null);
+							fc.fieDetails.put("DW_CFA_val_expression", new Object[] {});
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
 							fc.col_type[(int) reg] = Definition.DW_CFA_val_expression;
