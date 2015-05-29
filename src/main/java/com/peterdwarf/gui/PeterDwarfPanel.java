@@ -37,6 +37,7 @@ import com.peterdwarf.dwarf.DwarfDebugLineHeader;
 import com.peterdwarf.dwarf.DwarfHeaderFilename;
 import com.peterdwarf.dwarf.DwarfLib;
 import com.peterdwarf.dwarf.DwarfLine;
+import com.peterdwarf.dwarf.FrameChunk;
 import com.peterdwarf.elf.Elf32_Shdr;
 import com.peterswing.CommonLib;
 import com.peterswing.FilterTreeModel;
@@ -321,6 +322,35 @@ public class PeterDwarfPanel extends JPanel {
 						});
 						// end init compile unit nodes
 
+						// init .eh_frame
+						final DwarfTreeNode ehFrameTreeNode = new DwarfTreeNode(".eh_frame", node, null);
+						node.children.add(ehFrameTreeNode);
+
+						for (FrameChunk ehFrame : dwarf.ehFrames) {
+							if (showDialog) {
+								dialog.progressBar.setString("Loading .eh_franme : " + Long.toHexString(ehFrame.pc_begin) + " - "
+										+ Long.toHexString(ehFrame.pc_begin + ehFrame.pc_range));
+							}
+							DwarfTreeNode ehFrameSubNode = new DwarfTreeNode(Long.toHexString(ehFrame.pc_begin) + " - " + Long.toHexString(ehFrame.pc_begin + ehFrame.pc_range),
+									ehFrameTreeNode, ehFrame);
+							//							String str = "<html><table>";
+							//							str += "<tr><td>no.</td><td>:</td><td>" + section.number + "</td></tr>";
+							//							str += "<tr><td>name</td><td>:</td><td>" + section.section_name + "</td></tr>";
+							//							str += "<tr><td>offset</td><td>:</td><td>0x" + Long.toHexString(section.sh_offset) + "</td></tr>";
+							//							str += "<tr><td>size</td><td>:</td><td>0x" + Long.toHexString(section.sh_size) + "</td></tr>";
+							//							str += "<tr><td>type</td><td>:</td><td>" + section.sh_type + "</td></tr>";
+							//							str += "<tr><td>addr</td><td>:</td><td>0x" + Long.toHexString(section.sh_addr) + "</td></tr>";
+							//							str += "<tr><td>addr align</td><td>:</td><td>" + section.sh_addralign + "</td></tr>";
+							//							str += "<tr><td>ent. size</td><td>:</td><td>" + section.sh_entsize + "</td></tr>";
+							//							str += "<tr><td>flags</td><td>:</td><td>" + section.sh_flags + "</td></tr>";
+							//							str += "<tr><td>info</td><td>:</td><td>" + section.sh_info + "</td></tr>";
+							//							str += "<tr><td>link</td><td>:</td><td>" + section.sh_link + "</td></tr>";
+							//							str += "<tr><td>name idx</td><td>:</td><td>" + section.sh_name + "</td></tr>";
+							//							str += "</table></html>";
+							//							ehFrameSubNode.tooltip = str;
+							ehFrameTreeNode.children.add(ehFrameSubNode);
+						}
+						// end init .eh_frame
 					}
 				} finally {
 					//exec.shutdown();

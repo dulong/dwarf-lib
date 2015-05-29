@@ -3,24 +3,24 @@ package com.peterdwarf.dwarf;
 import java.util.Hashtable;
 
 public class FrameChunk {
-	String chunk_start;
-	int ncols;
+	//String chunk_start;
+	public int ncols;
 	/* DW_CFA_{undefined,same_value,offset,register,unreferenced}  */
-	long col_type[];
-	long col_offset[];
-	String augmentation = "";
-	int code_factor;
-	int data_factor;
-	long pc_begin;
-	long pc_range;
-	int cfa_reg;
-	long cfa_offset;
-	long ra;
-	int fde_encoding;
-	char cfa_exp;
-	int ptr_size;
-	char segment_size;
-	FrameChunk next;
+	public long col_type[];
+	public long col_offset[];
+	public String augmentation = "";
+	public int code_factor;
+	public int data_factor;
+	public long pc_begin;
+	public long pc_range;
+	public int cfa_reg;
+	public long cfa_offset;
+	public long ra;
+	public int fde_encoding;
+	public char cfa_exp;
+	public int ptr_size;
+	public char segment_size;
+	public FrameChunk next;
 
-	Hashtable<String, Object[]> fieDetails = new Hashtable<String, Object[]>();
+	public Hashtable<String, Object[]> fieDetails = new Hashtable<String, Object[]>();
 }
