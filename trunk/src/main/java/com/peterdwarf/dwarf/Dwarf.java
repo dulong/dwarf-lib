@@ -45,6 +45,7 @@ public class Dwarf {
 	public Vector<Elf32_Shdr> sections = new Vector<Elf32_Shdr>();
 	public int addressSize;
 	public int offset_size;
+	public Vector<FrameChunk> ehFrames = new Vector<FrameChunk>();
 
 	public int initElf(File file, String realFilename, long memoryOffset) {
 		this.file = file;
@@ -804,7 +805,6 @@ public class Dwarf {
 			int initial_length_size;
 			int max_regs = 0;
 			String bad_reg = "bad register: ";
-			Vector<FrameChunk> ehFrames = new Vector<FrameChunk>();
 			while (start < end && eh_frame_bytes.position() < eh_frame_bytes.capacity()) {
 				int saved_start = eh_frame_bytes.position();
 				long length = eh_frame_bytes.getInt() & 0xffffffffL;
