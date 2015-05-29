@@ -1,5 +1,7 @@
 package com.peterdwarf.dwarf;
 
+import java.util.Hashtable;
+
 public class FrameChunk {
 	String chunk_start;
 	int ncols;
@@ -19,4 +21,6 @@ public class FrameChunk {
 	int ptr_size;
 	char segment_size;
 	FrameChunk next;
+
+	Hashtable<String, Object[]> fieDetails = new Hashtable<String, Object[]>();
 }
