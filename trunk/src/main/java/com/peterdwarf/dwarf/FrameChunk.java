@@ -26,4 +26,5 @@ public class FrameChunk {
 	public long pc_range_real;
 
 	public TreeMap<String, Object[]> fieDetails = new TreeMap<String, Object[]>();
+	public int cieID;
 }

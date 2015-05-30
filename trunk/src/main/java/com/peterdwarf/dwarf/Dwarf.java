@@ -829,6 +829,7 @@ public class Dwarf {
 				if (cieID == 0) {
 					// read CIE
 					fc = new FrameChunk();
+					fc.cieID = cieID;
 					int version = eh_frame_bytes.get();
 					System.out.println("version=" + version);
 
@@ -912,6 +913,7 @@ public class Dwarf {
 					// start FDE
 					System.out.println("FDE");
 					fc = new FrameChunk();
+					fc.cieID = cieID;
 					ehFrames.add(fc);
 
 					FrameChunk cie = ehFrames.get(0);
@@ -939,7 +941,6 @@ public class Dwarf {
 					}
 
 					fc.pc_begin = get_encoded_value(eh_frame_bytes, fc.fde_encoding, ehFrameSection, eh_addr_size);
-
 					fc.pc_range = byte_get(eh_frame_bytes, encoded_ptr_size);
 
 					int augmentationDataLength = 0;
