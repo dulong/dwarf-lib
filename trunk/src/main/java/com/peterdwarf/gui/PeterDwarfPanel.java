@@ -57,7 +57,7 @@ public class PeterDwarfPanel extends JPanel {
 
 	final int maxExpandLevel = 5;
 
-	final int maxPoolSize = 100;
+	final int maxPoolSize = 16;
 
 	ExecutorService pool;
 
@@ -280,8 +280,7 @@ public class PeterDwarfPanel extends JPanel {
 									lineInfoNode.children.add(lineSubnode);
 								}
 								// end init headers
-								//											executorService.execute(new Runnable() {
-								//												public void run() {
+
 								for (final DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntries) {
 									final DwarfTreeNode compileUnitDebugInfoNode = new DwarfTreeNode(debugInfoEntry.toString(), compileUnitSubnode, debugInfoEntry);
 									compileUnitSubnode.children.add(compileUnitDebugInfoNode);
@@ -303,7 +302,7 @@ public class PeterDwarfPanel extends JPanel {
 										}
 									});
 
-									addTreeNode(dialog, compileUnit, compileUnitDebugInfoNode, debugInfoEntry);
+									addDebugInfoEntries(dialog, compileUnit, compileUnitDebugInfoNode, debugInfoEntry);
 								}
 							}
 						});
@@ -325,41 +324,61 @@ public class PeterDwarfPanel extends JPanel {
 					final DwarfTreeNode ehFrameTreeNode = new DwarfTreeNode(".eh_frame", node, null);
 					node.children.add(ehFrameTreeNode);
 
-					for (FrameChunk ehFrame : dwarf.ehFrames) {
-						if (showDialog) {
-							dialog.progressBar.setString("Loading .eh_franme : " + Long.toHexString(ehFrame.pc_begin_real) + " - "
-									+ Long.toHexString(ehFrame.pc_begin_real + ehFrame.pc_range_real));
-						}
-						if (ehFrame.cieID != 0) {
-							DwarfTreeNode ehFrameSubNode = new DwarfTreeNode(Long.toHexString(ehFrame.pc_begin_real) + " - "
-									+ Long.toHexString(ehFrame.pc_begin_real + ehFrame.pc_range_real), ehFrameTreeNode, ehFrame);
-
-							for (Object key : ehFrame.fieDetails.keySet()) {
-								Object objects[] = ehFrame.fieDetails.get(key);
-								String s = "";
-								for (Object object : objects) {
-									if (!s.equals("")) {
-										s += ", ";
-									}
-									s += object;
+					pool = Executors.newFixedThreadPool(maxPoolSize);
+					for (final FrameChunk ehFrame : dwarf.ehFrames) {
+						pool.execute(new Runnable() {
+							public void run() {
+								if (showDialog) {
+									dialog.progressBar.setString("Loading .eh_frame : " + Long.toHexString(ehFrame.pc_begin_real) + " - "
+											+ Long.toHexString(ehFrame.pc_begin_real + ehFrame.pc_range_real));
 								}
-								DwarfTreeNode ehFrameFieSubNode = new DwarfTreeNode(key + " : " + s, ehFrameSubNode, ehFrame);
-								ehFrameSubNode.children.add(ehFrameFieSubNode);
+								if (ehFrame.cieID != 0) {
+									DwarfTreeNode ehFrameSubNode = new DwarfTreeNode(Long.toHexString(ehFrame.pc_begin_real) + " - "
+											+ Long.toHexString(ehFrame.pc_begin_real + ehFrame.pc_range_real), ehFrameTreeNode, ehFrame);
+
+									for (Object key : ehFrame.fieDetails.keySet()) {
+										Object objects[] = ehFrame.fieDetails.get(key);
+										String s = "";
+										for (Object object : objects) {
+											if (!s.equals("")) {
+												s += ", ";
+											}
+											s += object;
+										}
+										DwarfTreeNode ehFrameFieSubNode = new DwarfTreeNode(key + " : " + s, ehFrameSubNode, ehFrame);
+										ehFrameSubNode.children.add(ehFrameFieSubNode);
+									}
+
+									ehFrameTreeNode.children.add(ehFrameSubNode);
+								} else {
+									DwarfTreeNode ehFrameSubNode = new DwarfTreeNode("CIE", ehFrameTreeNode, ehFrame);
+
+									DwarfTreeNode ehFrameFieSubNode = new DwarfTreeNode("Code factor : " + ehFrame.code_factor, ehFrameSubNode, ehFrame);
+									ehFrameSubNode.children.add(ehFrameFieSubNode);
+
+									ehFrameFieSubNode = new DwarfTreeNode("Data factor : " + ehFrame.data_factor, ehFrameSubNode, ehFrame);
+									ehFrameSubNode.children.add(ehFrameFieSubNode);
+
+									ehFrameTreeNode.children.add(ehFrameSubNode);
+								}
 							}
-
-							ehFrameTreeNode.children.add(ehFrameSubNode);
-						} else {
-							DwarfTreeNode ehFrameSubNode = new DwarfTreeNode("CIE", ehFrameTreeNode, ehFrame);
-
-							DwarfTreeNode ehFrameFieSubNode = new DwarfTreeNode("Code factor : " + ehFrame.code_factor, ehFrameSubNode, ehFrame);
-							ehFrameSubNode.children.add(ehFrameFieSubNode);
-
-							ehFrameFieSubNode = new DwarfTreeNode("Data factor : " + ehFrame.data_factor, ehFrameSubNode, ehFrame);
-							ehFrameSubNode.children.add(ehFrameFieSubNode);
-
-							ehFrameTreeNode.children.add(ehFrameSubNode);
-						}
+						});
 					}
+
+					waitPoolFinish();
+
+					Collections.sort(ehFrameTreeNode.children, new Comparator<DwarfTreeNode>() {
+						@Override
+						public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
+							if (o1.toString().equals("CIE")) {
+								return -1;
+							}
+							if (o2.toString().equals("CIE")) {
+								return 1;
+							}
+							return o1.toString().compareTo(o2.toString());
+						}
+					});
 					// end init .eh_frame
 				}
 
@@ -393,7 +412,7 @@ public class PeterDwarfPanel extends JPanel {
 		}
 	}
 
-	private void addTreeNode(JProgressBarDialog dialog, final CompileUnit compileUnit, DwarfTreeNode node, DebugInfoEntry debugInfoEntry) {
+	private void addDebugInfoEntries(JProgressBarDialog dialog, final CompileUnit compileUnit, DwarfTreeNode node, DebugInfoEntry debugInfoEntry) {
 		if (showDialog) {
 			dialog.progressBar.setString("Loading debug info : cu, " + compileUnit.offset + ", " + new File(compileUnit.DW_AT_name).getName());
 		}
@@ -413,7 +432,7 @@ public class PeterDwarfPanel extends JPanel {
 				DebugInfoAbbrevEntry debugInfoAbbrevEntry = d.debugInfoAbbrevEntries.get(key);
 
 				if (debugInfoAbbrevEntry.name.equals("DW_AT_decl_file")) {
-					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString() + ", "
+					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode("FUCK" + debugInfoAbbrevEntry.toString() + ", "
 							+ compileUnit.dwarfDebugLineHeader.filenames.get(Integer.parseInt(debugInfoAbbrevEntry.value.toString()) - 1).file.getAbsolutePath(), subNode,
 							debugInfoAbbrevEntry);
 				} else if (debugInfoAbbrevEntry.name.equals("DW_AT_type")) {
@@ -439,7 +458,7 @@ public class PeterDwarfPanel extends JPanel {
 				}
 				subNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
 			}
-			addTreeNode(dialog, compileUnit, subNode, d);
+			addDebugInfoEntries(dialog, compileUnit, subNode, d);
 		}
 	}
 

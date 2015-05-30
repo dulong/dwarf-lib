@@ -988,7 +988,7 @@ public class Dwarf {
 						}
 						if (reg_prefix != null) {
 							System.out.printf("  DW_CFA_offset: r(%d) %s%s at cfa %d\n", opa, reg_prefix, Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor);
-							fc.fieDetails.put((index++) + ": DW_CFA_offset", new Object[] { "r" + opa, reg_prefix, Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor });
+							fc.fieDetails.put((index++) + ": DW_CFA_offset", new Object[] { "r" + opa, reg_prefix + Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor });
 						}
 						if (reg_prefix == null) {
 							fc.col_type[opa] = Definition.DW_CFA_offset;
