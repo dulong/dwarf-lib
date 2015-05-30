@@ -1,6 +1,6 @@
 package com.peterdwarf.dwarf;
 
-import java.util.Hashtable;
+import java.util.TreeMap;
 
 public class FrameChunk {
 	//String chunk_start;
@@ -22,5 +22,8 @@ public class FrameChunk {
 	public char segment_size;
 	public FrameChunk next;
 
-	public Hashtable<String, Object[]> fieDetails = new Hashtable<String, Object[]>();
+	public long pc_begin_real;
+	public long pc_range_real;
+
+	public TreeMap<String, Object[]> fieDetails = new TreeMap<String, Object[]>();
 }
