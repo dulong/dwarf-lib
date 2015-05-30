@@ -328,26 +328,25 @@ public class PeterDwarfPanel extends JPanel {
 
 						for (FrameChunk ehFrame : dwarf.ehFrames) {
 							if (showDialog) {
-								dialog.progressBar.setString("Loading .eh_franme : " + Long.toHexString(ehFrame.pc_begin) + " - "
-										+ Long.toHexString(ehFrame.pc_begin + ehFrame.pc_range));
+								dialog.progressBar.setString("Loading .eh_franme : " + Long.toHexString(ehFrame.pc_begin_real) + " - "
+										+ Long.toHexString(ehFrame.pc_begin_real + ehFrame.pc_range_real));
 							}
-							DwarfTreeNode ehFrameSubNode = new DwarfTreeNode(Long.toHexString(ehFrame.pc_begin) + " - " + Long.toHexString(ehFrame.pc_begin + ehFrame.pc_range),
-									ehFrameTreeNode, ehFrame);
-							//							String str = "<html><table>";
-							//							str += "<tr><td>no.</td><td>:</td><td>" + section.number + "</td></tr>";
-							//							str += "<tr><td>name</td><td>:</td><td>" + section.section_name + "</td></tr>";
-							//							str += "<tr><td>offset</td><td>:</td><td>0x" + Long.toHexString(section.sh_offset) + "</td></tr>";
-							//							str += "<tr><td>size</td><td>:</td><td>0x" + Long.toHexString(section.sh_size) + "</td></tr>";
-							//							str += "<tr><td>type</td><td>:</td><td>" + section.sh_type + "</td></tr>";
-							//							str += "<tr><td>addr</td><td>:</td><td>0x" + Long.toHexString(section.sh_addr) + "</td></tr>";
-							//							str += "<tr><td>addr align</td><td>:</td><td>" + section.sh_addralign + "</td></tr>";
-							//							str += "<tr><td>ent. size</td><td>:</td><td>" + section.sh_entsize + "</td></tr>";
-							//							str += "<tr><td>flags</td><td>:</td><td>" + section.sh_flags + "</td></tr>";
-							//							str += "<tr><td>info</td><td>:</td><td>" + section.sh_info + "</td></tr>";
-							//							str += "<tr><td>link</td><td>:</td><td>" + section.sh_link + "</td></tr>";
-							//							str += "<tr><td>name idx</td><td>:</td><td>" + section.sh_name + "</td></tr>";
-							//							str += "</table></html>";
-							//							ehFrameSubNode.tooltip = str;
+							DwarfTreeNode ehFrameSubNode = new DwarfTreeNode(Long.toHexString(ehFrame.pc_begin_real) + " - "
+									+ Long.toHexString(ehFrame.pc_begin_real + ehFrame.pc_range_real), ehFrameTreeNode, ehFrame);
+
+							for (Object key : ehFrame.fieDetails.keySet()) {
+								Object objects[] = ehFrame.fieDetails.get(key);
+								String s = "";
+								for (Object object : objects) {
+									if (!s.equals("")) {
+										s += ", ";
+									}
+									s += object;
+								}
+								DwarfTreeNode ehFrameFieSubNode = new DwarfTreeNode(key + " : " + s, ehFrameSubNode, ehFrame);
+								ehFrameSubNode.children.add(ehFrameFieSubNode);
+							}
+
 							ehFrameTreeNode.children.add(ehFrameSubNode);
 						}
 						// end init .eh_frame
@@ -418,7 +417,6 @@ public class PeterDwarfPanel extends JPanel {
 				} else if (debugInfoAbbrevEntry.name.equals("DW_AT_type")) {
 					int value = CommonLib.string2int("0x" + debugInfoAbbrevEntry.value.toString());
 					String type = DwarfLib.getParameterType(compileUnit, value);
-					//DebugInfoEntry temp = compileUnit.getDebugInfoEntryByPosition(value);
 					if (type == null) {
 						compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString(), subNode, debugInfoAbbrevEntry);
 					} else {
@@ -442,12 +440,6 @@ public class PeterDwarfPanel extends JPanel {
 			addTreeNode(dialog, compileUnit, subNode, d);
 		}
 	}
-
-	//	private void showProgress(JDialog dialog, String message) {
-	//		if (dialog != null) {
-	//			((JLabel) dialog.getContentPane()).setText(message);
-	//		}
-	//	}
 
 	public CompileUnit getCompileUnit(long address) {
 		for (Dwarf dwarf : dwarfs) {
