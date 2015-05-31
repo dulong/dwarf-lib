@@ -432,7 +432,7 @@ public class PeterDwarfPanel extends JPanel {
 				DebugInfoAbbrevEntry debugInfoAbbrevEntry = d.debugInfoAbbrevEntries.get(key);
 
 				if (debugInfoAbbrevEntry.name.equals("DW_AT_decl_file")) {
-					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode("FUCK" + debugInfoAbbrevEntry.toString() + ", "
+					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString() + ", "
 							+ compileUnit.dwarfDebugLineHeader.filenames.get(Integer.parseInt(debugInfoAbbrevEntry.value.toString()) - 1).file.getAbsolutePath(), subNode,
 							debugInfoAbbrevEntry);
 				} else if (debugInfoAbbrevEntry.name.equals("DW_AT_type")) {
