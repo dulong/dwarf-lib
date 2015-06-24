@@ -27,4 +27,6 @@ public class FrameChunk {
 
 	public TreeMap<String, Object[]> fieDetails = new TreeMap<String, Object[]>();
 	public int cieID;
+	public int version;
+	public byte[] augmentationData;
 }

@@ -58,4 +58,17 @@ public class CompileUnit implements Comparable<CompileUnit> {
 		}
 		return null;
 	}
+
+	public Vector<DebugInfoEntry> getDebugInfoEntryByName(String name) {
+		if (debugInfoEntries == null) {
+			return null;
+		}
+		Vector<DebugInfoEntry> r = new Vector<DebugInfoEntry>();
+		for (DebugInfoEntry debugInfoEntry : debugInfoEntries) {
+			if (debugInfoEntry.name.equals(name)) {
+				r.add(debugInfoEntry);
+			}
+		}
+		return r;
+	}
 }

@@ -10,7 +10,6 @@ import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Enumeration;
 import java.util.Vector;
 
 import com.peterar.AR;
@@ -26,17 +25,45 @@ public class DwarfLib {
 		Dwarf dwarf = dwarfVector.get(0);
 		for (CompileUnit cu : dwarf.compileUnits) {
 			if (cu.DW_AT_low_pc <= address && address <= (cu.DW_AT_low_pc + cu.DW_AT_high_pc - 1)) {
-				System.out.println("ok");
-				for (DebugInfoEntry debugInfoEntry : cu.debugInfoEntries) {
-					System.out.println(debugInfoEntry);
+				Vector<DebugInfoEntry> subprogramDebugInfoEntries = cu.getDebugInfoEntryByName("DW_TAG_subprogram");
+				for (DebugInfoEntry subprogramDebugInfoEntry : subprogramDebugInfoEntries) {
+					long subProgramAddress = (long) subprogramDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_low_pc").value;
+					if (address == subProgramAddress) {
+						Vector<DebugInfoEntry> parameters = subprogramDebugInfoEntry.getDebugInfoEntryByName("DW_TAG_formal_parameter");
+						for (DebugInfoEntry parameter : parameters) {
+							System.out.println(parameter.debugInfoAbbrevEntries.get("DW_AT_name"));
+							System.out.println(parameter.debugInfoAbbrevEntries.get("DW_AT_location").value);
+							String values[] = parameter.debugInfoAbbrevEntries.get("DW_AT_location").value.toString().split(",");
+							System.out.println(Definition.getOPName(CommonLib.string2int(values[0])));
+						}
 
-					Enumeration<String> enumKey = debugInfoEntry.debugInfoAbbrevEntries.keys();
-					while (enumKey.hasMoreElements()) {
-						String key = enumKey.nextElement();
-						DebugInfoAbbrevEntry val = debugInfoEntry.debugInfoAbbrevEntries.get(key);
-						System.out.println("\t\t" + val);
+						//CIE
+						System.out.println("CFA=" + dwarf.ehFrames.get(0).cfa_exp);
+
+						return;
 					}
 				}
+				//				System.out.println(cu.getDebugInfoEntryByName("DW_TAG_subprogram").size());
+				//				DebugInfoAbbrevEntry shit = compileUnitDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name");
+				//				System.out.println(shit);
+
+				//				Enumeration<String> enumKey = compileUnitDebugInfoEntry.debugInfoAbbrevEntries.keys();
+				//				while (enumKey.hasMoreElements()) {
+				//					String key = enumKey.nextElement();
+				//					DebugInfoAbbrevEntry val = compileUnitDebugInfoEntry.debugInfoAbbrevEntries.get(key);
+				//					System.out.println("\t\t" + val);
+				//				}
+
+				//				for (DebugInfoEntry debugInfoEntry : cu.debugInfoEntries) {
+				//					System.out.println(debugInfoEntry);
+				//
+				//					Enumeration<String> enumKey = debugInfoEntry.debugInfoAbbrevEntries.keys();
+				//					while (enumKey.hasMoreElements()) {
+				//						String key = enumKey.nextElement();
+				//						DebugInfoAbbrevEntry val = debugInfoEntry.debugInfoAbbrevEntries.get(key);
+				//						System.out.println("\t\t" + val);
+				//					}
+				//				}
 			}
 		}
 	}
