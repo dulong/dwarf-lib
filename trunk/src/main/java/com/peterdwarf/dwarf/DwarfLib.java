@@ -29,6 +29,17 @@ public class DwarfLib {
 				for (DebugInfoEntry subprogramDebugInfoEntry : subprogramDebugInfoEntries) {
 					long subProgramAddress = (long) subprogramDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_low_pc").value;
 					if (address == subProgramAddress) {
+						//CIE
+						long cfsBaseOffset = -1;
+						for (int x = 0; x < dwarf.ehFrames.get(0).fieDetailsKeys.size(); x++) {
+							if (dwarf.ehFrames.get(0).fieDetailsKeys.get(x).equals("DW_CFA_def_cfa")) {
+								cfsBaseOffset = (long) dwarf.ehFrames.get(0).fieDetails.get(x)[2];
+								break;
+							}
+						}
+						System.out.println("cfsBaseOffset=" + cfsBaseOffset);
+						//CIE end
+
 						Vector<DebugInfoEntry> parameters = subprogramDebugInfoEntry.getDebugInfoEntryByName("DW_TAG_formal_parameter");
 						for (DebugInfoEntry parameter : parameters) {
 							System.out.println(parameter.debugInfoAbbrevEntries.get("DW_AT_name"));
@@ -37,33 +48,9 @@ public class DwarfLib {
 							System.out.println(Definition.getOPName(CommonLib.string2int(values[0])));
 						}
 
-						//CIE
-						System.out.println("CFA=" + dwarf.ehFrames.get(0).cfa_exp);
-
 						return;
 					}
 				}
-				//				System.out.println(cu.getDebugInfoEntryByName("DW_TAG_subprogram").size());
-				//				DebugInfoAbbrevEntry shit = compileUnitDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name");
-				//				System.out.println(shit);
-
-				//				Enumeration<String> enumKey = compileUnitDebugInfoEntry.debugInfoAbbrevEntries.keys();
-				//				while (enumKey.hasMoreElements()) {
-				//					String key = enumKey.nextElement();
-				//					DebugInfoAbbrevEntry val = compileUnitDebugInfoEntry.debugInfoAbbrevEntries.get(key);
-				//					System.out.println("\t\t" + val);
-				//				}
-
-				//				for (DebugInfoEntry debugInfoEntry : cu.debugInfoEntries) {
-				//					System.out.println(debugInfoEntry);
-				//
-				//					Enumeration<String> enumKey = debugInfoEntry.debugInfoAbbrevEntries.keys();
-				//					while (enumKey.hasMoreElements()) {
-				//						String key = enumKey.nextElement();
-				//						DebugInfoAbbrevEntry val = debugInfoEntry.debugInfoAbbrevEntries.get(key);
-				//						System.out.println("\t\t" + val);
-				//					}
-				//				}
 			}
 		}
 	}

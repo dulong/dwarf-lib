@@ -1,6 +1,6 @@
 package com.peterdwarf.dwarf;
 
-import java.util.TreeMap;
+import java.util.Vector;
 
 public class FrameChunk {
 	//String chunk_start;
@@ -25,7 +25,8 @@ public class FrameChunk {
 	public long pc_begin_real;
 	public long pc_range_real;
 
-	public TreeMap<String, Object[]> fieDetails = new TreeMap<String, Object[]>();
+	public Vector<String> fieDetailsKeys = new Vector<String>();
+	public Vector<Object[]> fieDetails = new Vector<Object[]>();
 	public int cieID;
 	public int version;
 	public byte[] augmentationData;
