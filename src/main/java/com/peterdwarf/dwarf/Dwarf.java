@@ -14,8 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.Stack;
 import java.util.Vector;
 
-import org.apache.commons.codec.binary.Hex;
-
 import com.peterdwarf.DwarfGlobal;
 import com.peterdwarf.elf.Elf32_Ehdr;
 import com.peterdwarf.elf.Elf32_Shdr;
@@ -830,6 +828,7 @@ public class Dwarf {
 					fc = new FrameChunk();
 					fc.cieID = cieID;
 					int version = eh_frame_bytes.get();
+					fc.version = version;
 					//System.out.println("version=" + version);
 
 					int temp;
@@ -873,6 +872,7 @@ public class Dwarf {
 							augmentationData[z] = eh_frame_bytes.get();
 						}
 					}
+					fc.augmentationData = augmentationData;
 
 					if (augmentationDataLength > 0) {
 						byte q[] = augmentationData;

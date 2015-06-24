@@ -353,11 +353,35 @@ public class PeterDwarfPanel extends JPanel {
 								} else {
 									DwarfTreeNode ehFrameSubNode = new DwarfTreeNode("CIE", ehFrameTreeNode, ehFrame);
 
-									DwarfTreeNode ehFrameFieSubNode = new DwarfTreeNode("Code factor : " + ehFrame.code_factor, ehFrameSubNode, ehFrame);
-									ehFrameSubNode.children.add(ehFrameFieSubNode);
+									DwarfTreeNode ehFrameCieSubNode;
 
-									ehFrameFieSubNode = new DwarfTreeNode("Data factor : " + ehFrame.data_factor, ehFrameSubNode, ehFrame);
-									ehFrameSubNode.children.add(ehFrameFieSubNode);
+									ehFrameCieSubNode = new DwarfTreeNode("Version : " + ehFrame.version, ehFrameSubNode, ehFrame);
+									ehFrameSubNode.children.add(ehFrameCieSubNode);
+
+									ehFrameCieSubNode = new DwarfTreeNode("Augmentation : " + ehFrame.augmentation, ehFrameSubNode, ehFrame);
+									ehFrameSubNode.children.add(ehFrameCieSubNode);
+
+									ehFrameCieSubNode = new DwarfTreeNode("Code factor : " + ehFrame.code_factor, ehFrameSubNode, ehFrame);
+									ehFrameSubNode.children.add(ehFrameCieSubNode);
+
+									ehFrameCieSubNode = new DwarfTreeNode("Data factor : " + ehFrame.data_factor, ehFrameSubNode, ehFrame);
+									ehFrameSubNode.children.add(ehFrameCieSubNode);
+
+									ehFrameCieSubNode = new DwarfTreeNode("Return address column : " + ehFrame.ra, ehFrameSubNode, ehFrame);
+									ehFrameSubNode.children.add(ehFrameCieSubNode);
+
+									String augmentationDataStr = "";
+									for (byte b : ehFrame.augmentationData) {
+										augmentationDataStr += b + ",";
+									}
+									ehFrameCieSubNode = new DwarfTreeNode("Augmentation data : " + augmentationDataStr, ehFrameSubNode, ehFrame);
+									ehFrameSubNode.children.add(ehFrameCieSubNode);
+
+									//									ehFrameFieSubNode = new DwarfTreeNode("DW_CFA_def_cfa : " + ehFrame.cfa_reg, ehFrameSubNode, ehFrame);
+									//									ehFrameSubNode.children.add(ehFrameFieSubNode);
+									//
+									//									ehFrameFieSubNode = new DwarfTreeNode("DW_CFA_def_cfa : " + ehFrame.cfa_offset, ehFrameSubNode, ehFrame);
+									//									ehFrameSubNode.children.add(ehFrameFieSubNode);
 
 									ehFrameTreeNode.children.add(ehFrameSubNode);
 								}
