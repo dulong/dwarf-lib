@@ -10,6 +10,7 @@ import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Enumeration;
 import java.util.Vector;
 
 import com.peterar.AR;
@@ -18,6 +19,27 @@ import com.peterswing.CommonLib;
 
 public class DwarfLib {
 	private static final boolean WORDS_BIGENDIAN = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
+
+	public static void main(String args[]) {
+		long address = 0x1600000;
+		final Vector<Dwarf> dwarfVector = DwarfLib.init(new File("../PeterI/kernel/kernel"), 0);
+		Dwarf dwarf = dwarfVector.get(0);
+		for (CompileUnit cu : dwarf.compileUnits) {
+			if (cu.DW_AT_low_pc <= address && address <= (cu.DW_AT_low_pc + cu.DW_AT_high_pc - 1)) {
+				System.out.println("ok");
+				for (DebugInfoEntry debugInfoEntry : cu.debugInfoEntries) {
+					System.out.println(debugInfoEntry);
+
+					Enumeration<String> enumKey = debugInfoEntry.debugInfoAbbrevEntries.keys();
+					while (enumKey.hasMoreElements()) {
+						String key = enumKey.nextElement();
+						DebugInfoAbbrevEntry val = debugInfoEntry.debugInfoAbbrevEntries.get(key);
+						System.out.println("\t\t" + val);
+					}
+				}
+			}
+		}
+	}
 
 	public static Vector<Dwarf> init(File file, long memoryOffset) {
 		Vector<Dwarf> dwarfVector = new Vector<Dwarf>();

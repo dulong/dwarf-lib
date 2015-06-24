@@ -104,9 +104,8 @@ public class Dwarf {
 				debug_loc.get(block);
 
 				if (DwarfGlobal.debug) {
-					System.out.println("---------------------------");
-					System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block) + " , "
-							+ Definition.getOPName(0xff & block[0]));
+					//System.out.println("---------------------------");
+					//System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block) + " , "+ Definition.getOPName(0xff & block[0]));
 				}
 
 				DebugLocEntry debugLocEntry = new DebugLocEntry();
@@ -129,7 +128,7 @@ public class Dwarf {
 						atom = debugLocEntry.blocks[offset] & 0xff;
 						offset++;
 						if (DwarfGlobal.debug) {
-							System.out.println(Definition.getOPName(atom));
+							//System.out.println(Definition.getOPName(atom));
 						}
 						switch (atom) {
 						case Definition.DW_OP_reg0:
@@ -751,21 +750,21 @@ public class Dwarf {
 			abbrevList = parseDebugAbbrev(debug_abbrevBuffer);
 			if (DwarfGlobal.debug) {
 				for (Integer abbrevOffset : abbrevList.keySet()) {
-					System.out.println("Abbrev offset=" + abbrevOffset);
+					//System.out.println("Abbrev offset=" + abbrevOffset);
 					LinkedHashMap<Integer, Abbrev> abbrevHashtable = abbrevList.get(abbrevOffset);
 					for (Integer abbrevNo : abbrevHashtable.keySet()) {
 						Abbrev abbrev = abbrevHashtable.get(abbrevNo);
 
-						System.out.printf("%d\t%s\t%s\n", abbrev.number, Definition.getTagName(abbrev.tag), abbrev.has_children ? "has children" : "no children");
+						//System.out.printf("%d\t%s\t%s\n", abbrev.number, Definition.getTagName(abbrev.tag), abbrev.has_children ? "has children" : "no children");
 
 						for (AbbrevEntry entry : abbrev.entries) {
-							System.out.printf("\t%x\t%x\t%s\t%s\n", entry.at, entry.form, Definition.getATName(entry.at), Definition.getFormName(entry.form));
+							//System.out.printf("\t%x\t%x\t%s\t%s\n", entry.at, entry.form, Definition.getATName(entry.at), Definition.getFormName(entry.form));
 						}
 					}
 				}
 			}
 			if (DwarfGlobal.debug) {
-				System.out.println();
+				//System.out.println();
 			}
 
 			byteBuffer = SectionFinder.findSectionByte(ehdr, file, ".debug_info");
@@ -797,8 +796,8 @@ public class Dwarf {
 
 			Elf32_Shdr ehFrameSection = SectionFinder.getSection(file, ".eh_frame");
 			eh_frame_bytes = SectionFinder.findSectionByte(ehdr, file, ".eh_frame");
-			System.out.println("eh_frame_bytes=" + eh_frame_bytes.limit());
-			System.out.println(ehFrameSection.sh_size);
+			//System.out.println("eh_frame_bytes=" + eh_frame_bytes.limit());
+			//System.out.println(ehFrameSection.sh_size);
 
 			long start = 0;
 			long end = ehFrameSection.sh_size;
@@ -831,21 +830,21 @@ public class Dwarf {
 					fc = new FrameChunk();
 					fc.cieID = cieID;
 					int version = eh_frame_bytes.get();
-					System.out.println("version=" + version);
+					//System.out.println("version=" + version);
 
 					int temp;
 					do {
 						temp = eh_frame_bytes.get();
 						fc.augmentation += (char) temp;
 					} while (temp != 0);
-					System.out.println("augmentation=" + fc.augmentation);
+					//System.out.println("augmentation=" + fc.augmentation);
 
 					if (fc.augmentation.equals("eh")) {
 						start += eh_addr_size;
 					}
 
 					if (version >= 4) {
-						System.out.println("not support version>=4");
+						//System.out.println("not support version>=4");
 						System.exit(-2);
 					} else {
 						fc.ptr_size = eh_addr_size;
@@ -853,10 +852,10 @@ public class Dwarf {
 					}
 
 					fc.code_factor = (int) DwarfLib.getULEB128(eh_frame_bytes);
-					System.out.println("codeAlignmentFactor=" + fc.code_factor);
+					//System.out.println("codeAlignmentFactor=" + fc.code_factor);
 
 					fc.data_factor = (int) DwarfLib.getSLEB128(eh_frame_bytes);
-					System.out.println("dataAlignmentFactor=" + fc.data_factor);
+					//System.out.println("dataAlignmentFactor=" + fc.data_factor);
 
 					if (version == 1) {
 						fc.ra = eh_frame_bytes.get();
@@ -911,7 +910,7 @@ public class Dwarf {
 					frame_need_space(fc, mreg);
 				} else {
 					// start FDE
-					System.out.println("FDE");
+					//System.out.println("FDE");
 					fc = new FrameChunk();
 					fc.cieID = cieID;
 					ehFrames.add(fc);
@@ -956,7 +955,7 @@ public class Dwarf {
 						eh_frame_bytes.position(oldPosition);
 					}
 
-					System.out.printf("%x..%x\n", fc.pc_begin, fc.pc_begin + fc.pc_range);
+					//System.out.printf("%x..%x\n", fc.pc_begin, fc.pc_begin + fc.pc_range);
 					fc.pc_begin_real = fc.pc_begin;
 					fc.pc_range_real = fc.pc_range;
 					// FDE end
@@ -977,7 +976,7 @@ public class Dwarf {
 
 					switch (op) {
 					case Definition.DW_CFA_advance_loc:
-						System.out.printf("  DW_CFA_advance_loc: %d to %x\n", opa * fc.code_factor, fc.pc_begin + opa * fc.code_factor);
+						//System.out.printf("  DW_CFA_advance_loc: %d to %x\n", opa * fc.code_factor, fc.pc_begin + opa * fc.code_factor);
 						fc.fieDetails.put((index++) + ": DW_CFA_advance_loc", new Object[] { opa * fc.code_factor, fc.pc_begin + opa * fc.code_factor });
 						fc.pc_begin += opa * fc.code_factor;
 						break;
@@ -987,7 +986,7 @@ public class Dwarf {
 							reg_prefix = bad_reg;
 						}
 						if (reg_prefix != null) {
-							System.out.printf("  DW_CFA_offset: r(%d) %s%s at cfa %d\n", opa, reg_prefix, Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor);
+							//System.out.printf("  DW_CFA_offset: r(%d) %s%s at cfa %d\n", opa, reg_prefix, Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor);
 							fc.fieDetails.put((index++) + ": DW_CFA_offset", new Object[] { "r" + opa, reg_prefix + Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor });
 						}
 						if (reg_prefix == null) {
@@ -999,7 +998,7 @@ public class Dwarf {
 						if (opa >= cie.ncols || opa >= fc.ncols) {
 							reg_prefix = bad_reg;
 						}
-						System.out.printf("  DW_CFA_restore: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[opa]);
+						//System.out.printf("  DW_CFA_restore: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[opa]);
 						fc.fieDetails.put((index++) + ": DW_CFA_restore", new Object[] { reg_prefix, Definition.dwarf_regnames_i386[opa] });
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
 							fc.col_type[opa] = cie.col_type[opa];
@@ -1011,28 +1010,28 @@ public class Dwarf {
 						break;
 					case Definition.DW_CFA_set_loc:
 						long vma = get_encoded_value(eh_frame_bytes, fc.fde_encoding, ehFrameSection, (int) block_end);
-						System.out.printf("  DW_CFA_set_loc: %x\n", vma);
+						//System.out.printf("  DW_CFA_set_loc: %x\n", vma);
 						fc.fieDetails.put((index++) + ": DW_CFA_set_loc", new Object[] { reg_prefix, Definition.dwarf_regnames_i386[opa] });
 						fc.pc_begin = vma;
 						break;
 					case Definition.DW_CFA_advance_loc1:
 						//SAFE_BYTE_GET_AND_INC(ofs, start, 1, end);
 						ofs = byte_get(eh_frame_bytes, 1);
-						System.out.printf("  DW_CFA_advance_loc1: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+						//System.out.printf("  DW_CFA_advance_loc1: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
 						fc.fieDetails.put((index++) + ": DW_CFA_set_loc", new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
 						fc.pc_begin += ofs * fc.code_factor;
 						break;
 					case Definition.DW_CFA_advance_loc2:
 						//SAFE_BYTE_GET_AND_INC(ofs, start, 2, block_end);
 						ofs = byte_get(eh_frame_bytes, 2);
-						System.out.printf("  DW_CFA_advance_loc2: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+						//System.out.printf("  DW_CFA_advance_loc2: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
 						fc.fieDetails.put((index++) + ": DW_CFA_advance_loc2", new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
 						fc.pc_begin += ofs * fc.code_factor;
 						break;
 					case Definition.DW_CFA_advance_loc4:
 						//SAFE_BYTE_GET_AND_INC(ofs, start, 4, block_end);
 						ofs = byte_get(eh_frame_bytes, 4);
-						System.out.printf("  DW_CFA_advance_loc4: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+						//System.out.printf("  DW_CFA_advance_loc4: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
 						fc.fieDetails.put((index++) + ": DW_CFA_advance_loc4", new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
 						fc.pc_begin += ofs * fc.code_factor;
 						break;
@@ -1044,7 +1043,7 @@ public class Dwarf {
 							reg_prefix = bad_reg;
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							System.out.printf("  DW_CFA_offset_extended: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor);
+							//System.out.printf("  DW_CFA_offset_extended: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor);
 							fc.fieDetails.put((index++) + ": DW_CFA_offset_extended",
 									new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor });
 						}
@@ -1061,7 +1060,7 @@ public class Dwarf {
 							reg_prefix = bad_reg;
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							System.out.printf("  DW_CFA_val_offset: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor);
+							//System.out.printf("  DW_CFA_val_offset: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor);
 							fc.fieDetails.put((index++) + ": DW_CFA_val_offset", new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor });
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
@@ -1075,7 +1074,7 @@ public class Dwarf {
 							reg_prefix = bad_reg;
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							System.out.printf("  DW_CFA_restore_extended: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+							//System.out.printf("  DW_CFA_restore_extended: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
 							fc.fieDetails.put((index++) + ": DW_CFA_restore_extended", new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
@@ -1089,7 +1088,7 @@ public class Dwarf {
 							reg_prefix = bad_reg;
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							System.out.printf("  DW_CFA_undefined: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+							//System.out.printf("  DW_CFA_undefined: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
 							fc.fieDetails.put((index++) + ": DW_CFA_undefined", new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
@@ -1103,7 +1102,7 @@ public class Dwarf {
 							reg_prefix = bad_reg;
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							System.out.printf("  DW_CFA_same_value: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+							//System.out.printf("  DW_CFA_same_value: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
 							fc.fieDetails.put((index++) + ": DW_CFA_same_value", new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
@@ -1118,7 +1117,7 @@ public class Dwarf {
 							reg_prefix = bad_reg;
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							System.out.printf("  DW_CFA_register: %s%s in ", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+							//System.out.printf("  DW_CFA_register: %s%s in ", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
 							fc.fieDetails.put((index++) + ": DW_CFA_register", new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
@@ -1127,7 +1126,7 @@ public class Dwarf {
 						}
 						break;
 					case Definition.DW_CFA_remember_state:
-						System.out.printf("  DW_CFA_remember_state\n");
+						//System.out.printf("  DW_CFA_remember_state\n");
 						fc.fieDetails.put((index++) + ": DW_CFA_remember_state", new Object[] {});
 						FrameChunk rs = new FrameChunk();
 						rs.cfa_offset = fc.cfa_offset;
@@ -1141,7 +1140,7 @@ public class Dwarf {
 						remembered_state = rs;
 						break;
 					case Definition.DW_CFA_restore_state:
-						System.out.printf("  DW_CFA_restore_state\n");
+						//System.out.printf("  DW_CFA_restore_state\n");
 						fc.fieDetails.put((index++) + ": DW_CFA_restore_state", new Object[] {});
 						rs = remembered_state;
 						if (rs != null) {
@@ -1151,49 +1150,49 @@ public class Dwarf {
 							fc.ra = rs.ra;
 							fc.cfa_exp = rs.cfa_exp;
 							if (frame_need_space(fc, rs.ncols - 1) < 0) {
-								System.out.printf("Invalid column number in saved frame state\n");
+								//System.out.printf("Invalid column number in saved frame state\n");
 								fc.ncols = 0;
 								break;
 							}
 							fc.col_type = rs.col_type;
 							fc.col_offset = rs.col_offset;
 						} else {
-							System.out.printf("Mismatched DW_CFA_restore_state\n");
+							//System.out.printf("Mismatched DW_CFA_restore_state\n");
 						}
 						break;
 					case Definition.DW_CFA_def_cfa:
 						long cfa_reg = DwarfLib.getULEB128(eh_frame_bytes);
 						long cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
 						long cfa_exp = 0;
-						System.out.println("  DW_CFA_def_cfa: r" + cfa_reg + " " + Definition.dwarf_regnames_i386[(int) cfa_reg] + " ofs " + cfa_offset);
+						//System.out.println("  DW_CFA_def_cfa: r" + cfa_reg + " " + Definition.dwarf_regnames_i386[(int) cfa_reg] + " ofs " + cfa_offset);
 						fc.fieDetails.put((index++) + ": DW_CFA_def_cfa", new Object[] { Definition.dwarf_regnames_i386[(int) cfa_reg] + " ofs " + cfa_offset });
 						break;
 					case Definition.DW_CFA_def_cfa_register:
 						fc.cfa_reg = (int) DwarfLib.getULEB128(eh_frame_bytes);
 						fc.cfa_exp = 0;
-						System.out.printf("  DW_CFA_def_cfa_register: %s\n", Definition.dwarf_regnames_i386[fc.cfa_reg]);
+						//System.out.printf("  DW_CFA_def_cfa_register: %s\n", Definition.dwarf_regnames_i386[fc.cfa_reg]);
 						fc.fieDetails.put((index++) + ": DW_CFA_def_cfa_register", new Object[] { Definition.dwarf_regnames_i386[fc.cfa_reg] });
 						break;
 					case Definition.DW_CFA_def_cfa_offset:
 						fc.cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
-						System.out.printf("  DW_CFA_def_cfa_offset: %d\n", fc.cfa_offset);
+						//System.out.printf("  DW_CFA_def_cfa_offset: %d\n", fc.cfa_offset);
 						fc.fieDetails.put((index++) + ": DW_CFA_def_cfa_offset", new Object[] { fc.cfa_offset });
 						break;
 					case Definition.DW_CFA_nop:
-						System.out.println("  DW_CFA_nop");
+						//System.out.println("  DW_CFA_nop");
 						fc.fieDetails.put((index++) + ": DW_CFA_nop", new Object[] {});
 						break;
 					case Definition.DW_CFA_def_cfa_expression:
 						long ul = DwarfLib.getULEB128(eh_frame_bytes);
 
 						if (start >= block_end || start + ul > block_end || start + ul < start) {
-							System.out.printf("  DW_CFA_def_cfa_expression: <corrupt len %lu>\n", ul);
+							//System.out.printf("  DW_CFA_def_cfa_expression: <corrupt len %lu>\n", ul);
 							break;
 						}
 
-						System.out.printf("  DW_CFA_def_cfa_expression (");
+						//System.out.printf("  DW_CFA_def_cfa_expression (");
 						decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
-						System.out.printf(")\n");
+						//System.out.printf(")\n");
 						fc.fieDetails.put((index++) + ": DW_CFA_def_cfa_expression", new Object[] {});
 
 						fc.cfa_exp = 1;
@@ -1211,14 +1210,14 @@ public class Dwarf {
 						/* PR 17512: file: 98c02eb4.  */
 						long tmp = start + ul;
 						if (start >= block_end || tmp > block_end || tmp < start) {
-							System.out.printf("  DW_CFA_expression: <corrupt len %lu>\n", ul);
+							//System.out.printf("  DW_CFA_expression: <corrupt len %lu>\n", ul);
 							fc.fieDetails.put((index++) + ": DW_CFA_expression", new Object[] { ul });
 							break;
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							System.out.printf("  DW_CFA_expression: %s%s (", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+							//System.out.printf("  DW_CFA_expression: %s%s (", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
 							decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
-							System.out.printf(")\n");
+							//System.out.printf(")\n");
 							fc.fieDetails.put((index++) + ": DW_CFA_expression", new Object[] {});
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
@@ -1234,14 +1233,14 @@ public class Dwarf {
 						}
 						tmp = start + ul;
 						if (start >= block_end || tmp > block_end || tmp < start) {
-							System.out.printf("  DW_CFA_val_expression: <corrupt len %lu>\n", ul);
+							//System.out.printf("  DW_CFA_val_expression: <corrupt len %lu>\n", ul);
 							fc.fieDetails.put((index++) + ": DW_CFA_val_expression", new Object[] { ul });
 							break;
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							System.out.printf("  DW_CFA_val_expression: %s%s (", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+							//System.out.printf("  DW_CFA_val_expression: %s%s (", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
 							decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
-							System.out.printf(")\n");
+							//System.out.printf(")\n");
 							fc.fieDetails.put((index++) + ": DW_CFA_val_expression", new Object[] {});
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
@@ -1257,7 +1256,7 @@ public class Dwarf {
 							reg_prefix = bad_reg;
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							System.out.printf("  DW_CFA_offset_extended_sf: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor));
+							//System.out.printf("  DW_CFA_offset_extended_sf: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor));
 							fc.fieDetails.put((index++) + ": DW_CFA_offset_extended_sf", new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg],
 									(long) (l * fc.data_factor) });
 						}
@@ -1274,7 +1273,7 @@ public class Dwarf {
 							reg_prefix = bad_reg;
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							System.out.printf("  DW_CFA_val_offset_sf: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor));
+							//System.out.printf("  DW_CFA_val_offset_sf: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor));
 							fc.fieDetails.put((index++) + ": DW_CFA_val_offset_sf", new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg],
 									(long) (l * fc.data_factor) });
 						}
@@ -1290,31 +1289,31 @@ public class Dwarf {
 						fc.cfa_offset = fc.cfa_offset * fc.data_factor;
 						fc.cfa_exp = 0;
 
-						System.out.printf("  DW_CFA_def_cfa_sf: %s ofs %d\n", Definition.dwarf_regnames_i386[fc.cfa_reg], (int) fc.cfa_offset);
+						//System.out.printf("  DW_CFA_def_cfa_sf: %s ofs %d\n", Definition.dwarf_regnames_i386[fc.cfa_reg], (int) fc.cfa_offset);
 						fc.fieDetails.put((index++) + ": DW_CFA_def_cfa_sf", new Object[] { Definition.dwarf_regnames_i386[fc.cfa_reg], (int) fc.cfa_offset });
 						break;
 					case Definition.DW_CFA_def_cfa_offset_sf:
 						fc.cfa_offset = DwarfLib.getSLEB128(eh_frame_bytes);
 						fc.cfa_offset *= fc.data_factor;
 
-						System.out.printf("  DW_CFA_def_cfa_offset_sf: %d\n", (int) fc.cfa_offset);
+						//System.out.printf("  DW_CFA_def_cfa_offset_sf: %d\n", (int) fc.cfa_offset);
 						fc.fieDetails.put((index++) + ": DW_CFA_def_cfa_offset_sf", new Object[] { fc.cfa_offset });
 						break;
 					case Definition.DW_CFA_MIPS_advance_loc8:
 						ofs = byte_get(eh_frame_bytes, 8);
 
-						System.out.printf("  DW_CFA_MIPS_advance_loc8: %ld to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+						//System.out.printf("  DW_CFA_MIPS_advance_loc8: %ld to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
 						fc.fieDetails.put((index++) + ": DW_CFA_MIPS_advance_loc8", new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
 						fc.pc_begin += ofs * fc.code_factor;
 						break;
 					case Definition.DW_CFA_GNU_window_save:
-						System.out.printf("  DW_CFA_GNU_window_save\n");
+						//System.out.printf("  DW_CFA_GNU_window_save\n");
 						break;
 
 					case Definition.DW_CFA_GNU_args_size:
 						ul = DwarfLib.getULEB128(eh_frame_bytes);
 
-						System.out.printf("  DW_CFA_GNU_args_size: %ld\n", ul);
+						//System.out.printf("  DW_CFA_GNU_args_size: %ld\n", ul);
 						fc.fieDetails.put((index++) + ": DW_CFA_GNU_args_size", new Object[] { ul });
 						break;
 					case Definition.DW_CFA_GNU_negative_offset_extended:
@@ -1325,8 +1324,7 @@ public class Dwarf {
 							reg_prefix = bad_reg;
 						}
 						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							System.out.printf("  DW_CFA_GNU_negative_offset_extended: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg],
-									(long) (l * fc.data_factor));
+							//System.out.printf("  DW_CFA_GNU_negative_offset_extended: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg],(long) (l * fc.data_factor));
 							fc.fieDetails.put((index++) + ": DW_CFA_GNU_negative_offset_extended", new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg],
 									(long) (l * fc.data_factor) });
 						}
@@ -1336,7 +1334,7 @@ public class Dwarf {
 						}
 						break;
 					default:
-						System.out.println("dwarf has something not supported yet");
+						//System.out.println("dwarf has something not supported yet");
 						System.exit(1);
 					}
 				}
@@ -1355,7 +1353,7 @@ public class Dwarf {
 	}
 
 	private void decode_location_expression(ByteBuffer eh_frame_bytes2, int eh_addr_size, int i, int j, long ul, int k, Elf32_Shdr ehFrameSection) {
-		System.out.println("not support decode_location_expression");
+		//System.out.println("not support decode_location_expression");
 		System.exit(400);
 	}
 
@@ -1378,7 +1376,7 @@ public class Dwarf {
 
 		/* PR 17512: file: 2844a11d.  */
 		if (fc.ncols > 1024) {
-			System.out.println("Unfeasibly large register number: " + reg);
+			//System.out.println("Unfeasibly large register number: " + reg);
 			fc.ncols = 0;
 			/* FIXME: 1024 is an arbitrary limit.  Increase it if
 			 we ever encounter a valid binary that exceeds it.  */
@@ -1392,7 +1390,7 @@ public class Dwarf {
 		while (prev < fc.ncols) {
 			fc.col_type[prev] = Definition.DW_CFA_unreferenced;
 			fc.col_offset[prev] = 0;
-			//System.out.println("\t\t" + fc.col_type[prev] + ", " + fc.col_offset[prev]);
+			////System.out.println("\t\t" + fc.col_type[prev] + ", " + fc.col_offset[prev]);
 			prev++;
 		}
 
@@ -1418,7 +1416,7 @@ public class Dwarf {
 		long val;
 
 		if (byteBuffer.position() + size >= byteBuffer.capacity()) {
-			System.out.println("Encoded value extends past end of section");
+			//System.out.println("Encoded value extends past end of section");
 			//*pdata = end;
 			//return 0;
 			System.exit(112);
@@ -1426,7 +1424,7 @@ public class Dwarf {
 
 		/* PR 17512: file: 002-829853-0.004.  */
 		if (size > 8) {
-			System.out.println("Encoded size of " + size + " is too large to read");
+			//System.out.println("Encoded size of " + size + " is too large to read");
 			//*pdata = end;
 			//return 0;
 			System.exit(112);
@@ -1434,7 +1432,7 @@ public class Dwarf {
 
 		/* PR 17512: file: 1085-5603-0.004.  */
 		if (size == 0) {
-			System.out.println("Encoded size of 0 is too small to read");
+			//System.out.println("Encoded size of 0 is too small to read");
 			//*pdata = end;
 			//return 0;
 			System.exit(113);
@@ -1461,10 +1459,10 @@ public class Dwarf {
 	}
 
 	public static long byte_get(ByteBuffer byteBuffer, int size) {
-		//		System.out.println(byteBuffer.get());
-		//		System.out.println(byteBuffer.get());
-		//		System.out.println(byteBuffer.get());
-		//		System.out.println(byteBuffer.get());
+		//		//System.out.println(byteBuffer.get());
+		//		//System.out.println(byteBuffer.get());
+		//		//System.out.println(byteBuffer.get());
+		//		//System.out.println(byteBuffer.get());
 		long x = 0;
 		if (size == 1) {
 			x = byteBuffer.get();
@@ -1479,7 +1477,7 @@ public class Dwarf {
 			x = byteBuffer.getLong();
 			x &= 0xffffffffffffffffL;
 		} else {
-			System.out.println("byte_get_signed, wrong size = " + size);
+			//System.out.println("byte_get_signed, wrong size = " + size);
 			System.exit(115);
 		}
 		return x;
@@ -1506,7 +1504,7 @@ public class Dwarf {
 			x &= 0xffffffffffffffffL;
 			break;
 		default:
-			System.out.println("byte_get_signed not support size=" + size);
+			//System.out.println("byte_get_signed not support size=" + size);
 			System.exit(40);
 		}
 		return x;
@@ -1622,7 +1620,7 @@ public class Dwarf {
 				initial_length_size = 4;
 			}
 			if (DwarfGlobal.debug) {
-				System.out.println(Integer.toHexString(debugInfoBytes.position()) + " " + cu);
+				//System.out.println(Integer.toHexString(debugInfoBytes.position()) + " " + cu);
 			}
 
 			//			DebugInfoEntry currentDebugInfoEntry = null;
@@ -1649,7 +1647,7 @@ public class Dwarf {
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
 
 				if (DwarfGlobal.debug) {
-					System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
+					//System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
 					System.out.flush();
 				}
 				for (AbbrevEntry entry : abbrev.entries) {
@@ -1662,10 +1660,10 @@ public class Dwarf {
 					debugInfoAbbrevEntry.formStr = Definition.getFormName(entry.form);
 					debugInfoAbbrevEntry.position = debugInfoBytes.position();
 
-					//System.out.println("debugInfoAbbrevEntry="+debugInfoAbbrevEntry.position+","+debugInfoAbbrevEntry.name);
+					////System.out.println("debugInfoAbbrevEntry="+debugInfoAbbrevEntry.position+","+debugInfoAbbrevEntry.name);
 
 					if (DwarfGlobal.debug) {
-						System.out.print("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + entry.form + " = " + debugInfoAbbrevEntry.name);
+						//System.out.print("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + entry.form + " = " + debugInfoAbbrevEntry.name);
 					}
 
 					if (entry.form == Definition.DW_FORM_string) {
@@ -1675,7 +1673,7 @@ public class Dwarf {
 							value += ((char) temp);
 						}
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + value);
+							//System.out.print("\t:\t" + value);
 						}
 						debugInfoAbbrevEntry.value = value;
 					} else if (entry.form == Definition.DW_FORM_addr) {
@@ -1690,67 +1688,67 @@ public class Dwarf {
 						int stringOffset = debugInfoBytes.getInt();
 						String s = DwarfLib.getString(debug_bytes, stringOffset);
 						if (DwarfGlobal.debug) {
-							System.out.printf("\t(indirect string, offset: %x):\t%s", stringOffset, s);
+							//System.out.printf("\t(indirect string, offset: %x):\t%s", stringOffset, s);
 						}
 						debugInfoAbbrevEntry.value = s;
 					} else if (entry.form == Definition.DW_FORM_data1) {
 						int data = debugInfoBytes.get() & 0xff;
 						debugInfoAbbrevEntry.value = data;
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + data);
+							//System.out.print("\t:\t" + data);
 						}
 					} else if (entry.form == Definition.DW_FORM_data2) {
 						short data = debugInfoBytes.getShort();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + data);
+							//System.out.print("\t:\t" + data);
 						}
 					} else if (entry.form == Definition.DW_FORM_data4) {
 						int data = debugInfoBytes.getInt();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data);
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + data);
+							//System.out.print("\t:\t" + data);
 						}
 					} else if (entry.form == Definition.DW_FORM_data8) {
 						long data = debugInfoBytes.getLong();
 						debugInfoAbbrevEntry.value = Long.toHexString(data);
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + data + cu.offset);
+							//System.out.print("\t:\t" + data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref1) {
 						byte data = debugInfoBytes.get();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data + cu.offset);
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + data + cu.offset);
+							//System.out.print("\t:\t" + data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref2) {
 						short data = debugInfoBytes.getShort();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data + cu.offset);
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + data + cu.offset);
+							//System.out.print("\t:\t" + data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref4) {
 						int data = debugInfoBytes.getInt();
 						debugInfoAbbrevEntry.value = Integer.toHexString(data + cu.offset);
 						if (DwarfGlobal.debug) {
-							System.out.printf("\t:\t%x %x", data, data + cu.offset);
+							//System.out.printf("\t:\t%x %x", data, data + cu.offset);
 						}
 					} else if (entry.form == Definition.DW_FORM_ref8) {
 						long data = debugInfoBytes.getLong();
 						debugInfoAbbrevEntry.value = Long.toHexString(data + cu.offset);
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + data);
+							//System.out.print("\t:\t" + data);
 						}
 					} else if (entry.form == Definition.DW_FORM_block) {
 						long size = DwarfLib.getULEB128(debugInfoBytes);
 						byte bytes[] = new byte[(int) size];
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t");
+							//System.out.print("\t:\t");
 						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
 							if (DwarfGlobal.debug) {
-								System.out.printf("%x\t", bytes[z]);
+								//System.out.printf("%x\t", bytes[z]);
 							}
 						}
 						debugInfoAbbrevEntry.value = bytes;
@@ -1758,12 +1756,12 @@ public class Dwarf {
 						int size = debugInfoBytes.get() & 0xff;
 						byte bytes[] = new byte[(int) size];
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t");
+							//System.out.print("\t:\t");
 						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
 							if (DwarfGlobal.debug) {
-								System.out.printf("%x\t", bytes[z]);
+								//System.out.printf("%x\t", bytes[z]);
 							}
 						}
 						debugInfoAbbrevEntry.value = bytes;
@@ -1771,12 +1769,12 @@ public class Dwarf {
 						short size = debugInfoBytes.getShort();
 						byte bytes[] = new byte[(int) size];
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t");
+							//System.out.print("\t:\t");
 						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
 							if (DwarfGlobal.debug) {
-								System.out.printf("%x\t", bytes[z]);
+								//System.out.printf("%x\t", bytes[z]);
 							}
 						}
 						debugInfoAbbrevEntry.value = bytes;
@@ -1784,12 +1782,12 @@ public class Dwarf {
 						int size = debugInfoBytes.getInt();
 						byte bytes[] = new byte[(int) size];
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t");
+							//System.out.print("\t:\t");
 						}
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
 							if (DwarfGlobal.debug) {
-								System.out.printf("%x\t", bytes[z]);
+								//System.out.printf("%x\t", bytes[z]);
 							}
 						}
 						debugInfoAbbrevEntry.value = bytes;
@@ -1797,54 +1795,54 @@ public class Dwarf {
 						long data = DwarfLib.getULEB128(debugInfoBytes);
 						debugInfoAbbrevEntry.value = data;
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + data);
+							//System.out.print("\t:\t" + data);
 						}
 					} else if (entry.form == Definition.DW_FORM_flag) {
 						byte flag = debugInfoBytes.get();
 						debugInfoAbbrevEntry.value = flag;
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + flag);
+							//System.out.print("\t:\t" + flag);
 						}
 					} else if (entry.form == Definition.DW_FORM_sec_offset) {
 						int value = debugInfoBytes.getInt();
 						debugInfoAbbrevEntry.value = value;
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + value);
+							//System.out.print("\t:\t" + value);
 						}
 					} else if (entry.form == Definition.DW_FORM_flag_present) {
 						//						byte value = debugInfoBytes.get();
 						debugInfoAbbrevEntry.value = 1;
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t1");
+							//System.out.print("\t:\t1");
 						}
 					} else if (entry.form == Definition.DW_FORM_exprloc) {
 						long size = DwarfLib.getULEB128(debugInfoBytes);
 						byte bytes[] = new byte[(int) size];
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t");
+							//System.out.print("\t:\t");
 						}
 						debugInfoAbbrevEntry.value = "";
 						for (int z = 0; z < size; z++) {
 							bytes[z] = (byte) (debugInfoBytes.get() & 0xff);
 							debugInfoAbbrevEntry.value += (bytes[z] & 0xFF) + ",";
 							if (DwarfGlobal.debug) {
-								System.out.print(bytes[z] + "\t");
+								//System.out.print(bytes[z] + "\t");
 							}
 						}
 					} else if (entry.form == Definition.DW_FORM_sdata) {
 						long data = DwarfLib.getSLEB128(debugInfoBytes);
 						debugInfoAbbrevEntry.value = data;
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + data);
+							//System.out.print("\t:\t" + data);
 						}
 					} else if (entry.form == Definition.DW_FORM_udata) {
 						long data = DwarfLib.getULEB128(debugInfoBytes);
 						debugInfoAbbrevEntry.value = data;
 						if (DwarfGlobal.debug) {
-							System.out.print("\t:\t" + data);
+							//System.out.print("\t:\t" + data);
 						}
 					} else {
-						System.out.println(" unsupport DW_FORM_? = 0x" + Integer.toHexString(entry.form));
+						//System.out.println(" unsupport DW_FORM_? = 0x" + Integer.toHexString(entry.form));
 						return 3;
 					}
 
@@ -1867,7 +1865,7 @@ public class Dwarf {
 					}
 
 					if (DwarfGlobal.debug) {
-						System.out.println();
+						//System.out.println();
 					}
 				}
 				currentDebugInfoEntry.add(debugInfoEntry);
@@ -1929,14 +1927,14 @@ public class Dwarf {
 						addend = debugInfoBytes.getInt();
 					}
 					if (DwarfGlobal.debug) {
-						System.out.printf("%x\t", offset);
-						System.out.printf("%x\t", info);
+						//System.out.printf("%x\t", offset);
+						//System.out.printf("%x\t", info);
 						if (debugInfoRelSection.sh_type == Elf_Common.SHT_RELA) {
-							System.out.printf("%x\t", addend);
+							//System.out.printf("%x\t", addend);
 						}
-						System.out.printf("%s\t", Elf_Common.getRelocationTypeName(relocationType));
-						System.out.printf("%d\t", Elf_Common.ELF32_R_SYM(info));
-						System.out.printf("%08x\t", symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
+						//System.out.printf("%s\t", Elf_Common.getRelocationTypeName(relocationType));
+						//System.out.printf("%d\t", Elf_Common.ELF32_R_SYM(info));
+						//System.out.printf("%08x\t", symbols.get(Elf_Common.ELF32_R_SYM(info)).st_value);
 					}
 
 					// relocation
@@ -1948,13 +1946,13 @@ public class Dwarf {
 						debugInfoBytes.putInt(value);
 						debugInfoBytes.position(temp);
 						if (DwarfGlobal.debug) {
-							System.out.print(",replace offset " + offset + " to " + value + ", addend=" + Integer.toHexString(addend) + ", ");
+							//System.out.print(",replace offset " + offset + " to " + value + ", addend=" + Integer.toHexString(addend) + ", ");
 						}
 					}
 
 					if (DwarfGlobal.debug) {
-						//System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
-						//System.out.printf("\n");
+						////System.out.printf("%s\t", DwarfLib.getString(strtab_str, symbols.get(Elf_Common.ELF32_R_SYM(info)).st_name));
+						////System.out.printf("\n");
 					}
 				}
 			} catch (Exception e) {
@@ -1984,7 +1982,7 @@ public class Dwarf {
 			if (dwarfDebugLineHeader.version >= 4) {
 				dwarfDebugLineHeader.max_ops_per_insn = debugLineBytes.get();
 				if (dwarfDebugLineHeader.max_ops_per_insn == 0) {
-					System.out.println("Invalid maximum operations per insn.");
+					//System.out.println("Invalid maximum operations per insn.");
 					return 5;
 				}
 			} else {
@@ -2005,9 +2003,9 @@ public class Dwarf {
 			}
 
 			if (DwarfGlobal.debug) {
-				System.out.println(dwarfDebugLineHeader);
+				//System.out.println(dwarfDebugLineHeader);
 				for (String dir : dwarfDebugLineHeader.dirnames) {
-					System.out.println(dir);
+					//System.out.println(dir);
 				}
 			}
 
@@ -2035,7 +2033,7 @@ public class Dwarf {
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					System.out.println(u1);
+					//System.out.println(u1);
 				}
 				f.dir = u1;
 				f.time = u2;
@@ -2044,11 +2042,11 @@ public class Dwarf {
 				dwarfDebugLineHeader.filenames.add(f);
 
 				if (DwarfGlobal.debug) {
-					System.out.println(f.dir + "\t" + f.time + "\t" + f.len + "\t" + f.file);
+					//System.out.println(f.dir + "\t" + f.time + "\t" + f.len + "\t" + f.file);
 				}
 			}
 			if (DwarfGlobal.debug) {
-				System.out.println("--" + debugLineBytes.position());
+				//System.out.println("--" + debugLineBytes.position());
 			}
 
 			debugLineBytes.get();
@@ -2065,7 +2063,7 @@ public class Dwarf {
 
 			while (debugLineBytes.hasRemaining() && debugLineBytes.position() < end) {
 				if (DwarfGlobal.debug) {
-					System.out.print("> 0x" + Integer.toHexString(debugLineBytes.position() - 0xf0) + " ");
+					//System.out.print("> 0x" + Integer.toHexString(debugLineBytes.position() - 0xf0) + " ");
 				}
 				int opcode = debugLineBytes.get() & 0xff;
 				if (opcode >= dwarfDebugLineHeader.opcode_base) {
@@ -2075,19 +2073,18 @@ public class Dwarf {
 					int advance_line = ((opcode % dwarfDebugLineHeader.line_range) + dwarfDebugLineHeader.line_base);
 					line_num += advance_line;
 					if (DwarfGlobal.debug) {
-						System.out.println("Special opcode:" + opcode + ",\tadvance address by " + advance_address + " to 0x" + address.toString(16) + ", line by " + advance_line
-								+ " to " + line_num);
+						//System.out.println("Special opcode:" + opcode + ",\tadvance address by " + advance_address + " to 0x" + address.toString(16) + ", line by " + advance_line+ " to " + line_num);
 					}
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_extended_op) {
 					long size = DwarfLib.getULEB128(debugLineBytes);
 					if (size == 0) {
-						System.out.println("Error: DW_LNS_extended_op size=0");
+						//System.out.println("Error: DW_LNS_extended_op size=0");
 						return 11;
 					}
 					int code = debugLineBytes.get();
 					if (code == Dwarf_line_number_x_ops.DW_LNE_end_sequence) {
 						if (DwarfGlobal.debug) {
-							System.out.println("Extended opcode:" + code + " End of sequence");
+							//System.out.println("Extended opcode:" + code + " End of sequence");
 						}
 						address = BigInteger.ZERO;
 						op_index = 0;
@@ -2103,7 +2100,7 @@ public class Dwarf {
 						address = BigInteger.valueOf(debugLineBytes.getInt());
 						op_index = 0;
 						if (DwarfGlobal.debug) {
-							System.out.println("Extended opcode:" + code + ": set Address to 0x" + address.toString(16));
+							//System.out.println("Extended opcode:" + code + ": set Address to 0x" + address.toString(16));
 						}
 						//					continue;
 					} else if (code == Dwarf_line_number_x_ops.DW_LNE_define_file) {
@@ -2113,17 +2110,17 @@ public class Dwarf {
 					} else if (code == Dwarf_line_number_x_ops.DW_LNE_set_discriminator) {
 						int discriminator = debugLineBytes.get();
 						if (DwarfGlobal.debug) {
-							System.out.println("Extended opcode:" + code + ",\tset discriminator=" + discriminator);
+							//System.out.println("Extended opcode:" + code + ",\tset discriminator=" + discriminator);
 						}
 						continue;
 					} else {
 						if (DwarfGlobal.debug) {
-							System.out.println("error, wrong size in address,\topcode=" + opcode + ", code=" + code);
+							//System.out.println("error, wrong size in address,\topcode=" + opcode + ", code=" + code);
 						}
 					}
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_copy) {
 					if (DwarfGlobal.debug) {
-						System.out.println("Copy");
+						//System.out.println("Copy");
 					}
 					is_stmt = false;
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_pc) {
@@ -2138,14 +2135,14 @@ public class Dwarf {
 						op_index = (int) ((op_index + adjust) % dwarfDebugLineHeader.max_ops_per_insn);
 					}
 					if (DwarfGlobal.debug) {
-						System.out.println("advance pc by " + adjust + ", address=" + address.toString(16));
+						//System.out.println("advance pc by " + adjust + ", address=" + address.toString(16));
 					}
 
 					continue;
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_advance_line) {
 					long advance_line = DwarfLib.getSLEB128(debugLineBytes);
 					if (DwarfGlobal.debug) {
-						System.out.println("Advance Line by " + advance_line + " to " + (line_num + advance_line));
+						//System.out.println("Advance Line by " + advance_line + " to " + (line_num + advance_line));
 					}
 					line_num += advance_line;
 					continue;
@@ -2153,32 +2150,32 @@ public class Dwarf {
 					long fileno = DwarfLib.getULEB128(debugLineBytes);
 					file_num = fileno - 1;
 					if (DwarfGlobal.debug) {
-						System.out.println("set file, file=" + file_num);
+						//System.out.println("set file, file=" + file_num);
 					}
 					continue;
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_column) {
 					long colno = DwarfLib.getULEB128(debugLineBytes);
 					column_num = colno;
 					if (DwarfGlobal.debug) {
-						System.out.println("set column, column=" + column_num);
+						//System.out.println("set column, column=" + column_num);
 					}
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_negate_stmt) {
 					is_stmt = !is_stmt;
 					if (DwarfGlobal.debug) {
-						System.out.println("!stmt, stmt=" + is_stmt);
+						//System.out.println("!stmt, stmt=" + is_stmt);
 					}
 					continue;
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_basic_block) {
 					basic_block = true;
 					if (DwarfGlobal.debug) {
-						System.out.println("set basic_block, basic_block=" + basic_block);
+						//System.out.println("set basic_block, basic_block=" + basic_block);
 					}
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_fixed_advance_pc) {
 					int advance_address = debugLineBytes.getInt();
 					address = address.add(BigInteger.valueOf(advance_address));
 					op_index = 0;
 					if (DwarfGlobal.debug) {
-						System.out.println("fixed advance pc, address=" + address.toString(16));
+						//System.out.println("fixed advance pc, address=" + address.toString(16));
 					}
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_const_add_pc) {
 					long advance_address;
@@ -2194,13 +2191,13 @@ public class Dwarf {
 					}
 
 					if (DwarfGlobal.debug) {
-						System.out.println("Advance PC by constant " + advance_address + " to 0x" + address.toString(16));
+						//System.out.println("Advance PC by constant " + advance_address + " to 0x" + address.toString(16));
 					}
 
 					continue;
 				} else {
 					if (DwarfGlobal.debug) {
-						System.out.println("error, what? opcode=" + opcode);
+						//System.out.println("error, what? opcode=" + opcode);
 					}
 					return 14;
 				}
