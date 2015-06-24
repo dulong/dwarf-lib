@@ -7,10 +7,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -336,8 +338,10 @@ public class PeterDwarfPanel extends JPanel {
 									DwarfTreeNode ehFrameSubNode = new DwarfTreeNode(Long.toHexString(ehFrame.pc_begin_real) + " - "
 											+ Long.toHexString(ehFrame.pc_begin_real + ehFrame.pc_range_real), ehFrameTreeNode, ehFrame);
 
-									for (Object key : ehFrame.fieDetails.keySet()) {
-										Object objects[] = ehFrame.fieDetails.get(key);
+									//									for (Object key : ehFrame.fieDetails.keySet()) {
+									for (int x = 0; x < ehFrame.fieDetailsKeys.size(); x++) {
+										String key = ehFrame.fieDetailsKeys.get(x);
+										Object objects[] = ehFrame.fieDetails.get(x);
 										String s = "";
 										for (Object object : objects) {
 											if (!s.equals("")) {
