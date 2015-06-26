@@ -45,7 +45,12 @@ public class DwarfLib {
 							System.out.println(parameter.debugInfoAbbrevEntries.get("DW_AT_name"));
 							System.out.println(parameter.debugInfoAbbrevEntries.get("DW_AT_location").value);
 							String values[] = parameter.debugInfoAbbrevEntries.get("DW_AT_location").value.toString().split(",");
-							System.out.println(Definition.getOPName(CommonLib.string2int(values[0])));
+							String registerName = Definition.getOPName(CommonLib.string2int(values[0]));
+							if (registerName.equals("DW_OP_fbreg")) {
+
+							} else {
+								System.exit(500);
+							}
 						}
 
 						return;
