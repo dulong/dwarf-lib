@@ -52,6 +52,7 @@ public class DwarfLib {
 							if (registerName.equals("DW_OP_fbreg")) {
 								System.out.println(name + ", " + (cfsBaseOffset + offset));
 							} else {
+								System.out.println("register name \"" + registerName + "\" is not supported yet");
 								System.exit(500);
 							}
 						}
