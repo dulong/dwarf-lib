@@ -64,8 +64,8 @@ public class DwarfLib {
 		}
 	}
 
-	public Hashtable<String, Parameter> getParameters(long address) {
-		Hashtable<String, Parameter> ht = new Hashtable<String, Parameter>();
+	public Hashtable<String, DwarfParameter> getParameters(long address) {
+		Hashtable<String, DwarfParameter> ht = new Hashtable<String, DwarfParameter>();
 		final Vector<Dwarf> dwarfVector = DwarfLib.init(new File("../PeterI/kernel/kernel"), 0);
 		Dwarf dwarf = dwarfVector.get(0);
 		for (CompileUnit cu : dwarf.compileUnits) {
@@ -98,7 +98,7 @@ public class DwarfLib {
 							} else {
 								System.exit(500);
 							}
-							ht.put(name, new Parameter(name, registerName, offset));
+							ht.put(name, new DwarfParameter(name, registerName, offset));
 						}
 
 						return ht;
