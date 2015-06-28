@@ -64,49 +64,53 @@ public class DwarfLib {
 		}
 	}
 
-	public Hashtable<String, DwarfParameter> getParameters(long address) {
+	public static Hashtable<String, DwarfParameter> getParameters(Vector<Dwarf> dwarfVector, long address) {
 		Hashtable<String, DwarfParameter> ht = new Hashtable<String, DwarfParameter>();
-		final Vector<Dwarf> dwarfVector = DwarfLib.init(new File("../PeterI/kernel/kernel"), 0);
-		Dwarf dwarf = dwarfVector.get(0);
-		for (CompileUnit cu : dwarf.compileUnits) {
-			if (cu.DW_AT_low_pc <= address && address <= (cu.DW_AT_low_pc + cu.DW_AT_high_pc - 1)) {
-				Vector<DebugInfoEntry> subprogramDebugInfoEntries = cu.getDebugInfoEntryByName("DW_TAG_subprogram");
-				for (DebugInfoEntry subprogramDebugInfoEntry : subprogramDebugInfoEntries) {
-					long subProgramAddress = (long) subprogramDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_low_pc").value;
-					if (address == subProgramAddress) {
-						//CIE
-						long cfsBaseOffset = -1;
-						for (int x = 0; x < dwarf.ehFrames.get(0).fieDetailsKeys.size(); x++) {
-							if (dwarf.ehFrames.get(0).fieDetailsKeys.get(x).equals("DW_CFA_def_cfa")) {
-								cfsBaseOffset = (long) dwarf.ehFrames.get(0).fieDetails.get(x)[2];
-								break;
+		//		final Vector<Dwarf> dwarfVector = DwarfLib.init(new File("../PeterI/kernel/kernel"), 0);
+		for (Dwarf dwarf : dwarfVector) {
+			for (CompileUnit cu : dwarf.compileUnits) {
+				if (cu.DW_AT_low_pc <= address && address <= (cu.DW_AT_low_pc + cu.DW_AT_high_pc - 1)) {
+					Vector<DebugInfoEntry> subprogramDebugInfoEntries = cu.getDebugInfoEntryByName("DW_TAG_subprogram");
+					for (DebugInfoEntry subprogramDebugInfoEntry : subprogramDebugInfoEntries) {
+						long subProgramAddress = (long) subprogramDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_low_pc").value;
+						if (address == subProgramAddress) {
+							//CIE
+							long cfsBaseOffset = -1;
+							for (int x = 0; x < dwarf.ehFrames.get(0).fieDetailsKeys.size(); x++) {
+								if (dwarf.ehFrames.get(0).fieDetailsKeys.get(x).equals("DW_CFA_def_cfa")) {
+									cfsBaseOffset = (long) dwarf.ehFrames.get(0).fieDetails.get(x)[2];
+									break;
+								}
 							}
-						}
-						System.out.println("cfsBaseOffset=" + cfsBaseOffset);
-						//CIE end
+							System.out.println("cfsBaseOffset=" + cfsBaseOffset);
+							//CIE end
 
-						Vector<DebugInfoEntry> parameters = subprogramDebugInfoEntry.getDebugInfoEntryByName("DW_TAG_formal_parameter");
-						for (DebugInfoEntry parameter : parameters) {
-							//							System.out.println(parameter.debugInfoAbbrevEntries.get("DW_AT_name"));
-							//							System.out.println(parameter.debugInfoAbbrevEntries.get("DW_AT_location").value);
-							String name = (String) parameter.debugInfoAbbrevEntries.get("DW_AT_name").value;
-							String values[] = parameter.debugInfoAbbrevEntries.get("DW_AT_location").value.toString().split(",");
-							String registerName = Definition.getOPName(CommonLib.string2int(values[0]));
-							int offset = Integer.parseInt(values[1]);
-							if (registerName.equals("DW_OP_fbreg")) {
-								System.out.println(name + ", " + (cfsBaseOffset + offset));
-							} else {
-								System.exit(500);
+							Vector<DebugInfoEntry> parameters = subprogramDebugInfoEntry.getDebugInfoEntryByName("DW_TAG_formal_parameter");
+							for (DebugInfoEntry parameterDebugInfoEntry : parameters) {
+								//							System.out.println(parameter.debugInfoAbbrevEntries.get("DW_AT_name"));
+								//							System.out.println(parameter.debugInfoAbbrevEntries.get("DW_AT_location").value);
+								String name = (String) parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value;
+								String values[] = parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_location").value.toString().split(",");
+								String registerName = Definition.getOPName(CommonLib.string2int(values[0]));
+								long offset = Long.parseLong(values[1]);
+								if (registerName.equals("DW_OP_fbreg")) {
+									System.out.println(name + ", " + (cfsBaseOffset + offset));
+									offset = cfsBaseOffset + offset;
+								} else {
+									System.exit(500);
+								}
+								ht.put(name,
+										new DwarfParameter(name, registerName, DwarfLib.getParameterType(cu,
+												CommonLib.string2int("0x" + parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_type").value)), offset));
 							}
-							ht.put(name, new DwarfParameter(name, registerName, offset));
-						}
 
-						return ht;
+							return ht;
+						}
 					}
 				}
 			}
 		}
-		return ht;
+		return null;
 	}
 
 	public static Vector<Dwarf> init(File file, long memoryOffset) {
@@ -362,7 +366,7 @@ public class DwarfLib {
 		for (Dwarf dwarf : dwarfVector) {
 			for (CompileUnit compileUnit : dwarf.compileUnits) {
 				for (DebugInfoEntry debugInfoEntry : compileUnit.debugInfoEntries) {
-					DebugInfoEntry result = searchDubProgram(debugInfoEntry, address);
+					DebugInfoEntry result = searchSubProgram(debugInfoEntry, address);
 					if (result != null) {
 						return result;
 					}
@@ -372,7 +376,7 @@ public class DwarfLib {
 		return null;
 	}
 
-	private static DebugInfoEntry searchDubProgram(DebugInfoEntry debugInfoEntry, long address) {
+	private static DebugInfoEntry searchSubProgram(DebugInfoEntry debugInfoEntry, long address) {
 		if (debugInfoEntry.name.equals("DW_TAG_subprogram")) {
 			if (debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_low_pc") != null && (long) debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_low_pc").value == address) {
 				return debugInfoEntry;
@@ -380,7 +384,7 @@ public class DwarfLib {
 		}
 
 		for (DebugInfoEntry d : debugInfoEntry.debugInfoEntries) {
-			DebugInfoEntry result = searchDubProgram(d, address);
+			DebugInfoEntry result = searchSubProgram(d, address);
 			if (result != null) {
 				return result;
 			}
