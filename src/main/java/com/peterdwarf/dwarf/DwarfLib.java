@@ -72,6 +72,9 @@ public class DwarfLib {
 				if (cu.DW_AT_low_pc <= address && address <= (cu.DW_AT_low_pc + cu.DW_AT_high_pc - 1)) {
 					Vector<DebugInfoEntry> subprogramDebugInfoEntries = cu.getDebugInfoEntryByName("DW_TAG_subprogram");
 					for (DebugInfoEntry subprogramDebugInfoEntry : subprogramDebugInfoEntries) {
+						if (subprogramDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_low_pc") == null) {
+							continue;
+						}
 						long subProgramAddress = (long) subprogramDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_low_pc").value;
 						if (address == subProgramAddress) {
 							//CIE
@@ -92,7 +95,13 @@ public class DwarfLib {
 								String name = (String) parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value;
 								String values[] = parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_location").value.toString().split(",");
 								String registerName = Definition.getOPName(CommonLib.string2int(values[0]));
-								long offset = Long.parseLong(values[1]);
+								long offset = 0;
+								if (values.length == 1) {
+									System.out.println(parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value);
+									System.out.println(parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_location").value);
+								} else {
+									offset = Long.parseLong(values[1]);
+								}
 								if (registerName.equals("DW_OP_fbreg")) {
 									System.out.println(name + ", " + (cfsBaseOffset + offset));
 									offset = cfsBaseOffset + offset;

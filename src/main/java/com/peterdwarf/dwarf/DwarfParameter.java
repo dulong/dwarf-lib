@@ -14,4 +14,8 @@ public class DwarfParameter {
 		this.offset = offset;
 	}
 
+	public String toString() {
+		return "name= " + name + ", registerName=" + registerName + ", type=" + type + ", offset=" + offset;
+	}
+
 }
