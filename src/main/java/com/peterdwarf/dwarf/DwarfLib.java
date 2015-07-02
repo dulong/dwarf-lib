@@ -67,6 +67,7 @@ public class DwarfLib {
 	public static Hashtable<String, DwarfParameter> getParameters(Vector<Dwarf> dwarfVector, long address) {
 		Hashtable<String, DwarfParameter> ht = new Hashtable<String, DwarfParameter>();
 		//		final Vector<Dwarf> dwarfVector = DwarfLib.init(new File("../PeterI/kernel/kernel"), 0);
+		System.out.println("=========== " + Long.toHexString(address));
 		for (Dwarf dwarf : dwarfVector) {
 			for (CompileUnit cu : dwarf.compileUnits) {
 				if (cu.DW_AT_low_pc <= address && address <= (cu.DW_AT_low_pc + cu.DW_AT_high_pc - 1)) {
@@ -85,7 +86,6 @@ public class DwarfLib {
 									break;
 								}
 							}
-							System.out.println("cfsBaseOffset=" + cfsBaseOffset);
 							//CIE end
 
 							Vector<DebugInfoEntry> parameters = subprogramDebugInfoEntry.getDebugInfoEntryByName("DW_TAG_formal_parameter");
@@ -95,11 +95,12 @@ public class DwarfLib {
 								String name = (String) parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value;
 								String values[] = parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_location").value.toString().split(",");
 								String registerName = Definition.getOPName(CommonLib.string2int(values[0]));
+
+								System.out.println(parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value);
+								System.out.println(parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_location").value);
+								System.out.println("values[0]=" + values[0]);
 								long offset = 0;
-								if (values.length == 1) {
-									System.out.println(parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value);
-									System.out.println(parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_location").value);
-								} else {
+								if (values.length > 1) {
 									offset = Long.parseLong(values[1]);
 								}
 								if (registerName.equals("DW_OP_fbreg")) {
@@ -111,6 +112,7 @@ public class DwarfLib {
 								ht.put(name,
 										new DwarfParameter(name, registerName, DwarfLib.getParameterType(cu,
 												CommonLib.string2int("0x" + parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_type").value)), offset));
+								System.out.println("------------------------");
 							}
 
 							return ht;
