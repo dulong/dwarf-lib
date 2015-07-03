@@ -101,10 +101,10 @@ public class Dwarf {
 				byte[] block = new byte[blockSize];
 				debug_loc.get(block);
 
-				if (DwarfGlobal.debug) {
+				//if (DwarfGlobal.debug) {
 					//System.out.println("---------------------------");
 					//System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block) + " , "+ Definition.getOPName(0xff & block[0]));
-				}
+				//}
 
 				DebugLocEntry debugLocEntry = new DebugLocEntry();
 				debugLocEntry.start = start;

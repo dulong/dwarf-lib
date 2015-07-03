@@ -7,12 +7,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,6 +31,7 @@ import com.peterdwarf.dwarf.AbbrevEntry;
 import com.peterdwarf.dwarf.CompileUnit;
 import com.peterdwarf.dwarf.DebugInfoAbbrevEntry;
 import com.peterdwarf.dwarf.DebugInfoEntry;
+import com.peterdwarf.dwarf.DebugLocEntry;
 import com.peterdwarf.dwarf.Definition;
 import com.peterdwarf.dwarf.Dwarf;
 import com.peterdwarf.dwarf.DwarfDebugLineHeader;
@@ -338,7 +337,8 @@ public class PeterDwarfPanel extends JPanel {
 									DwarfTreeNode ehFrameSubNode = new DwarfTreeNode(Long.toHexString(ehFrame.pc_begin_real) + " - "
 											+ Long.toHexString(ehFrame.pc_begin_real + ehFrame.pc_range_real), ehFrameTreeNode, ehFrame);
 
-									//									for (Object key : ehFrame.fieDetails.keySet()) {
+									// for (Object key :
+									// ehFrame.fieDetails.keySet()) {
 									for (int x = 0; x < ehFrame.fieDetailsKeys.size(); x++) {
 										String key = ehFrame.fieDetailsKeys.get(x);
 										Object objects[] = ehFrame.fieDetails.get(x);
@@ -381,11 +381,17 @@ public class PeterDwarfPanel extends JPanel {
 									ehFrameCieSubNode = new DwarfTreeNode("Augmentation data : " + augmentationDataStr, ehFrameSubNode, ehFrame);
 									ehFrameSubNode.children.add(ehFrameCieSubNode);
 
-									//									ehFrameFieSubNode = new DwarfTreeNode("DW_CFA_def_cfa : " + ehFrame.cfa_reg, ehFrameSubNode, ehFrame);
-									//									ehFrameSubNode.children.add(ehFrameFieSubNode);
+									// ehFrameFieSubNode = new
+									// DwarfTreeNode("DW_CFA_def_cfa : " +
+									// ehFrame.cfa_reg, ehFrameSubNode,
+									// ehFrame);
+									// ehFrameSubNode.children.add(ehFrameFieSubNode);
 									//
-									//									ehFrameFieSubNode = new DwarfTreeNode("DW_CFA_def_cfa : " + ehFrame.cfa_offset, ehFrameSubNode, ehFrame);
-									//									ehFrameSubNode.children.add(ehFrameFieSubNode);
+									// ehFrameFieSubNode = new
+									// DwarfTreeNode("DW_CFA_def_cfa : " +
+									// ehFrame.cfa_offset, ehFrameSubNode,
+									// ehFrame);
+									// ehFrameSubNode.children.add(ehFrameFieSubNode);
 
 									ehFrameTreeNode.children.add(ehFrameSubNode);
 								}
@@ -408,6 +414,36 @@ public class PeterDwarfPanel extends JPanel {
 						}
 					});
 					// end init .eh_frame
+
+					// init .debug_loc
+					final DwarfTreeNode debugLocTreeNode = new DwarfTreeNode(".debug_loc", node, null);
+					node.children.add(debugLocTreeNode);
+
+					pool = Executors.newFixedThreadPool(maxPoolSize);
+					for (final DebugLocEntry debugLocEntry : dwarf.debugLocEntries) {
+						pool.execute(new Runnable() {
+							public void run() {
+								if (showDialog) {
+									dialog.progressBar.setString("Loading .debug_loc : " + debugLocEntry);
+								}
+
+								DwarfTreeNode debugLocChildNode = new DwarfTreeNode(debugLocEntry.toString(), debugLocTreeNode, debugLocEntry);
+								debugLocTreeNode.children.add(debugLocChildNode);
+							}
+						});
+					}
+
+					waitPoolFinish();
+
+//					Collections.sort(debugLocTreeNode.children, new Comparator<DwarfTreeNode>() {
+//						@Override
+//						public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
+//							DebugLocEntry debugLocEntry1 = (DebugLocEntry) o1.object;
+//							DebugLocEntry debugLocEntry2 = (DebugLocEntry) o2.object;
+//							return Long.valueOf(debugLocEntry1.start).compareTo(Long.valueOf(debugLocEntry2.start));
+//						}
+//					});
+					// end init .debug_loc
 				}
 
 				expandFirstLevel();
