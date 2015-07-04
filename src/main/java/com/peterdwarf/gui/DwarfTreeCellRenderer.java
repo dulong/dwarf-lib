@@ -8,6 +8,8 @@ import javax.swing.UIManager;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 
+import com.peterswing.FilterTreeModel;
+
 public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 	JTree tree;
 	Thread animationThread;
@@ -35,7 +37,9 @@ public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 				setToolTipText(node.tooltip);
 			}
 			if (node.getText() != null) {
-				setText(node.getText());
+				//				setText(node.getText());
+				FilterTreeModel filterTreeModel = (FilterTreeModel) tree.getModel();
+				setText("<html>" + node.getText().replaceAll("(.*)" + filterTreeModel.filter + "(.*)", "$1<font color=red>" + filterTreeModel.filter + "</font>$2") + "<html>");
 			} else if (node.dwarf != null) {
 				if (node.dwarf.realFilename != null) {
 					setText(node.dwarf.realFilename);
@@ -43,7 +47,6 @@ public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 					setText(node.dwarf.file.getName());
 				}
 			}
-
 		}
 		if (selected) {
 			setForeground(UIManager.getColor("Tree.selectionForeground"));
