@@ -435,14 +435,14 @@ public class PeterDwarfPanel extends JPanel {
 
 					waitPoolFinish();
 
-//					Collections.sort(debugLocTreeNode.children, new Comparator<DwarfTreeNode>() {
-//						@Override
-//						public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
-//							DebugLocEntry debugLocEntry1 = (DebugLocEntry) o1.object;
-//							DebugLocEntry debugLocEntry2 = (DebugLocEntry) o2.object;
-//							return Long.valueOf(debugLocEntry1.start).compareTo(Long.valueOf(debugLocEntry2.start));
-//						}
-//					});
+					Collections.sort(debugLocTreeNode.children, new Comparator<DwarfTreeNode>() {
+						@Override
+						public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
+							DebugLocEntry debugLocEntry1 = (DebugLocEntry) o1.object;
+							DebugLocEntry debugLocEntry2 = (DebugLocEntry) o2.object;
+							return Integer.valueOf(debugLocEntry1.offset).compareTo(Integer.valueOf(debugLocEntry2.offset));
+						}
+					});
 					// end init .debug_loc
 				}
 
