@@ -87,655 +87,6 @@ public class Dwarf {
 		compileUnits.clear();
 
 		try {
-			debug_loc = SectionFinder.findSectionByte(ehdr, file, ".debug_loc");
-			while (debug_loc != null && debug_loc.hasRemaining()) {
-				int start = debug_loc.getInt();
-				int end = debug_loc.getInt();
-				if (start == 0 && end == 0) {
-					continue;
-				}
-				int blockSize = debug_loc.getShort();
-				if (blockSize < 0) {
-					break;
-				}
-				byte[] block = new byte[blockSize];
-				debug_loc.get(block);
-
-				//if (DwarfGlobal.debug) {
-					//System.out.println("---------------------------");
-					//System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block) + " , "+ Definition.getOPName(0xff & block[0]));
-				//}
-
-				DebugLocEntry debugLocEntry = new DebugLocEntry();
-				debugLocEntry.start = start;
-				debugLocEntry.end = debugLocEntry.end;
-				debugLocEntry.blockSize = blockSize;
-				debugLocEntry.blocks = block;
-				debugLocEntry.name = Definition.getOPName(0xff & block[0]);
-
-				int offset = 0;
-				int loc_len = debugLocEntry.blockSize;
-				while (offset < loc_len) {
-					debugLocEntry.op_count = 0;
-					while (offset < loc_len) {
-						long operand1 = 0;
-						long operand2 = 0;
-						int atom = 0;
-
-						debugLocEntry.op_count++;
-						atom = debugLocEntry.blocks[offset] & 0xff;
-						offset++;
-						if (DwarfGlobal.debug) {
-							//System.out.println(Definition.getOPName(atom));
-						}
-						switch (atom) {
-						case Definition.DW_OP_reg0:
-						case Definition.DW_OP_reg1:
-						case Definition.DW_OP_reg2:
-						case Definition.DW_OP_reg3:
-						case Definition.DW_OP_reg4:
-						case Definition.DW_OP_reg5:
-						case Definition.DW_OP_reg6:
-						case Definition.DW_OP_reg7:
-						case Definition.DW_OP_reg8:
-						case Definition.DW_OP_reg9:
-						case Definition.DW_OP_reg10:
-						case Definition.DW_OP_reg11:
-						case Definition.DW_OP_reg12:
-						case Definition.DW_OP_reg13:
-						case Definition.DW_OP_reg14:
-						case Definition.DW_OP_reg15:
-						case Definition.DW_OP_reg16:
-						case Definition.DW_OP_reg17:
-						case Definition.DW_OP_reg18:
-						case Definition.DW_OP_reg19:
-						case Definition.DW_OP_reg20:
-						case Definition.DW_OP_reg21:
-						case Definition.DW_OP_reg22:
-						case Definition.DW_OP_reg23:
-						case Definition.DW_OP_reg24:
-						case Definition.DW_OP_reg25:
-						case Definition.DW_OP_reg26:
-						case Definition.DW_OP_reg27:
-						case Definition.DW_OP_reg28:
-						case Definition.DW_OP_reg29:
-						case Definition.DW_OP_reg30:
-						case Definition.DW_OP_reg31:
-							break;
-
-						case Definition.DW_OP_regx:
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//							operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							//							loc_ptr = loc_ptr + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-
-						case Definition.DW_OP_lit0:
-						case Definition.DW_OP_lit1:
-						case Definition.DW_OP_lit2:
-						case Definition.DW_OP_lit3:
-						case Definition.DW_OP_lit4:
-						case Definition.DW_OP_lit5:
-						case Definition.DW_OP_lit6:
-						case Definition.DW_OP_lit7:
-						case Definition.DW_OP_lit8:
-						case Definition.DW_OP_lit9:
-						case Definition.DW_OP_lit10:
-						case Definition.DW_OP_lit11:
-						case Definition.DW_OP_lit12:
-						case Definition.DW_OP_lit13:
-						case Definition.DW_OP_lit14:
-						case Definition.DW_OP_lit15:
-						case Definition.DW_OP_lit16:
-						case Definition.DW_OP_lit17:
-						case Definition.DW_OP_lit18:
-						case Definition.DW_OP_lit19:
-						case Definition.DW_OP_lit20:
-						case Definition.DW_OP_lit21:
-						case Definition.DW_OP_lit22:
-						case Definition.DW_OP_lit23:
-						case Definition.DW_OP_lit24:
-						case Definition.DW_OP_lit25:
-						case Definition.DW_OP_lit26:
-						case Definition.DW_OP_lit27:
-						case Definition.DW_OP_lit28:
-						case Definition.DW_OP_lit29:
-						case Definition.DW_OP_lit30:
-						case Definition.DW_OP_lit31:
-							operand1 = atom - Definition.DW_OP_lit0;
-							break;
-
-						case Definition.DW_OP_addr:
-							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, addressSize);
-							if (addressSize == 4) {
-								operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
-							} else {
-								operand1 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							}
-							//							loc_ptr += addressSize;
-							offset += addressSize;
-							break;
-
-						case Definition.DW_OP_const1u:
-							operand1 = 0xff & debugLocEntry.blocks[offset];
-							offset = offset + 1;
-							break;
-
-						case Definition.DW_OP_const1s:
-							operand1 = debugLocEntry.blocks[offset];
-							//SIGN_EXTEND(operand1, 1);
-							offset = offset + 1;
-							break;
-
-						case Definition.DW_OP_const2u:
-							//							READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 2);
-							operand1 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							//							loc_ptr = loc_ptr + 2;
-							offset = offset + 2;
-							break;
-
-						case Definition.DW_OP_const2s:
-							//							READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 2);
-							operand1 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							//SIGN_EXTEND(operand1, 2);
-							//loc_ptr = loc_ptr + 2;
-							offset = offset + 2;
-							break;
-
-						case Definition.DW_OP_const4u:
-							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 4);
-							operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
-							//loc_ptr = loc_ptr + 4;
-							offset = offset + 4;
-							break;
-
-						case Definition.DW_OP_const4s:
-							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 4);
-							operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
-							//SIGN_EXTEND(operand1, 4);
-							//loc_ptr = loc_ptr + 4;
-							offset = offset + 4;
-							break;
-
-						case Definition.DW_OP_const8u:
-							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 8);
-							operand1 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							//loc_ptr = loc_ptr + 8;
-							offset = offset + 8;
-							break;
-
-						case Definition.DW_OP_const8s:
-							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 8);
-							operand1 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							//loc_ptr = loc_ptr + 8;
-							offset = offset + 8;
-							break;
-
-						case Definition.DW_OP_constu:
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-
-						case Definition.DW_OP_consts:
-							//operand1 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getSLEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-
-						case Definition.DW_OP_fbreg:
-							//operand1 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getSLEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-						case Definition.DW_OP_breg0:
-						case Definition.DW_OP_breg1:
-						case Definition.DW_OP_breg2:
-						case Definition.DW_OP_breg3:
-						case Definition.DW_OP_breg4:
-						case Definition.DW_OP_breg5:
-						case Definition.DW_OP_breg6:
-						case Definition.DW_OP_breg7:
-						case Definition.DW_OP_breg8:
-						case Definition.DW_OP_breg9:
-						case Definition.DW_OP_breg10:
-						case Definition.DW_OP_breg11:
-						case Definition.DW_OP_breg12:
-						case Definition.DW_OP_breg13:
-						case Definition.DW_OP_breg14:
-						case Definition.DW_OP_breg15:
-						case Definition.DW_OP_breg16:
-						case Definition.DW_OP_breg17:
-						case Definition.DW_OP_breg18:
-						case Definition.DW_OP_breg19:
-						case Definition.DW_OP_breg20:
-						case Definition.DW_OP_breg21:
-						case Definition.DW_OP_breg22:
-						case Definition.DW_OP_breg23:
-						case Definition.DW_OP_breg24:
-						case Definition.DW_OP_breg25:
-						case Definition.DW_OP_breg26:
-						case Definition.DW_OP_breg27:
-						case Definition.DW_OP_breg28:
-						case Definition.DW_OP_breg29:
-						case Definition.DW_OP_breg30:
-						case Definition.DW_OP_breg31:
-							//operand1 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getSLEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-
-						case Definition.DW_OP_bregx:
-							/* uleb reg num followed by sleb offset */
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-
-							//operand2 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
-							operand2 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getSLEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-
-						case Definition.DW_OP_dup:
-						case Definition.DW_OP_drop:
-							break;
-
-						case Definition.DW_OP_pick:
-							//operand1 = *(Dwarf_Small *) loc_ptr;
-							operand1 = debugLocEntry.blocks[offset];
-							//loc_ptr = loc_ptr + 1;
-							offset = offset + 1;
-							break;
-
-						case Definition.DW_OP_over:
-						case Definition.DW_OP_swap:
-						case Definition.DW_OP_rot:
-						case Definition.DW_OP_deref:
-							break;
-
-						case Definition.DW_OP_deref_size:
-							//operand1 = *(Dwarf_Small *) loc_ptr;
-							operand1 = debugLocEntry.blocks[offset];
-							//loc_ptr = loc_ptr + 1;
-							offset = offset + 1;
-							break;
-
-						case Definition.DW_OP_xderef:
-							break;
-
-						case Definition.DW_OP_xderef_size:
-							//operand1 = *(Dwarf_Small *) loc_ptr;
-							operand1 = debugLocEntry.blocks[offset];
-							//loc_ptr = loc_ptr + 1;
-							offset = offset + 1;
-							break;
-
-						case Definition.DW_OP_abs:
-						case Definition.DW_OP_and:
-						case Definition.DW_OP_div:
-						case Definition.DW_OP_minus:
-						case Definition.DW_OP_mod:
-						case Definition.DW_OP_mul:
-						case Definition.DW_OP_neg:
-						case Definition.DW_OP_not:
-						case Definition.DW_OP_or:
-						case Definition.DW_OP_plus:
-							break;
-
-						case Definition.DW_OP_plus_uconst:
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-
-						case Definition.DW_OP_shl:
-						case Definition.DW_OP_shr:
-						case Definition.DW_OP_shra:
-						case Definition.DW_OP_xor:
-							break;
-
-						case Definition.DW_OP_le:
-						case Definition.DW_OP_ge:
-						case Definition.DW_OP_eq:
-						case Definition.DW_OP_lt:
-						case Definition.DW_OP_gt:
-						case Definition.DW_OP_ne:
-							break;
-
-						case Definition.DW_OP_skip:
-						case Definition.DW_OP_bra:
-							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 2);
-							operand1 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							//loc_ptr = loc_ptr + 2;
-							offset = offset + 2;
-							break;
-
-						case Definition.DW_OP_piece:
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-
-						case Definition.DW_OP_nop:
-							break;
-						case Definition.DW_OP_push_object_address: /* DWARF3 */
-							break;
-						case Definition.DW_OP_call2: /* DWARF3 */
-							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 2);
-							operand1 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							//loc_ptr = loc_ptr + 2;
-							offset = offset + 2;
-							break;
-
-						case Definition.DW_OP_call4: /* DWARF3 */
-							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 4);
-							operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
-							//loc_ptr = loc_ptr + 4;
-							offset = offset + 4;
-							break;
-						case Definition.DW_OP_call_ref: /* DWARF3 */
-							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, offset_size);
-							if (offset_size == 4) {
-								operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
-							} else if (offset_size == 8) {
-								operand1 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							}
-							//loc_ptr = loc_ptr + offset_size;
-							offset = offset + offset_size;
-							break;
-
-						case Definition.DW_OP_form_tls_address: /* DWARF3f */
-							break;
-						case Definition.DW_OP_call_frame_cfa: /* DWARF3f */
-							break;
-						case Definition.DW_OP_bit_piece: /* DWARF3f */
-							/* uleb size in bits followed by uleb offset in bits */
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-
-							//operand2 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand2 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-
-						/*  The operator means: push the currently computed
-						 (by the operations encountered so far in this
-						 expression) onto the expression stack as the offset
-						 in thread-local-storage of the variable. */
-						case Definition.DW_OP_GNU_push_tls_address: /* 0xe0  */
-							/* Believed to have no operands. */
-							/* Unimplemented in gdb 7.5.1 ? */
-							break;
-						case Definition.DW_OP_GNU_deref_type: /* 0xf6 */
-							/* die offset (uleb128). */
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-
-						case Definition.DW_OP_implicit_value: /* DWARF4 0xa0 */
-							/*  uleb length of value bytes followed by that
-							 number of bytes of the value. */
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-
-							/*  Second operand is block of 'operand1' bytes of stuff. */
-							/*  This using the second operand as a pointer
-							 is quite ugly. */
-							/*  This gets an ugly compiler warning. Sorry. */
-							//operand2 = (Dwarf_Unsigned) loc_ptr;
-							operand2 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							offset = (int) (offset + operand1);
-							//loc_ptr = loc_ptr + operand1;
-							break;
-						case Definition.DW_OP_stack_value: /* DWARF4 */
-							break;
-						case Definition.DW_OP_GNU_uninit: /* 0xf0 */
-							/* Unimplemented in gdb 7.5.1  */
-							/*  Carolyn Tice: Follws a DW_OP_reg or DW_OP_regx
-							 and marks the reg as being uninitialized. */
-							break;
-						case Definition.DW_OP_GNU_encoded_addr: { /*  0xf1 */
-							/*  Richard Henderson: The operand is an absolute
-							 address.  The first byte of the value
-							 is an encoding length: 0 2 4 or 8.  If zero
-							 it means the following is address-size.
-							 The address then follows immediately for
-							 that number of bytes. */
-							int length = 0;
-							//int reares = read_encoded_addr(loc_ptr, dbg, &operand1, &length, error);
-							int reares;
-							switch (addressSize) {
-							case 1:
-								operand1 = debugLocEntry.blocks[offset];
-								offset += length;
-								break;
-
-							case 2:
-								//								READ_UNALIGNED(dbg, operand, Dwarf_Unsigned, loc_ptr, 2);
-								//								*val_out = operand;
-								//								len += 2;
-								operand1 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-								offset = offset + 2;
-								break;
-							case 4:
-								//READ_UNALIGNED(dbg, operand, Dwarf_Unsigned, loc_ptr, 4);
-								//*val_out = operand;
-								//len += 4;
-								operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
-								offset = offset + 4;
-								break;
-							case 8:
-								//READ_UNALIGNED(dbg, operand, Dwarf_Unsigned, loc_ptr, 8);
-								//*val_out = operand;
-								//len += 8;
-								operand1 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-								offset = offset + 8;
-								break;
-							default:
-								/* We do not know how much to read. */
-								//_dwarf_error(dbg, error, DW_DLE_GNU_OPCODE_ERROR);
-								return Definition.DW_DLV_ERROR;
-							}
-							;
-
-							//							if (reares != Definition.DW_DLV_OK) {
-							//								/*  Oops. The caller will notice and
-							//								 will issue DW_DLV_ERROR. */
-							//								return Definition.DW_DLV_OK;
-							//							}
-							//							loc_ptr += length;
-							//							offset += length;
-						}
-							break;
-						case Definition.DW_OP_implicit_pointer: /* DWARF5 */
-						case Definition.DW_OP_GNU_implicit_pointer: { /* 0xf2 */
-							/*  Jakub Jelinek: The value is an optimized-out
-							 pointer value. Represented as
-							 an offset_size DIE offset
-							 (a simple unsigned integer) in DWARF3,4
-							 followed by a signed leb128 offset.
-							 For DWARF2, it is actually pointer size
-							 (address size).
-							 http://www.dwarfstd.org/ShowIssue.php?issue=100831.1 */
-							//Dwarf_Small iplen = offset_size;
-							//if (version_stamp == CURRENT_VERSION_STAMP /* 2 */) {
-							//	iplen = addressSize;
-							//}
-							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, iplen);
-							//loc_ptr = loc_ptr + iplen;
-
-							if (addressSize == 4) {
-								operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
-								offset = offset + 4;
-							} else if (addressSize == 8) {
-								operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
-								offset = offset + 8;
-							}
-
-							//offset = offset + iplen;
-
-							//operand2 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-
-							operand2 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							offset = offset + DwarfLib.getSLEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-						}
-
-							break;
-						case Definition.DW_OP_GNU_entry_value: /* 0xf3 */
-							/*  Jakub Jelinek: A register reused really soon,
-							 but the value is unchanged.  So to represent
-							 that value we have a uleb128 size followed
-							 by a DWARF expression block that size.
-							 http://www.dwarfstd.org/ShowIssue.php?issue=100909.1 */
-
-							/*  uleb length of value bytes followed by that
-							 number of bytes of the value. */
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							operand2 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-
-							/*  Second operand is block of 'operand1' bytes of stuff. */
-							/*  This using the second operand as a pointer
-							 is quite ugly. */
-							/*  This gets an ugly compiler warning. Sorry. */
-							//operand2 = (Dwarf_Unsigned) loc_ptr;
-
-							int size = debugLocEntry.blocks.length - offset;
-							if (size == 2) {
-								operand2 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							} else if (size == 4) {
-								operand2 = CommonLib.getInt(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							} else {
-								operand2 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							}
-							offset = offset + 8;
-
-							//offset = offset + operand1;
-							//loc_ptr = loc_ptr + operand1;
-							break;
-						case Definition.DW_OP_GNU_const_type: /* 0xf4 */
-						{
-							int blocklen = 0;
-							/* die offset as uleb. */
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-
-							/*  Next byte is size of data block.
-							 We pass the length and block via a a pointer
-							 to the length byte. */
-							//operand2 = (Dwarf_Unsigned) loc_ptr;
-							operand2 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-
-							//blocklen = *(Dwarf_Small *) loc_ptr;
-							blocklen = debugLocEntry.blocks[offset];
-
-							//loc_ptr = loc_ptr + 1;
-							offset = offset + 1;
-							/* Following that is data block of bytes. */
-							offset = offset + blocklen;
-							//loc_ptr = loc_ptr + blocklen;
-						}
-							break;
-						case Definition.DW_OP_GNU_regval_type: /* 0xf5 */
-							/* reg num uleb*/
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							/* cu die off uleb*/
-							//operand2 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-
-							break;
-						case Definition.DW_OP_GNU_convert: /* 0xf7 */
-						case Definition.DW_OP_GNU_reinterpret: /* 0xf9 */
-							/* die offset  or zero */
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-						case Definition.DW_OP_GNU_parameter_ref: /* 0xfa */
-							/* 4 byte unsigned int */
-							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 4);
-							operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
-							//loc_ptr = loc_ptr + 4;
-							offset = offset + 4;
-							break;
-						case Definition.DW_OP_addrx: /* DWARF5 */
-						case Definition.DW_OP_GNU_addr_index: /* 0xfb DebugFission */
-							/*  Index into .debug_addr. The value in .debug_addr
-							 is an address. */
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-						case Definition.DW_OP_constx: /* DWARF5 */
-						case Definition.DW_OP_GNU_const_index: /* 0xfc DebugFission */
-							/*  Index into .debug_addr. The value in .debug_addr
-							 is a constant that fits in an address. */
-							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
-							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							//loc_ptr = loc_ptr + leb128_length;
-							//offset = offset + leb128_length;
-							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
-							break;
-						default:
-							/*  Some memory does leak here.  */
-							//_dwarf_error(dbg, error, DW_DLE_LOC_EXPR_BAD);
-							System.err.println("DW_DLE_LOC_EXPR_BAD");
-							return Definition.DW_DLV_ERROR;
-						}
-					}
-				}
-				debugLocEntries.add(debugLocEntry);
-			}
-
 			debug_bytes = SectionFinder.findSectionByte(ehdr, file, ".debug_str");
 			if (debug_bytes == null) {
 				System.err.println("missing section .debug_str");
@@ -1366,6 +717,671 @@ public class Dwarf {
 					}
 				}
 			}
+
+			// parse .debug_loc
+
+			debug_loc = SectionFinder.findSectionByte(ehdr, file, ".debug_loc");
+
+			//			int compileUnitIndex = 0;
+			while (debug_loc != null && debug_loc.hasRemaining()) {
+				int debugLocOffset = debug_loc.position();
+				start = debug_loc.getInt();
+				end = debug_loc.getInt();
+				if (start == 0 && end == 0) {
+					//System.out.println("<End of list>\n");
+					//					compileUnitIndex++;
+					//System.out.println(compileUnitIndex);
+					continue;
+				}
+				int blockSize = debug_loc.getShort();
+				if (blockSize < 0) {
+					break;
+				}
+				byte[] block = new byte[blockSize];
+				debug_loc.get(block);
+
+				//if (DwarfGlobal.debug) {
+				//System.out.println("---------------------------");
+				//System.out.println(Integer.toHexString(start) + "," + Integer.toHexString(end) + "," + blockSize + "," + Hex.encodeHexString(block) + " , "+ Definition.getOPName(0xff & block[0]));
+				//}
+
+				DebugLocEntry debugLocEntry = new DebugLocEntry();
+				//				System.out.println(compileUnitIndex + " = " + start);
+				//				long base_address = 0;
+				//				if (compileUnits.get(compileUnitIndex).getDebugInfoEntryByName("DW_TAG_compile_unit").size() > 0
+				//						&& compileUnits.get(compileUnitIndex).getDebugInfoEntryByName("DW_TAG_compile_unit").get(0).debugInfoAbbrevEntries.get("DW_AT_low_pc") != null) {
+				//					base_address = (Long) compileUnits.get(compileUnitIndex).getDebugInfoEntryByName("DW_TAG_compile_unit").get(0).debugInfoAbbrevEntries.get("DW_AT_low_pc").value;
+				//				}
+				debugLocEntry.offset = debugLocOffset;
+				debugLocEntry.start = start;
+				debugLocEntry.end = end;
+				debugLocEntry.blockSize = blockSize;
+				debugLocEntry.blocks = block;
+				debugLocEntry.name = Definition.getOPName(0xff & block[0]);
+
+				int offset = 0;
+				int loc_len = debugLocEntry.blockSize;
+				while (offset < loc_len) {
+					debugLocEntry.op_count = 0;
+					while (offset < loc_len) {
+						long operand1 = 0;
+						long operand2 = 0;
+						int atom = 0;
+
+						debugLocEntry.op_count++;
+						atom = debugLocEntry.blocks[offset] & 0xff;
+						offset++;
+						if (DwarfGlobal.debug) {
+							//System.out.println(Definition.getOPName(atom));
+						}
+						switch (atom) {
+						case Definition.DW_OP_reg0:
+						case Definition.DW_OP_reg1:
+						case Definition.DW_OP_reg2:
+						case Definition.DW_OP_reg3:
+						case Definition.DW_OP_reg4:
+						case Definition.DW_OP_reg5:
+						case Definition.DW_OP_reg6:
+						case Definition.DW_OP_reg7:
+						case Definition.DW_OP_reg8:
+						case Definition.DW_OP_reg9:
+						case Definition.DW_OP_reg10:
+						case Definition.DW_OP_reg11:
+						case Definition.DW_OP_reg12:
+						case Definition.DW_OP_reg13:
+						case Definition.DW_OP_reg14:
+						case Definition.DW_OP_reg15:
+						case Definition.DW_OP_reg16:
+						case Definition.DW_OP_reg17:
+						case Definition.DW_OP_reg18:
+						case Definition.DW_OP_reg19:
+						case Definition.DW_OP_reg20:
+						case Definition.DW_OP_reg21:
+						case Definition.DW_OP_reg22:
+						case Definition.DW_OP_reg23:
+						case Definition.DW_OP_reg24:
+						case Definition.DW_OP_reg25:
+						case Definition.DW_OP_reg26:
+						case Definition.DW_OP_reg27:
+						case Definition.DW_OP_reg28:
+						case Definition.DW_OP_reg29:
+						case Definition.DW_OP_reg30:
+						case Definition.DW_OP_reg31:
+							break;
+
+						case Definition.DW_OP_regx:
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//							operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							//							loc_ptr = loc_ptr + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+
+						case Definition.DW_OP_lit0:
+						case Definition.DW_OP_lit1:
+						case Definition.DW_OP_lit2:
+						case Definition.DW_OP_lit3:
+						case Definition.DW_OP_lit4:
+						case Definition.DW_OP_lit5:
+						case Definition.DW_OP_lit6:
+						case Definition.DW_OP_lit7:
+						case Definition.DW_OP_lit8:
+						case Definition.DW_OP_lit9:
+						case Definition.DW_OP_lit10:
+						case Definition.DW_OP_lit11:
+						case Definition.DW_OP_lit12:
+						case Definition.DW_OP_lit13:
+						case Definition.DW_OP_lit14:
+						case Definition.DW_OP_lit15:
+						case Definition.DW_OP_lit16:
+						case Definition.DW_OP_lit17:
+						case Definition.DW_OP_lit18:
+						case Definition.DW_OP_lit19:
+						case Definition.DW_OP_lit20:
+						case Definition.DW_OP_lit21:
+						case Definition.DW_OP_lit22:
+						case Definition.DW_OP_lit23:
+						case Definition.DW_OP_lit24:
+						case Definition.DW_OP_lit25:
+						case Definition.DW_OP_lit26:
+						case Definition.DW_OP_lit27:
+						case Definition.DW_OP_lit28:
+						case Definition.DW_OP_lit29:
+						case Definition.DW_OP_lit30:
+						case Definition.DW_OP_lit31:
+							operand1 = atom - Definition.DW_OP_lit0;
+							break;
+
+						case Definition.DW_OP_addr:
+							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, addressSize);
+							if (addressSize == 4) {
+								operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
+							} else {
+								operand1 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							}
+							//							loc_ptr += addressSize;
+							offset += addressSize;
+							break;
+
+						case Definition.DW_OP_const1u:
+							operand1 = 0xff & debugLocEntry.blocks[offset];
+							offset = offset + 1;
+							break;
+
+						case Definition.DW_OP_const1s:
+							operand1 = debugLocEntry.blocks[offset];
+							//SIGN_EXTEND(operand1, 1);
+							offset = offset + 1;
+							break;
+
+						case Definition.DW_OP_const2u:
+							//							READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 2);
+							operand1 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							//							loc_ptr = loc_ptr + 2;
+							offset = offset + 2;
+							break;
+
+						case Definition.DW_OP_const2s:
+							//							READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 2);
+							operand1 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							//SIGN_EXTEND(operand1, 2);
+							//loc_ptr = loc_ptr + 2;
+							offset = offset + 2;
+							break;
+
+						case Definition.DW_OP_const4u:
+							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 4);
+							operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
+							//loc_ptr = loc_ptr + 4;
+							offset = offset + 4;
+							break;
+
+						case Definition.DW_OP_const4s:
+							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 4);
+							operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
+							//SIGN_EXTEND(operand1, 4);
+							//loc_ptr = loc_ptr + 4;
+							offset = offset + 4;
+							break;
+
+						case Definition.DW_OP_const8u:
+							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 8);
+							operand1 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							//loc_ptr = loc_ptr + 8;
+							offset = offset + 8;
+							break;
+
+						case Definition.DW_OP_const8s:
+							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 8);
+							operand1 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							//loc_ptr = loc_ptr + 8;
+							offset = offset + 8;
+							break;
+
+						case Definition.DW_OP_constu:
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+
+						case Definition.DW_OP_consts:
+							//operand1 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getSLEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+
+						case Definition.DW_OP_fbreg:
+							//operand1 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getSLEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+						case Definition.DW_OP_breg0:
+						case Definition.DW_OP_breg1:
+						case Definition.DW_OP_breg2:
+						case Definition.DW_OP_breg3:
+						case Definition.DW_OP_breg4:
+						case Definition.DW_OP_breg5:
+						case Definition.DW_OP_breg6:
+						case Definition.DW_OP_breg7:
+						case Definition.DW_OP_breg8:
+						case Definition.DW_OP_breg9:
+						case Definition.DW_OP_breg10:
+						case Definition.DW_OP_breg11:
+						case Definition.DW_OP_breg12:
+						case Definition.DW_OP_breg13:
+						case Definition.DW_OP_breg14:
+						case Definition.DW_OP_breg15:
+						case Definition.DW_OP_breg16:
+						case Definition.DW_OP_breg17:
+						case Definition.DW_OP_breg18:
+						case Definition.DW_OP_breg19:
+						case Definition.DW_OP_breg20:
+						case Definition.DW_OP_breg21:
+						case Definition.DW_OP_breg22:
+						case Definition.DW_OP_breg23:
+						case Definition.DW_OP_breg24:
+						case Definition.DW_OP_breg25:
+						case Definition.DW_OP_breg26:
+						case Definition.DW_OP_breg27:
+						case Definition.DW_OP_breg28:
+						case Definition.DW_OP_breg29:
+						case Definition.DW_OP_breg30:
+						case Definition.DW_OP_breg31:
+							//operand1 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getSLEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+
+						case Definition.DW_OP_bregx:
+							/* uleb reg num followed by sleb offset */
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+
+							//operand2 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
+							operand2 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getSLEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+
+						case Definition.DW_OP_dup:
+						case Definition.DW_OP_drop:
+							break;
+
+						case Definition.DW_OP_pick:
+							//operand1 = *(Dwarf_Small *) loc_ptr;
+							operand1 = debugLocEntry.blocks[offset];
+							//loc_ptr = loc_ptr + 1;
+							offset = offset + 1;
+							break;
+
+						case Definition.DW_OP_over:
+						case Definition.DW_OP_swap:
+						case Definition.DW_OP_rot:
+						case Definition.DW_OP_deref:
+							break;
+
+						case Definition.DW_OP_deref_size:
+							//operand1 = *(Dwarf_Small *) loc_ptr;
+							operand1 = debugLocEntry.blocks[offset];
+							//loc_ptr = loc_ptr + 1;
+							offset = offset + 1;
+							break;
+
+						case Definition.DW_OP_xderef:
+							break;
+
+						case Definition.DW_OP_xderef_size:
+							//operand1 = *(Dwarf_Small *) loc_ptr;
+							operand1 = debugLocEntry.blocks[offset];
+							//loc_ptr = loc_ptr + 1;
+							offset = offset + 1;
+							break;
+
+						case Definition.DW_OP_abs:
+						case Definition.DW_OP_and:
+						case Definition.DW_OP_div:
+						case Definition.DW_OP_minus:
+						case Definition.DW_OP_mod:
+						case Definition.DW_OP_mul:
+						case Definition.DW_OP_neg:
+						case Definition.DW_OP_not:
+						case Definition.DW_OP_or:
+						case Definition.DW_OP_plus:
+							break;
+
+						case Definition.DW_OP_plus_uconst:
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+
+						case Definition.DW_OP_shl:
+						case Definition.DW_OP_shr:
+						case Definition.DW_OP_shra:
+						case Definition.DW_OP_xor:
+							break;
+
+						case Definition.DW_OP_le:
+						case Definition.DW_OP_ge:
+						case Definition.DW_OP_eq:
+						case Definition.DW_OP_lt:
+						case Definition.DW_OP_gt:
+						case Definition.DW_OP_ne:
+							break;
+
+						case Definition.DW_OP_skip:
+						case Definition.DW_OP_bra:
+							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 2);
+							operand1 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							//loc_ptr = loc_ptr + 2;
+							offset = offset + 2;
+							break;
+
+						case Definition.DW_OP_piece:
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+
+						case Definition.DW_OP_nop:
+							break;
+						case Definition.DW_OP_push_object_address: /* DWARF3 */
+							break;
+						case Definition.DW_OP_call2: /* DWARF3 */
+							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 2);
+							operand1 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							//loc_ptr = loc_ptr + 2;
+							offset = offset + 2;
+							break;
+
+						case Definition.DW_OP_call4: /* DWARF3 */
+							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 4);
+							operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
+							//loc_ptr = loc_ptr + 4;
+							offset = offset + 4;
+							break;
+						case Definition.DW_OP_call_ref: /* DWARF3 */
+							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, offset_size);
+							if (offset_size == 4) {
+								operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
+							} else if (offset_size == 8) {
+								operand1 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							}
+							//loc_ptr = loc_ptr + offset_size;
+							offset = offset + offset_size;
+							break;
+
+						case Definition.DW_OP_form_tls_address: /* DWARF3f */
+							break;
+						case Definition.DW_OP_call_frame_cfa: /* DWARF3f */
+							break;
+						case Definition.DW_OP_bit_piece: /* DWARF3f */
+							/* uleb size in bits followed by uleb offset in bits */
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+
+							//operand2 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand2 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+
+						/*  The operator means: push the currently computed
+						 (by the operations encountered so far in this
+						 expression) onto the expression stack as the offset
+						 in thread-local-storage of the variable. */
+						case Definition.DW_OP_GNU_push_tls_address: /* 0xe0  */
+							/* Believed to have no operands. */
+							/* Unimplemented in gdb 7.5.1 ? */
+							break;
+						case Definition.DW_OP_GNU_deref_type: /* 0xf6 */
+							/* die offset (uleb128). */
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+
+						case Definition.DW_OP_implicit_value: /* DWARF4 0xa0 */
+							/*  uleb length of value bytes followed by that
+							 number of bytes of the value. */
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+
+							/*  Second operand is block of 'operand1' bytes of stuff. */
+							/*  This using the second operand as a pointer
+							 is quite ugly. */
+							/*  This gets an ugly compiler warning. Sorry. */
+							//operand2 = (Dwarf_Unsigned) loc_ptr;
+							operand2 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							offset = (int) (offset + operand1);
+							//loc_ptr = loc_ptr + operand1;
+							break;
+						case Definition.DW_OP_stack_value: /* DWARF4 */
+							break;
+						case Definition.DW_OP_GNU_uninit: /* 0xf0 */
+							/* Unimplemented in gdb 7.5.1  */
+							/*  Carolyn Tice: Follws a DW_OP_reg or DW_OP_regx
+							 and marks the reg as being uninitialized. */
+							break;
+						case Definition.DW_OP_GNU_encoded_addr: { /*  0xf1 */
+							/*  Richard Henderson: The operand is an absolute
+							 address.  The first byte of the value
+							 is an encoding length: 0 2 4 or 8.  If zero
+							 it means the following is address-size.
+							 The address then follows immediately for
+							 that number of bytes. */
+							int length = 0;
+							//int reares = read_encoded_addr(loc_ptr, dbg, &operand1, &length, error);
+							int reares;
+							switch (addressSize) {
+							case 1:
+								operand1 = debugLocEntry.blocks[offset];
+								offset += length;
+								break;
+
+							case 2:
+								//								READ_UNALIGNED(dbg, operand, Dwarf_Unsigned, loc_ptr, 2);
+								//								*val_out = operand;
+								//								len += 2;
+								operand1 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+								offset = offset + 2;
+								break;
+							case 4:
+								//READ_UNALIGNED(dbg, operand, Dwarf_Unsigned, loc_ptr, 4);
+								//*val_out = operand;
+								//len += 4;
+								operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
+								offset = offset + 4;
+								break;
+							case 8:
+								//READ_UNALIGNED(dbg, operand, Dwarf_Unsigned, loc_ptr, 8);
+								//*val_out = operand;
+								//len += 8;
+								operand1 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+								offset = offset + 8;
+								break;
+							default:
+								/* We do not know how much to read. */
+								//_dwarf_error(dbg, error, DW_DLE_GNU_OPCODE_ERROR);
+								return Definition.DW_DLV_ERROR;
+							}
+							;
+
+							//							if (reares != Definition.DW_DLV_OK) {
+							//								/*  Oops. The caller will notice and
+							//								 will issue DW_DLV_ERROR. */
+							//								return Definition.DW_DLV_OK;
+							//							}
+							//							loc_ptr += length;
+							//							offset += length;
+						}
+							break;
+						case Definition.DW_OP_implicit_pointer: /* DWARF5 */
+						case Definition.DW_OP_GNU_implicit_pointer: { /* 0xf2 */
+							/*  Jakub Jelinek: The value is an optimized-out
+							 pointer value. Represented as
+							 an offset_size DIE offset
+							 (a simple unsigned integer) in DWARF3,4
+							 followed by a signed leb128 offset.
+							 For DWARF2, it is actually pointer size
+							 (address size).
+							 http://www.dwarfstd.org/ShowIssue.php?issue=100831.1 */
+							//Dwarf_Small iplen = offset_size;
+							//if (version_stamp == CURRENT_VERSION_STAMP /* 2 */) {
+							//	iplen = addressSize;
+							//}
+							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, iplen);
+							//loc_ptr = loc_ptr + iplen;
+
+							if (addressSize == 4) {
+								operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
+								offset = offset + 4;
+							} else if (addressSize == 8) {
+								operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
+								offset = offset + 8;
+							}
+
+							//offset = offset + iplen;
+
+							//operand2 = _dwarf_decode_s_leb128(loc_ptr, &leb128_length);
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+
+							operand2 = DwarfLib.getSLEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							offset = offset + DwarfLib.getSLEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+						}
+
+							break;
+						case Definition.DW_OP_GNU_entry_value: /* 0xf3 */
+							/*  Jakub Jelinek: A register reused really soon,
+							 but the value is unchanged.  So to represent
+							 that value we have a uleb128 size followed
+							 by a DWARF expression block that size.
+							 http://www.dwarfstd.org/ShowIssue.php?issue=100909.1 */
+
+							/*  uleb length of value bytes followed by that
+							 number of bytes of the value. */
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							operand2 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+
+							/*  Second operand is block of 'operand1' bytes of stuff. */
+							/*  This using the second operand as a pointer
+							 is quite ugly. */
+							/*  This gets an ugly compiler warning. Sorry. */
+							//operand2 = (Dwarf_Unsigned) loc_ptr;
+
+							int size = debugLocEntry.blocks.length - offset;
+							if (size == 2) {
+								operand2 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							} else if (size == 4) {
+								operand2 = CommonLib.getInt(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							} else {
+								operand2 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							}
+							offset = offset + 8;
+
+							//offset = offset + operand1;
+							//loc_ptr = loc_ptr + operand1;
+							break;
+						case Definition.DW_OP_GNU_const_type: /* 0xf4 */
+						{
+							int blocklen = 0;
+							/* die offset as uleb. */
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+
+							/*  Next byte is size of data block.
+							 We pass the length and block via a a pointer
+							 to the length byte. */
+							//operand2 = (Dwarf_Unsigned) loc_ptr;
+							operand2 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+
+							//blocklen = *(Dwarf_Small *) loc_ptr;
+							blocklen = debugLocEntry.blocks[offset];
+
+							//loc_ptr = loc_ptr + 1;
+							offset = offset + 1;
+							/* Following that is data block of bytes. */
+							offset = offset + blocklen;
+							//loc_ptr = loc_ptr + blocklen;
+						}
+							break;
+						case Definition.DW_OP_GNU_regval_type: /* 0xf5 */
+							/* reg num uleb*/
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							/* cu die off uleb*/
+							//operand2 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+
+							break;
+						case Definition.DW_OP_GNU_convert: /* 0xf7 */
+						case Definition.DW_OP_GNU_reinterpret: /* 0xf9 */
+							/* die offset  or zero */
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+						case Definition.DW_OP_GNU_parameter_ref: /* 0xfa */
+							/* 4 byte unsigned int */
+							//READ_UNALIGNED(dbg, operand1, Dwarf_Unsigned, loc_ptr, 4);
+							operand1 = CommonLib.getInt(debugLocEntry.blocks, offset);
+							//loc_ptr = loc_ptr + 4;
+							offset = offset + 4;
+							break;
+						case Definition.DW_OP_addrx: /* DWARF5 */
+						case Definition.DW_OP_GNU_addr_index: /* 0xfb DebugFission */
+							/*  Index into .debug_addr. The value in .debug_addr
+							 is an address. */
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+						case Definition.DW_OP_constx: /* DWARF5 */
+						case Definition.DW_OP_GNU_const_index: /* 0xfc DebugFission */
+							/*  Index into .debug_addr. The value in .debug_addr
+							 is a constant that fits in an address. */
+							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							//loc_ptr = loc_ptr + leb128_length;
+							//offset = offset + leb128_length;
+							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							break;
+						default:
+							/*  Some memory does leak here.  */
+							//_dwarf_error(dbg, error, DW_DLE_LOC_EXPR_BAD);
+							System.err.println("DW_DLE_LOC_EXPR_BAD");
+							return Definition.DW_DLV_ERROR;
+						}
+					}
+				}
+				debugLocEntries.add(debugLocEntry);
+			}
+			// end parse debug_loc
 		} catch (OutOfMemoryError e) {
 			e.printStackTrace();
 			loadingMessage = file.getAbsolutePath() + " : out of memory error";
@@ -1673,10 +1689,10 @@ public class Dwarf {
 				}
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
 
-				if (DwarfGlobal.debug) {
-					//System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
-					//System.out.flush();
-				}
+				//				if (DwarfGlobal.debug) {
+				//System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
+				//System.out.flush();
+				//				}
 				for (AbbrevEntry entry : abbrev.entries) {
 					loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
 

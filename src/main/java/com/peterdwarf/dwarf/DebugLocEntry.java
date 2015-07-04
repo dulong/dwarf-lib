@@ -1,5 +1,7 @@
 package com.peterdwarf.dwarf;
 
+import com.peterswing.CommonLib;
+
 public class DebugLocEntry {
 	public long start;
 	public long end;
@@ -7,8 +9,10 @@ public class DebugLocEntry {
 	public byte[] blocks;
 	public String name;
 	public int op_count;
+	public int offset;
 
 	public String toString() {
-		return "start=" + start + ", end=" + end + ", blockSize=" + blockSize + ", name=" + name + ", op_count=" + op_count;
+		return "offset=0x" + Integer.toHexString(offset) + ", start=0x" + Long.toHexString(start) + ", end=0x" + Long.toHexString(end) + ", blockSize=" + blockSize + ", name="
+				+ name + ", op_count=" + op_count + " blocks=" + CommonLib.getHexString(blocks, ", ");
 	}
 }
