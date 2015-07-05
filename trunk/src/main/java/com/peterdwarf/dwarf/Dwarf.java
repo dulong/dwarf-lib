@@ -757,6 +757,7 @@ public class Dwarf {
 				debugLocEntry.end = end;
 				debugLocEntry.blockSize = blockSize;
 				debugLocEntry.blocks = block;
+				debugLocEntry.unsignedBlocks = CommonLib.unsignedByteArray(block);
 				debugLocEntry.name = Definition.getOPName(0xff & block[0]);
 
 				int offset = 0;
