@@ -90,24 +90,47 @@ public class DwarfLib {
 
 							Vector<DebugInfoEntry> parameters = subprogramDebugInfoEntry.getDebugInfoEntryByName("DW_TAG_formal_parameter");
 							for (DebugInfoEntry parameterDebugInfoEntry : parameters) {
-								//							System.out.println(parameter.debugInfoAbbrevEntries.get("DW_AT_name"));
-								//							System.out.println(parameter.debugInfoAbbrevEntries.get("DW_AT_location").value);
 								String name = (String) parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value;
-								String values[] = parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_location").value.toString().split(",");
-								String registerName = Definition.getOPName(CommonLib.string2int(values[0]));
-
-								System.out.println(parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value);
-								System.out.println(parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_location").value);
-								System.out.println("values[0]=" + values[0]);
+								System.out.println(name);
+								DebugInfoAbbrevEntry locationdebugInfoAbbrevEntry = parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_location");
+								String registerName = null;
 								long offset = 0;
-								if (values.length > 1) {
-									offset = Long.parseLong(values[1]);
+								if (locationdebugInfoAbbrevEntry.form == Definition.DW_FORM_exprloc) {
+									String values[] = locationdebugInfoAbbrevEntry.value.toString().split(",");
+									registerName = Definition.getOPName(CommonLib.string2int(values[0]));
+
+									//								System.out.println(parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value);
+									//								System.out.println(parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_location").value);
+									//								System.out.println("values[0]=" + values[0]);
+
+									if (values.length > 1) {
+										offset = Long.parseLong(values[1]);
+									}
+								} else if (locationdebugInfoAbbrevEntry.form == Definition.DW_FORM_sec_offset) {
+									String values[] = locationdebugInfoAbbrevEntry.value.toString().split(",");
+									DebugLocEntry debugLocEntry = DwarfLib.getDebugLocEntry(dwarf, CommonLib.string2int(values[0]));
+									registerName = Definition.getOPName(debugLocEntry.unsignedBlocks[0]);
+									System.out.println("debugLocEntry.blocks[0]=" + debugLocEntry.unsignedBlocks[0]);
+									System.out.println("debugLocEntry=" + debugLocEntry);
+									System.out.println("registerName=" + registerName);
+									if (registerName == null) {
+										System.exit(1);
+									}
+									if (registerName.equals("DW_OP_fbreg")) {
+										offset = debugLocEntry.unsignedBlocks[1];
+									}
+								} else {
+									System.err.println("Not support form=" + locationdebugInfoAbbrevEntry.form);
+								}
+								if (registerName == null) {
+									System.exit(1);
 								}
 								if (registerName.equals("DW_OP_fbreg")) {
 									System.out.println(name + ", " + (cfsBaseOffset + offset));
 									offset = cfsBaseOffset + offset;
 								} else {
-									System.exit(500);
+									System.out.println("not support register=" + registerName);
+									//System.exit(500);
 								}
 								ht.put(name,
 										new DwarfParameter(name, registerName, DwarfLib.getParameterType(cu,
@@ -428,5 +451,14 @@ public class DwarfLib {
 
 		String type = debugInfoAbbrevEntry.value.toString();
 		return type;
+	}
+
+	public static DebugLocEntry getDebugLocEntry(Dwarf dwarf, int offset) {
+		for (DebugLocEntry debugLocEntry : dwarf.debugLocEntries) {
+			if (debugLocEntry.offset == offset) {
+				return debugLocEntry;
+			}
+		}
+		return null;
 	}
 }
