@@ -57,7 +57,6 @@ public class PeterDwarfPanel extends JPanel {
 	JSearchTextField searchTextField = new JSearchTextField();
 
 	final int maxExpandLevel = 5;
-
 	final int maxPoolSize = 16;
 
 	ExecutorService pool;
