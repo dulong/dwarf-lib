@@ -13,6 +13,7 @@ import com.peterswing.FilterTreeModel;
 public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 	JTree tree;
 	Thread animationThread;
+	public boolean highLightSearchColor;
 
 	public DwarfTreeCellRenderer() {
 		this.setOpaque(true);
@@ -23,23 +24,18 @@ public class DwarfTreeCellRenderer extends JLabel implements TreeCellRenderer {
 		this.tree = tree;
 		if (value instanceof DwarfTreeNode) {
 			DwarfTreeNode node = (DwarfTreeNode) value;
-			//			if (!node.addImageObserver) {
-			//				node.loadingIcon.setImageObserver(new AnimatedGifImageObserver(tree, node));
-			//				node.addImageObserver = true;
-			//			}
-			//			if (animationThread == null && node.dwarf != null && node.dwarf.isLoading) {
-			//				animationThread = new Thread(new AnimationThread(node));
-			//				animationThread.start();
-			//			}
 			if (node.tooltip == null) {
 				setToolTipText(null);
 			} else {
 				setToolTipText(node.tooltip);
 			}
 			if (node.getText() != null) {
-				//				setText(node.getText());
-				FilterTreeModel filterTreeModel = (FilterTreeModel) tree.getModel();
-				setText("<html>" + node.getText().replaceAll("(.*)" + filterTreeModel.filter + "(.*)", "$1<font color=red>" + filterTreeModel.filter + "</font>$2") + "<html>");
+				if (highLightSearchColor) {
+					FilterTreeModel filterTreeModel = (FilterTreeModel) tree.getModel();
+					setText("<html>" + node.getText().replaceAll("(.*)" + filterTreeModel.filter + "(.*)", "$1<font color=red>" + filterTreeModel.filter + "</font>$2") + "<html>");
+				} else {
+					setText(node.getText());
+				}
 			} else if (node.dwarf != null) {
 				if (node.dwarf.realFilename != null) {
 					setText(node.dwarf.realFilename);
