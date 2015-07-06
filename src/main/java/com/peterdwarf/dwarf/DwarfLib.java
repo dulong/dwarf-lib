@@ -77,6 +77,11 @@ public class DwarfLib {
 							continue;
 						}
 						long subProgramAddress = (long) subprogramDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_low_pc").value;
+						if (subprogramDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name") == null) {
+							// not every DW_TAG_subprogram has a DW_AT_name
+							continue;
+						}
+						System.out.println(subprogramDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value);
 						if (address == subProgramAddress) {
 							//CIE
 							long cfsBaseOffset = -1;
@@ -90,6 +95,9 @@ public class DwarfLib {
 
 							Vector<DebugInfoEntry> parameters = subprogramDebugInfoEntry.getDebugInfoEntryByName("DW_TAG_formal_parameter");
 							for (DebugInfoEntry parameterDebugInfoEntry : parameters) {
+								if (parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name") == null) {
+									continue;
+								}
 								String name = (String) parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value;
 								System.out.println(name);
 								DebugInfoAbbrevEntry locationdebugInfoAbbrevEntry = parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_location");
