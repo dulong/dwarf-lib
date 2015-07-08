@@ -67,7 +67,7 @@ public class DwarfLib {
 	public static Hashtable<String, DwarfParameter> getParameters(Vector<Dwarf> dwarfVector, long address) {
 		Hashtable<String, DwarfParameter> ht = new Hashtable<String, DwarfParameter>();
 		//		final Vector<Dwarf> dwarfVector = DwarfLib.init(new File("../PeterI/kernel/kernel"), 0);
-		System.out.println("=========== " + Long.toHexString(address));
+		//System.out.println("=========== " + Long.toHexString(address));
 		for (Dwarf dwarf : dwarfVector) {
 			for (CompileUnit cu : dwarf.compileUnits) {
 				if (cu.DW_AT_low_pc <= address && address <= (cu.DW_AT_low_pc + cu.DW_AT_high_pc - 1)) {
@@ -81,7 +81,7 @@ public class DwarfLib {
 							// not every DW_TAG_subprogram has a DW_AT_name
 							continue;
 						}
-						System.out.println(subprogramDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value);
+						//System.out.println(subprogramDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value);
 						if (address == subProgramAddress) {
 							//CIE
 							long cfsBaseOffset = -1;
