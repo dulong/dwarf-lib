@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.peter</groupId>
 	<artifactId>peter-dwarf</artifactId>
-	<version>20150330</version>
+	<version>20150709</version>
 	<name>Peter Dwarf Library</name>
 	<url>https://code.google.com/p/peter-dwarf/</url>
 	<description>A java library to read the dwarf debug specification</description>
@@ -97,12 +97,12 @@
 		<dependency>
 			<groupId>com.peter</groupId>
 			<artifactId>peter-ar</artifactId>
-			<version>20150330</version>
+			<version>20150709</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.mcheung63</groupId>
 			<artifactId>peter-swing</artifactId>
-			<version>20150330</version>
+			<version>20150709</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
