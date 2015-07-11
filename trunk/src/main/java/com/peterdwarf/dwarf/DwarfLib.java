@@ -99,7 +99,7 @@ public class DwarfLib {
 									continue;
 								}
 								String name = (String) parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_name").value;
-								System.out.println(name);
+								//								System.out.println(name);
 								DebugInfoAbbrevEntry locationdebugInfoAbbrevEntry = parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_location");
 								String registerName = null;
 								long offset = 0;
@@ -118,9 +118,9 @@ public class DwarfLib {
 									String values[] = locationdebugInfoAbbrevEntry.value.toString().split(",");
 									DebugLocEntry debugLocEntry = DwarfLib.getDebugLocEntry(dwarf, CommonLib.string2int(values[0]));
 									registerName = Definition.getOPName(debugLocEntry.unsignedBlocks[0]);
-									System.out.println("debugLocEntry.blocks[0]=" + debugLocEntry.unsignedBlocks[0]);
-									System.out.println("debugLocEntry=" + debugLocEntry);
-									System.out.println("registerName=" + registerName);
+									//									System.out.println("debugLocEntry.blocks[0]=" + debugLocEntry.unsignedBlocks[0]);
+									//									System.out.println("debugLocEntry=" + debugLocEntry);
+									//									System.out.println("registerName=" + registerName);
 									if (registerName == null) {
 										System.exit(1);
 									}
@@ -134,17 +134,16 @@ public class DwarfLib {
 									System.exit(1);
 								}
 								if (registerName.equals("DW_OP_fbreg")) {
-									System.out.println(name + ", " + (cfsBaseOffset + offset));
+									//									System.out.println(name + ", " + (cfsBaseOffset + offset));
 									offset = cfsBaseOffset + offset;
 								} else {
-									System.out.println("not support register=" + registerName);
+									//									System.out.println("not support register=" + registerName);
 									//System.exit(500);
 								}
 								ht.put(name,
 										new DwarfParameter(name, registerName, DwarfLib.getParameterType(cu,
 												CommonLib.string2int("0x" + parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_type").value)), DwarfLib.getParameterSize(cu,
 												CommonLib.string2int("0x" + parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_type").value)), offset));
-								System.out.println("------------------------");
 							}
 
 							return ht;
