@@ -142,6 +142,7 @@ public class DwarfLib {
 								}
 								ht.put(name,
 										new DwarfParameter(name, registerName, DwarfLib.getParameterType(cu,
+												CommonLib.string2int("0x" + parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_type").value)), DwarfLib.getParameterSize(cu,
 												CommonLib.string2int("0x" + parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_type").value)), offset));
 								System.out.println("------------------------");
 							}
@@ -459,6 +460,28 @@ public class DwarfLib {
 
 		String type = debugInfoAbbrevEntry.value.toString();
 		return type;
+	}
+
+	public static int getParameterSize(CompileUnit compileUnit, int value) {
+		DebugInfoEntry temp = compileUnit.getDebugInfoEntryByPosition(value);
+
+		DebugInfoAbbrevEntry debugInfoAbbrevEntry = null;
+		if (temp != null) {
+			debugInfoAbbrevEntry = temp.debugInfoAbbrevEntries.get("DW_AT_byte_size");
+			if (debugInfoAbbrevEntry == null) {
+				debugInfoAbbrevEntry = temp.debugInfoAbbrevEntries.get("DW_AT_type");
+
+				if (debugInfoAbbrevEntry == null) {
+					return -1;
+				}
+				return getParameterSize(compileUnit, CommonLib.string2int("0x" + debugInfoAbbrevEntry.value));
+			}
+		} else {
+			return -1;
+		}
+
+		int size = Integer.parseInt(debugInfoAbbrevEntry.value.toString());
+		return size;
 	}
 
 	public static DebugLocEntry getDebugLocEntry(Dwarf dwarf, int offset) {
