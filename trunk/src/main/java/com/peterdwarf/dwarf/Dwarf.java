@@ -1677,14 +1677,16 @@ public class Dwarf {
 				DebugInfoEntry debugInfoEntry = new DebugInfoEntry();
 
 				debugInfoEntry.position = debugInfoBytes.position();
-
-				if (siblingValue.size() > 0 && debugInfoEntry.position == siblingValue.peek()) {
-					currentDebugInfoEntry = originalDebugInfoEntry.pop();
-					siblingValue.pop();
-				}
-
 				debugInfoEntry.abbrevNo = (int) DwarfLib.getULEB128(debugInfoBytes);
 				Abbrev abbrev = abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo);
+
+//				if (siblingValue.size() > 0 && debugInfoEntry.position == siblingValue.peek()) {
+//					currentDebugInfoEntry = originalDebugInfoEntry.pop();
+//					siblingValue.pop();
+//				} 
+				if (debugInfoEntry.abbrevNo == 0) {
+					currentDebugInfoEntry = originalDebugInfoEntry.pop();
+				}
 				if (abbrev == null) {
 					continue;
 				}
@@ -1908,17 +1910,22 @@ public class Dwarf {
 						}
 					}
 
-					if (DwarfGlobal.debug) {
-						//System.out.println();
-					}
+					//if (DwarfGlobal.debug) {
+					//System.out.println();
+					//}
 				}
 				currentDebugInfoEntry.add(debugInfoEntry);
-				DebugInfoAbbrevEntry debugInfoAbbrevEntry = debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_sibling");
-				if (debugInfoAbbrevEntry != null) {
+//				DebugInfoAbbrevEntry debugInfoAbbrevEntry = debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_sibling");
+//				if (debugInfoAbbrevEntry != null) {
+//					originalDebugInfoEntry.push(currentDebugInfoEntry);
+//					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
+//					siblingValue.push(CommonLib.convertFilesize("0x" + debugInfoAbbrevEntry.value));
+//				}  
+				if (abbrev.has_children) {
 					originalDebugInfoEntry.push(currentDebugInfoEntry);
 					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
-					siblingValue.push(CommonLib.convertFilesize("0x" + debugInfoAbbrevEntry.value));
 				}
+
 			}
 
 			start += cu.length + initial_length_size;
