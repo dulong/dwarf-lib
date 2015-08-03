@@ -10,7 +10,7 @@ public class PropertyUtil {
 		if (prop == null) {
 			prop = new Properties();
 			try {
-				prop.load(PropertyUtil.class.getClassLoader().getResourceAsStream("main.properties"));
+				prop.load(PropertyUtil.class.getClassLoader().getResourceAsStream("peterdwarf.properties"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
