@@ -1663,14 +1663,14 @@ public class Dwarf {
 			} else {
 				initial_length_size = 4;
 			}
-			if (DwarfGlobal.debug) {
-				//System.out.println(Integer.toHexString(debugInfoBytes.position()) + " " + cu);
-			}
+			//if (DwarfGlobal.debug) {
+			//System.out.println(Integer.toHexString(debugInfoBytes.position()) + " " + cu);
+			//}
 
 			//			DebugInfoEntry currentDebugInfoEntry = null;
 			Stack<Vector<DebugInfoEntry>> originalDebugInfoEntry = new Stack<Vector<DebugInfoEntry>>();
 			Vector<DebugInfoEntry> currentDebugInfoEntry = cu.debugInfoEntries;
-			Stack<Long> siblingValue = new Stack<Long>();
+			//Stack<Long> siblingValue = new Stack<Long>();
 
 			while (debugInfoBytes.position() <= cu.offset + cu.length + 1) {
 				loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
@@ -1680,10 +1680,10 @@ public class Dwarf {
 				debugInfoEntry.abbrevNo = (int) DwarfLib.getULEB128(debugInfoBytes);
 				Abbrev abbrev = abbrevList.get(cu.abbrev_offset).get(debugInfoEntry.abbrevNo);
 
-//				if (siblingValue.size() > 0 && debugInfoEntry.position == siblingValue.peek()) {
-//					currentDebugInfoEntry = originalDebugInfoEntry.pop();
-//					siblingValue.pop();
-//				} 
+				//				if (siblingValue.size() > 0 && debugInfoEntry.position == siblingValue.peek()) {
+				//					currentDebugInfoEntry = originalDebugInfoEntry.pop();
+				//					siblingValue.pop();
+				//				} 
 				if (debugInfoEntry.abbrevNo == 0) {
 					currentDebugInfoEntry = originalDebugInfoEntry.pop();
 				}
@@ -1692,25 +1692,21 @@ public class Dwarf {
 				}
 				debugInfoEntry.name = Definition.getTagName(abbrev.tag);
 
-				//				if (DwarfGlobal.debug) {
-				//System.out.println(Integer.toHexString(debugInfoEntry.position) + " > " + debugInfoEntry.name);
-				//System.out.flush();
-				//				}
+				//System.out.println("-------------------");
 				for (AbbrevEntry entry : abbrev.entries) {
 					loadingMessage = "parsing .debug_info " + debugInfoBytes.position() + " bytes";
 
 					DebugInfoAbbrevEntry debugInfoAbbrevEntry = new DebugInfoAbbrevEntry();
 					debugInfoAbbrevEntry.name = Definition.getATName(entry.at);
-					debugInfoEntry.debugInfoAbbrevEntries.put(debugInfoAbbrevEntry.name, debugInfoAbbrevEntry);
+					if (debugInfoAbbrevEntry.name == null) {
+						debugInfoAbbrevEntry.name = "Unknown AT value " + entry.at;
+					}
 					debugInfoAbbrevEntry.form = entry.form;
 					debugInfoAbbrevEntry.formStr = Definition.getFormName(entry.form);
 					debugInfoAbbrevEntry.position = debugInfoBytes.position();
 
-					////System.out.println("debugInfoAbbrevEntry="+debugInfoAbbrevEntry.position+","+debugInfoAbbrevEntry.name);
-
-					if (DwarfGlobal.debug) {
-						//System.out.print("\t" + Integer.toHexString(debugInfoAbbrevEntry.position) + " > " + entry.form + " = " + debugInfoAbbrevEntry.name);
-					}
+					debugInfoEntry.debugInfoAbbrevEntries.put(debugInfoAbbrevEntry.name, debugInfoAbbrevEntry);
+					//System.out.println(Integer.toHexString(debugInfoAbbrevEntry.position) + " = " + debugInfoAbbrevEntry.name);
 
 					if (entry.form == Definition.DW_FORM_string) {
 						byte temp;
@@ -1888,7 +1884,7 @@ public class Dwarf {
 							//System.out.print("\t:\t" + data);
 						}
 					} else {
-						//System.out.println(" unsupport DW_FORM_? = 0x" + Integer.toHexString(entry.form));
+						System.err.println(" unsupport DW_FORM_? = 0x" + Integer.toHexString(entry.form));
 						return 3;
 					}
 
@@ -1915,12 +1911,12 @@ public class Dwarf {
 					//}
 				}
 				currentDebugInfoEntry.add(debugInfoEntry);
-//				DebugInfoAbbrevEntry debugInfoAbbrevEntry = debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_sibling");
-//				if (debugInfoAbbrevEntry != null) {
-//					originalDebugInfoEntry.push(currentDebugInfoEntry);
-//					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
-//					siblingValue.push(CommonLib.convertFilesize("0x" + debugInfoAbbrevEntry.value));
-//				}  
+				//				DebugInfoAbbrevEntry debugInfoAbbrevEntry = debugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_sibling");
+				//				if (debugInfoAbbrevEntry != null) {
+				//					originalDebugInfoEntry.push(currentDebugInfoEntry);
+				//					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
+				//					siblingValue.push(CommonLib.convertFilesize("0x" + debugInfoAbbrevEntry.value));
+				//				}  
 				if (abbrev.has_children) {
 					originalDebugInfoEntry.push(currentDebugInfoEntry);
 					currentDebugInfoEntry = debugInfoEntry.debugInfoEntries;
