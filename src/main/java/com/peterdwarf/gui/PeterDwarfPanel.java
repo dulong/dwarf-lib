@@ -186,7 +186,7 @@ public class PeterDwarfPanel extends JPanel {
 							return new Integer(c1.number).compareTo(new Integer(c2.number));
 						}
 					});
-					// enf init section nodes
+					// end init section nodes
 
 					// init abbrev nodes
 					final DwarfTreeNode abbrevNode = new DwarfTreeNode("abbrev", node, null);
@@ -209,8 +209,9 @@ public class PeterDwarfPanel extends JPanel {
 										DwarfTreeNode abbrevSubnode2 = new DwarfTreeNode(abbrev.toString(), abbrevSubnode, abbrev);
 										abbrevSubnode.children.add(abbrevSubnode2);
 										for (AbbrevEntry entry : abbrev.entries) {
-											DwarfTreeNode abbrevSubnode3 = new DwarfTreeNode(entry.at + ", " + entry.form + ", " + Definition.getATName(entry.at) + ", "
-													+ Definition.getFormName(entry.form), abbrevSubnode2, entry);
+											DwarfTreeNode abbrevSubnode3 = new DwarfTreeNode(
+													entry.at + ", " + entry.form + ", " + Definition.getATName(entry.at) + ", " + Definition.getFormName(entry.form),
+													abbrevSubnode2, entry);
 											abbrevSubnode2.children.add(abbrevSubnode3);
 										}
 
@@ -241,9 +242,11 @@ public class PeterDwarfPanel extends JPanel {
 					for (final CompileUnit compileUnit : compileUnits) {
 						pool.execute(new Runnable() {
 							public void run() {
-								final DwarfTreeNode compileUnitSubnode = new DwarfTreeNode("0x" + Long.toHexString(compileUnit.DW_AT_low_pc) + " - " + "0x"
-										+ Long.toHexString(compileUnit.DW_AT_low_pc + compileUnit.DW_AT_high_pc - 1) + " - " + compileUnit.DW_AT_name + ", offset="
-										+ compileUnit.abbrev_offset + ", length=" + compileUnit.length + " (size " + compileUnit.addr_size + ")", compileUnitNode, compileUnit);
+								final DwarfTreeNode compileUnitSubnode = new DwarfTreeNode(
+										"0x" + Long.toHexString(compileUnit.DW_AT_low_pc) + " - " + "0x"
+												+ Long.toHexString(compileUnit.DW_AT_low_pc + compileUnit.DW_AT_high_pc - 1) + " - " + compileUnit.DW_AT_name + ", offset="
+												+ compileUnit.abbrev_offset + ", length=" + compileUnit.length + " (size " + compileUnit.addr_size + ")",
+										compileUnitNode, compileUnit);
 								compileUnitNode.children.add(compileUnitSubnode);
 
 								// init headers
@@ -339,8 +342,9 @@ public class PeterDwarfPanel extends JPanel {
 											+ Long.toHexString(ehFrame.pc_begin_real + ehFrame.pc_range_real));
 								}
 								if (ehFrame.cieID != 0) {
-									DwarfTreeNode ehFrameSubNode = new DwarfTreeNode(Long.toHexString(ehFrame.pc_begin_real) + " - "
-											+ Long.toHexString(ehFrame.pc_begin_real + ehFrame.pc_range_real), ehFrameTreeNode, ehFrame);
+									DwarfTreeNode ehFrameSubNode = new DwarfTreeNode(
+											Long.toHexString(ehFrame.pc_begin_real) + " - " + Long.toHexString(ehFrame.pc_begin_real + ehFrame.pc_range_real), ehFrameTreeNode,
+											ehFrame);
 
 									// for (Object key :
 									// ehFrame.fieDetails.keySet()) {
@@ -499,11 +503,12 @@ public class PeterDwarfPanel extends JPanel {
 				DwarfTreeNode compileUnitDebugInfoAbbrevEntrySubnode;
 
 				DebugInfoAbbrevEntry debugInfoAbbrevEntry = d.debugInfoAbbrevEntries.get(key);
-
+				//fuck System.out.println(Integer.toHexString(debugInfoAbbrevEntry.position) + " = " + debugInfoAbbrevEntry.name);
 				if (debugInfoAbbrevEntry.name.equals("DW_AT_decl_file")) {
-					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString() + ", "
-							+ compileUnit.dwarfDebugLineHeader.filenames.get(Integer.parseInt(debugInfoAbbrevEntry.value.toString()) - 1).file.getAbsolutePath(), subNode,
-							debugInfoAbbrevEntry);
+					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(
+							debugInfoAbbrevEntry.toString() + ", "
+									+ compileUnit.dwarfDebugLineHeader.filenames.get(Integer.parseInt(debugInfoAbbrevEntry.value.toString()) - 1).file.getAbsolutePath(),
+							subNode, debugInfoAbbrevEntry);
 				} else if (debugInfoAbbrevEntry.name.equals("DW_AT_type")) {
 					int value = CommonLib.string2int("0x" + debugInfoAbbrevEntry.value.toString());
 					String type = DwarfLib.getParameterType(compileUnit, value);
@@ -527,6 +532,16 @@ public class PeterDwarfPanel extends JPanel {
 				}
 				subNode.children.add(compileUnitDebugInfoAbbrevEntrySubnode);
 			}
+
+			Collections.sort(subNode.children, new Comparator<DwarfTreeNode>() {
+				@Override
+				public int compare(DwarfTreeNode o1, DwarfTreeNode o2) {
+					DebugInfoAbbrevEntry c1 = (DebugInfoAbbrevEntry) o1.object;
+					DebugInfoAbbrevEntry c2 = (DebugInfoAbbrevEntry) o2.object;
+					return new Integer(c1.position).compareTo(new Integer(c2.position));
+				}
+			});
+
 			addDebugInfoEntries(dialog, compileUnit, subNode, d);
 		}
 	}
