@@ -22,6 +22,7 @@ public class CompileUnit implements Comparable<CompileUnit> {
 	public String toString() {
 		String str = "";
 		str += "  Compilation Unit @ offset 0x" + Integer.toHexString(offset) + ":\n";
+		str += "  	   Name:  " + DW_AT_name + "\n";
 		str += "  	   Length:        0x" + Integer.toHexString(length) + " (32-bit)" + "\n";
 		str += "  	   Version:       " + version + "\n";
 		str += "  	   Abbrev Offset: " + abbrev_offset + "\n";

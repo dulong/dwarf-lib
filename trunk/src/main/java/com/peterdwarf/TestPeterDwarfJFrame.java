@@ -14,6 +14,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
+import com.peterdwarf.dwarf.Dwarf;
 import com.peterdwarf.gui.PeterDwarfPanel;
 
 public class TestPeterDwarfJFrame extends javax.swing.JFrame {
@@ -82,6 +83,10 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 		//File file = new File("/Users/peter/linux-4.0-rc5/");
 		File file = new File("../PeterI/kernel/kernel");
 		peterDwarfPanel1.init(file, 0, true, this);
+
+		for (Dwarf dwarf : peterDwarfPanel1.dwarfs) {
+			System.out.println(dwarf.getCompileUnitByFunction("_write"));
+		}
 	}
 
 }

@@ -2307,4 +2307,16 @@ public class Dwarf {
 		return null;
 	}
 
+	public CompileUnit getCompileUnitByFunction(String functionName) {
+		for (CompileUnit compileUnit : compileUnits) {
+			for (DebugInfoEntry e : compileUnit.getDebugInfoEntryByName("DW_TAG_compile_unit")) {
+				for (DebugInfoEntry e2 : e.getDebugInfoEntryByName("DW_TAG_subprogram")) {
+					if (e2.debugInfoAbbrevEntries.get("DW_AT_name") != null && e2.debugInfoAbbrevEntries.get("DW_AT_name").value.equals(functionName)) {
+						return compileUnit;
+					}
+				}
+			}
+		}
+		return null;
+	}
 }
