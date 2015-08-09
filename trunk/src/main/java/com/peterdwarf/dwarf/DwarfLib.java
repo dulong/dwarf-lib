@@ -29,8 +29,6 @@ public class DwarfLib {
 
 	public static Hashtable<String, DwarfParameter> getParameters(Vector<Dwarf> dwarfVector, long address) {
 		Hashtable<String, DwarfParameter> ht = new Hashtable<String, DwarfParameter>();
-		//		final Vector<Dwarf> dwarfVector = DwarfLib.init(new File("../PeterI/kernel/kernel"), 0);
-		//System.out.println("=========== " + Long.toHexString(address));
 		for (Dwarf dwarf : dwarfVector) {
 			for (CompileUnit cu : dwarf.compileUnits) {
 				if (cu.DW_AT_low_pc <= address && address <= (cu.DW_AT_low_pc + cu.DW_AT_high_pc - 1)) {
@@ -104,9 +102,10 @@ public class DwarfLib {
 									//System.exit(500);
 								}
 								ht.put(name,
-										new DwarfParameter(name, registerName, DwarfLib.getParameterType(cu,
-												CommonLib.string2int("0x" + parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_type").value)), DwarfLib.getParameterSize(cu,
-												CommonLib.string2int("0x" + parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_type").value)), offset));
+										new DwarfParameter(name, registerName,
+												DwarfLib.getParameterType(cu, CommonLib.string2int("0x" + parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_type").value)),
+												DwarfLib.getParameterSize(cu, CommonLib.string2int("0x" + parameterDebugInfoEntry.debugInfoAbbrevEntries.get("DW_AT_type").value)),
+												offset));
 							}
 
 							return ht;
