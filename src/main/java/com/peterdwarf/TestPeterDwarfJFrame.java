@@ -24,6 +24,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 	private PeterDwarfPanel peterDwarfPanel1;
 
 	public static void main(String[] args) {
+		DwarfGlobal.debug = true;
 		try {
 			UIManager.setLookAndFeel("com.peterswing.white.PeterSwingWhiteLookAndFeel");
 		} catch (Exception e) {
@@ -43,7 +44,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowOpened(WindowEvent e) {
-//				openButtonActionPerformed(null);
+				//				openButtonActionPerformed(null);
 			}
 		});
 		initGUI();

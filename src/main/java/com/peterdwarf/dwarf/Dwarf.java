@@ -143,8 +143,14 @@ public class Dwarf {
 				}
 			}
 
-			Elf32_Shdr ehFrameSection = SectionFinder.getSection(file, ".eh_frame");
-			eh_frame_bytes = SectionFinder.findSectionByte(ehdr, file, ".eh_frame");
+			Elf32_Shdr ehFrameSection;
+			if (SectionFinder.getSection(file, ".eh_frame") != null) {
+				ehFrameSection = SectionFinder.getSection(file, ".eh_frame");
+				eh_frame_bytes = SectionFinder.findSectionByte(ehdr, file, ".eh_frame");
+			} else {
+				ehFrameSection = SectionFinder.getSection(file, ".debug_frame");
+				eh_frame_bytes = SectionFinder.findSectionByte(ehdr, file, ".debug_frame");
+			}
 			//System.out.println("eh_frame_bytes=" + eh_frame_bytes.limit());
 			//System.out.println(ehFrameSection.sh_size);
 
@@ -194,7 +200,7 @@ public class Dwarf {
 					}
 
 					if (version >= 4) {
-						//System.out.println("not support version>=4");
+						System.err.println("not support version>=4");
 						System.exit(-2);
 					} else {
 						fc.ptr_size = eh_addr_size;
@@ -712,7 +718,7 @@ public class Dwarf {
 						}
 						break;
 					default:
-						//System.out.println("dwarf has something not supported yet");
+						System.err.println("dwarf has something not supported yet");
 						System.exit(1);
 					}
 				}
@@ -1397,7 +1403,7 @@ public class Dwarf {
 	}
 
 	private void decode_location_expression(ByteBuffer eh_frame_bytes2, int eh_addr_size, int i, int j, long ul, int k, Elf32_Shdr ehFrameSection) {
-		//System.out.println("not support decode_location_expression");
+		System.err.println("not support decode_location_expression");
 		System.exit(400);
 	}
 
@@ -1460,7 +1466,7 @@ public class Dwarf {
 		long val;
 
 		if (byteBuffer.position() + size >= byteBuffer.capacity()) {
-			//System.out.println("Encoded value extends past end of section");
+			System.err.println("Encoded value extends past end of section");
 			//*pdata = end;
 			//return 0;
 			System.exit(112);
@@ -1468,7 +1474,7 @@ public class Dwarf {
 
 		/* PR 17512: file: 002-829853-0.004.  */
 		if (size > 8) {
-			//System.out.println("Encoded size of " + size + " is too large to read");
+			System.err.println("Encoded size of " + size + " is too large to read");
 			//*pdata = end;
 			//return 0;
 			System.exit(112);
@@ -1476,7 +1482,7 @@ public class Dwarf {
 
 		/* PR 17512: file: 1085-5603-0.004.  */
 		if (size == 0) {
-			//System.out.println("Encoded size of 0 is too small to read");
+			System.err.println("Encoded size of 0 is too small to read");
 			//*pdata = end;
 			//return 0;
 			System.exit(113);
@@ -1521,7 +1527,7 @@ public class Dwarf {
 			x = byteBuffer.getLong();
 			x &= 0xffffffffffffffffL;
 		} else {
-			//System.out.println("byte_get_signed, wrong size = " + size);
+			System.err.println("byte_get_signed, wrong size = " + size);
 			System.exit(115);
 		}
 		return x;
@@ -1548,7 +1554,7 @@ public class Dwarf {
 			x &= 0xffffffffffffffffL;
 			break;
 		default:
-			//System.out.println("byte_get_signed not support size=" + size);
+			System.err.println("byte_get_signed not support size=" + size);
 			System.exit(40);
 		}
 		return x;
@@ -2242,9 +2248,13 @@ public class Dwarf {
 					}
 
 					continue;
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_prologue_end) {
+					break;
+				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_epilogue_begin) {
+					break;
 				} else {
 					if (DwarfGlobal.debug) {
-						//System.out.println("error, what? opcode=" + opcode);
+						System.out.println("error, what? opcode=" + opcode);
 					}
 					return 14;
 				}

@@ -145,6 +145,7 @@ public class DwarfLib {
 			Dwarf dwarf = new Dwarf();
 			int r = dwarf.initElf(file, null, memoryOffset);
 			if (r > 0) {
+				System.err.println("Error code : " + r);
 				return null;
 			}
 			dwarfVector.add(dwarf);
