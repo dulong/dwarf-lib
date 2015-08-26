@@ -45,6 +45,8 @@ public class Dwarf {
 	public int offset_size;
 	public Vector<FrameChunk> ehFrames = new Vector<FrameChunk>();
 
+	final int DW_CIE_ID = -1;
+
 	public int initElf(File file, String realFilename, long memoryOffset) {
 		this.file = file;
 		this.realFilename = realFilename;
@@ -144,588 +146,1175 @@ public class Dwarf {
 			}
 
 			Elf32_Shdr ehFrameSection;
+			long start = 0;
+			long end;
 			if (SectionFinder.getSection(file, ".eh_frame") != null) {
 				ehFrameSection = SectionFinder.getSection(file, ".eh_frame");
 				eh_frame_bytes = SectionFinder.findSectionByte(ehdr, file, ".eh_frame");
-			} else {
+				//System.out.println("eh_frame_bytes=" + eh_frame_bytes.limit());
+				//System.out.println(ehFrameSection.sh_size);
+
+				start = 0;
+				end = ehFrameSection.sh_size;
+				int initial_length_size;
+				int max_regs = 0;
+				String bad_reg = "bad register: ";
+				int encoded_ptr_size = 4;
+
+				while (start < end && eh_frame_bytes.position() < eh_frame_bytes.capacity()) {
+					int saved_start = eh_frame_bytes.position();
+					long length = eh_frame_bytes.getInt() & 0xffffffffL;
+					if (length == 0xffffffff) {
+						length = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
+						offset_size = 8;
+						initial_length_size = 12;
+					} else {
+						offset_size = 4;
+						initial_length_size = 4;
+					}
+
+					long block_end = saved_start + length + initial_length_size;
+
+					int cieID = (int) (eh_frame_bytes.getInt() & 0xffffffffL);
+
+					int eh_addr_size = 4;
+
+					FrameChunk fc;
+					FrameChunk remembered_state = null;
+
+					if (cieID == 0) {
+						// read CIE
+						fc = new FrameChunk();
+						fc.cieID = cieID;
+						int version = eh_frame_bytes.get();
+						fc.version = version;
+						//System.out.println("version=" + version);
+
+						int temp;
+						do {
+							temp = eh_frame_bytes.get();
+							fc.augmentation += (char) temp;
+						} while (temp != 0);
+						//System.out.println("augmentation=" + fc.augmentation);
+
+						if (fc.augmentation.equals("eh")) {
+							start += eh_addr_size;
+						}
+
+						if (version >= 4) {
+							System.err.println("not support version>=4");
+							System.exit(-2);
+						} else {
+							fc.ptr_size = eh_addr_size;
+							fc.segment_size = 0;
+						}
+
+						fc.code_factor = (int) DwarfLib.getULEB128(eh_frame_bytes);
+						//System.out.println("codeAlignmentFactor=" + fc.code_factor);
+
+						fc.data_factor = (int) DwarfLib.getSLEB128(eh_frame_bytes);
+						//System.out.println("dataAlignmentFactor=" + fc.data_factor);
+
+						if (version == 1) {
+							fc.ra = eh_frame_bytes.get();
+						} else {
+							fc.ra = DwarfLib.getULEB128(eh_frame_bytes);
+						}
+
+						int augmentationDataLength = 0;
+						byte augmentationData[] = null;
+						if (fc.augmentation.charAt(0) == 'z') {
+							augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
+							augmentationData = new byte[augmentationDataLength];
+
+							for (int z = 0; z < augmentationDataLength; z++) {
+								augmentationData[z] = eh_frame_bytes.get();
+							}
+						}
+						fc.augmentationData = augmentationData;
+
+						if (augmentationDataLength > 0) {
+							byte q[] = augmentationData;
+							int qPointer = 0;
+
+							/* PR 17531: file: 015adfaa.  */
+							//						if (qend < q) {
+							//							warn(_("Negative augmentation data length: 0x%lx"), augmentationDataLength);
+							//							augmentation_data_len = 0;
+							//						}
+
+							for (int tempX = 0; tempX < augmentationDataLength; tempX++) {
+								char p = (char) fc.augmentation.charAt(tempX + 1);
+								if (p == 'L') {
+									qPointer++;
+								} else if (p == 'P') {
+									qPointer += 1 + size_of_encoded_value(q[qPointer], eh_addr_size);
+								} else if (p == 'R') {
+									fc.fde_encoding = q[qPointer++];
+								} else if (p == 'S') {
+								} else {
+									break;
+								}
+							}
+						}
+
+						ehFrames.add(fc);
+						// read CIE end
+
+						int mreg = max_regs > 0 ? max_regs - 1 : 0;
+						if (mreg < fc.ra) {
+							mreg = (int) fc.ra;
+						}
+
+						frame_need_space(fc, mreg);
+					} else {
+						// start FDE
+						//System.out.println("FDE");
+						fc = new FrameChunk();
+						fc.cieID = cieID;
+						ehFrames.add(fc);
+
+						FrameChunk cie = ehFrames.get(0);
+						fc.ncols = cie.ncols;
+						fc.col_type = new long[fc.ncols];
+						fc.col_offset = new long[fc.ncols];
+						fc.augmentation = cie.augmentation;
+						fc.ptr_size = cie.ptr_size;
+						eh_addr_size = cie.ptr_size;
+						fc.segment_size = cie.segment_size;
+						fc.code_factor = cie.code_factor;
+						fc.data_factor = cie.data_factor;
+						fc.cfa_reg = cie.cfa_reg;
+						fc.cfa_offset = cie.cfa_offset;
+						fc.ra = cie.ra;
+						if (frame_need_space(fc, max_regs > 0 ? max_regs - 1 : 0) < 0) {
+							System.err.println("Invalid max register\n");
+							System.exit(111);
+						}
+						fc.fde_encoding = cie.fde_encoding;
+
+						if (fc.fde_encoding > 0) {
+							encoded_ptr_size = size_of_encoded_value(fc.fde_encoding, eh_addr_size);
+						}
+
+						fc.pc_begin = get_encoded_value(eh_frame_bytes, fc.fde_encoding, ehFrameSection, eh_addr_size);
+						fc.pc_range = byte_get(eh_frame_bytes, encoded_ptr_size);
+
+						int augmentationDataLength = 0;
+						byte augmentationData[] = null;
+						if (fc.augmentation.charAt(0) == 'z') {
+							augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
+							augmentationData = new byte[augmentationDataLength];
+
+							int oldPosition = eh_frame_bytes.position();
+							for (int z = 0; z < augmentationDataLength; z++) {
+								augmentationData[z] = eh_frame_bytes.get();
+							}
+							eh_frame_bytes.position(oldPosition);
+						}
+
+						//System.out.printf("%x..%x\n", fc.pc_begin, fc.pc_begin + fc.pc_range);
+						fc.pc_begin_real = fc.pc_begin;
+						fc.pc_range_real = fc.pc_range;
+						// FDE end
+					}
+					FrameChunk cie = ehFrames.get(0);
+
+					String reg_prefix = "";
+					int index = 0;
+
+					while (eh_frame_bytes.position() < block_end) {
+						int op = eh_frame_bytes.get();
+						byte opa = (byte) (op & 0x3fL);
+						long ofs;
+
+						if ((op & 0xc0L) > 0) {
+							op &= 0xc0;
+						}
+
+						switch (op) {
+						case Definition.DW_CFA_advance_loc:
+							//System.out.printf("  DW_CFA_advance_loc: %d to %x\n", opa * fc.code_factor, fc.pc_begin + opa * fc.code_factor);
+							fc.fieDetailsKeys.add("DW_CFA_advance_loc");
+							fc.fieDetails.add(new Object[] { opa * fc.code_factor, fc.pc_begin + opa * fc.code_factor });
+							fc.pc_begin += opa * fc.code_factor;
+							break;
+						case Definition.DW_CFA_offset:
+							long roffs = DwarfLib.getULEB128(eh_frame_bytes);
+							if (opa >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix != null) {
+								//System.out.printf("  DW_CFA_offset: r(%d) %s%s at cfa %d\n", opa, reg_prefix, Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor);
+								fc.fieDetailsKeys.add("DW_CFA_offset");
+								fc.fieDetails.add(new Object[] { "r" + opa, reg_prefix + Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor });
+							}
+							if (reg_prefix == null) {
+								fc.col_type[opa] = Definition.DW_CFA_offset;
+								fc.col_offset[opa] = roffs * fc.data_factor;
+							}
+							break;
+						case Definition.DW_CFA_restore:
+							if (opa >= cie.ncols || opa >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							//System.out.printf("  DW_CFA_restore: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[opa]);
+							fc.fieDetailsKeys.add("DW_CFA_restore");
+							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[opa] });
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[opa] = cie.col_type[opa];
+								fc.col_offset[opa] = cie.col_offset[opa];
+								if (fc.col_type[opa] == Definition.DW_CFA_unreferenced) {
+									fc.col_type[opa] = Definition.DW_CFA_undefined;
+								}
+							}
+							break;
+						case Definition.DW_CFA_set_loc:
+							long vma = get_encoded_value(eh_frame_bytes, fc.fde_encoding, ehFrameSection, (int) block_end);
+							//System.out.printf("  DW_CFA_set_loc: %x\n", vma);
+							fc.fieDetailsKeys.add("DW_CFA_set_loc");
+							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[opa] });
+							fc.pc_begin = vma;
+							break;
+						case Definition.DW_CFA_advance_loc1:
+							//SAFE_BYTE_GET_AND_INC(ofs, start, 1, end);
+							ofs = byte_get(eh_frame_bytes, 1);
+							//System.out.printf("  DW_CFA_advance_loc1: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+							fc.fieDetailsKeys.add("DW_CFA_set_loc");
+							fc.fieDetails.add(new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
+							fc.pc_begin += ofs * fc.code_factor;
+							break;
+						case Definition.DW_CFA_advance_loc2:
+							//SAFE_BYTE_GET_AND_INC(ofs, start, 2, block_end);
+							ofs = byte_get(eh_frame_bytes, 2);
+							//System.out.printf("  DW_CFA_advance_loc2: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+							fc.fieDetailsKeys.add("DW_CFA_advance_loc2");
+							fc.fieDetails.add(new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
+							fc.pc_begin += ofs * fc.code_factor;
+							break;
+						case Definition.DW_CFA_advance_loc4:
+							//SAFE_BYTE_GET_AND_INC(ofs, start, 4, block_end);
+							ofs = byte_get(eh_frame_bytes, 4);
+							//System.out.printf("  DW_CFA_advance_loc4: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+							fc.fieDetailsKeys.add("DW_CFA_advance_loc4");
+							fc.fieDetails.add(new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
+							fc.pc_begin += ofs * fc.code_factor;
+							break;
+						case Definition.DW_CFA_offset_extended:
+							long reg = DwarfLib.getULEB128(eh_frame_bytes);
+							roffs = DwarfLib.getULEB128(eh_frame_bytes);
+
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_offset_extended: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor);
+								fc.fieDetailsKeys.add("DW_CFA_offset_extended");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_offset;
+								fc.col_offset[(int) reg] = roffs * fc.data_factor;
+							}
+							break;
+						case Definition.DW_CFA_val_offset:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							roffs = DwarfLib.getULEB128(eh_frame_bytes);
+
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_val_offset: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor);
+								fc.fieDetailsKeys.add("DW_CFA_val_offset");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_val_offset;
+								fc.col_offset[(int) reg] = roffs * fc.data_factor;
+							}
+							break;
+						case Definition.DW_CFA_restore_extended:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							if (reg >= cie.ncols || reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_restore_extended: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+								fc.fieDetailsKeys.add("DW_CFA_restore_extended");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = cie.col_type[(int) reg];
+								fc.col_offset[(int) reg] = cie.col_offset[(int) reg];
+							}
+							break;
+						case Definition.DW_CFA_undefined:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_undefined: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+								fc.fieDetailsKeys.add("DW_CFA_undefined");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_undefined;
+								fc.col_offset[(int) reg] = 0;
+							}
+							break;
+						case Definition.DW_CFA_same_value:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_same_value: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+								fc.fieDetailsKeys.add("DW_CFA_same_value");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_same_value;
+								fc.col_offset[(int) reg] = 0;
+							}
+							break;
+						case Definition.DW_CFA_register:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							roffs = DwarfLib.getULEB128(eh_frame_bytes);
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_register: %s%s in ", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+								fc.fieDetailsKeys.add("DW_CFA_register");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_register;
+								fc.col_offset[(int) reg] = roffs;
+							}
+							break;
+						case Definition.DW_CFA_remember_state:
+							//System.out.printf("  DW_CFA_remember_state\n");
+							fc.fieDetailsKeys.add("DW_CFA_remember_state");
+							fc.fieDetails.add(new Object[] {});
+							FrameChunk rs = new FrameChunk();
+							rs.cfa_offset = fc.cfa_offset;
+							rs.cfa_reg = fc.cfa_reg;
+							rs.ra = fc.ra;
+							rs.cfa_exp = fc.cfa_exp;
+							rs.ncols = fc.ncols;
+							rs.col_type = fc.col_type;
+							rs.col_offset = fc.col_offset;
+							rs.next = remembered_state;
+							remembered_state = rs;
+							break;
+						case Definition.DW_CFA_restore_state:
+							//System.out.printf("  DW_CFA_restore_state\n");
+							fc.fieDetailsKeys.add("DW_CFA_restore_state");
+							fc.fieDetails.add(new Object[] {});
+							rs = remembered_state;
+							if (rs != null) {
+								remembered_state = rs.next;
+								fc.cfa_offset = rs.cfa_offset;
+								fc.cfa_reg = rs.cfa_reg;
+								fc.ra = rs.ra;
+								fc.cfa_exp = rs.cfa_exp;
+								if (frame_need_space(fc, rs.ncols - 1) < 0) {
+									//System.out.printf("Invalid column number in saved frame state\n");
+									fc.ncols = 0;
+									break;
+								}
+								fc.col_type = rs.col_type;
+								fc.col_offset = rs.col_offset;
+							} else {
+								//System.out.printf("Mismatched DW_CFA_restore_state\n");
+							}
+							break;
+						case Definition.DW_CFA_def_cfa:
+							long cfa_reg = DwarfLib.getULEB128(eh_frame_bytes);
+							long cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
+							//long cfa_exp = 0;
+							//System.out.println("  DW_CFA_def_cfa: r" + cfa_reg + " " + Definition.dwarf_regnames_i386[(int) cfa_reg] + " ofs " + cfa_offset);
+							fc.fieDetailsKeys.add("DW_CFA_def_cfa");
+							fc.fieDetails.add(new Object[] { Definition.dwarf_regnames_i386[(int) cfa_reg], " ofs ", cfa_offset });
+							break;
+						case Definition.DW_CFA_def_cfa_register:
+							fc.cfa_reg = (int) DwarfLib.getULEB128(eh_frame_bytes);
+							fc.cfa_exp = 0;
+							//System.out.printf("  DW_CFA_def_cfa_register: %s\n", Definition.dwarf_regnames_i386[fc.cfa_reg]);
+							fc.fieDetailsKeys.add("DW_CFA_def_cfa_register");
+							fc.fieDetails.add(new Object[] { Definition.dwarf_regnames_i386[fc.cfa_reg] });
+							break;
+						case Definition.DW_CFA_def_cfa_offset:
+							fc.cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
+							//System.out.printf("  DW_CFA_def_cfa_offset: %d\n", fc.cfa_offset);
+							fc.fieDetailsKeys.add("DW_CFA_def_cfa_offset");
+							fc.fieDetails.add(new Object[] { fc.cfa_offset });
+							break;
+						case Definition.DW_CFA_nop:
+							//System.out.println("  DW_CFA_nop");
+							fc.fieDetailsKeys.add("DW_CFA_nop");
+							fc.fieDetails.add(new Object[] {});
+							break;
+						case Definition.DW_CFA_def_cfa_expression:
+							long ul = DwarfLib.getULEB128(eh_frame_bytes);
+
+							if (start >= block_end || start + ul > block_end || start + ul < start) {
+								//System.out.printf("  DW_CFA_def_cfa_expression: <corrupt len %lu>\n", ul);
+								break;
+							}
+
+							//System.out.printf("  DW_CFA_def_cfa_expression (");
+							decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
+							//System.out.printf(")\n");
+							fc.fieDetailsKeys.add("DW_CFA_def_cfa_expression");
+							fc.fieDetails.add(new Object[] {});
+
+							fc.cfa_exp = 1;
+							start += ul;
+							break;
+
+						case Definition.DW_CFA_expression:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							ul = DwarfLib.getULEB128(eh_frame_bytes);
+
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							/* PR 17512: file: 069-133014-0.006.  */
+							/* PR 17512: file: 98c02eb4.  */
+							long tmp = start + ul;
+							if (start >= block_end || tmp > block_end || tmp < start) {
+								//System.out.printf("  DW_CFA_expression: <corrupt len %lu>\n", ul);
+								fc.fieDetailsKeys.add("DW_CFA_expression");
+								fc.fieDetails.add(new Object[] { ul });
+								break;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_expression: %s%s (", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+								decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
+								//System.out.printf(")\n");
+								fc.fieDetailsKeys.add("DW_CFA_expression");
+								fc.fieDetails.add(new Object[] {});
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_expression;
+							}
+							start = tmp;
+							break;
+						case Definition.DW_CFA_val_expression:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							ul = DwarfLib.getULEB128(eh_frame_bytes);
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							tmp = start + ul;
+							if (start >= block_end || tmp > block_end || tmp < start) {
+								//System.out.printf("  DW_CFA_val_expression: <corrupt len %lu>\n", ul);
+								fc.fieDetailsKeys.add("DW_CFA_val_expression");
+								fc.fieDetails.add(new Object[] { ul });
+								break;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_val_expression: %s%s (", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+								decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
+								//System.out.printf(")\n");
+								fc.fieDetailsKeys.add("DW_CFA_val_expression");
+								fc.fieDetails.add(new Object[] {});
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_val_expression;
+							}
+							start = tmp;
+							break;
+						case Definition.DW_CFA_offset_extended_sf:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							long l = DwarfLib.getSLEB128(eh_frame_bytes);
+
+							if (frame_need_space(fc, (int) reg) < 0) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_offset_extended_sf: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor));
+								fc.fieDetailsKeys.add("DW_CFA_offset_extended_sf");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor) });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_offset;
+								fc.col_offset[(int) reg] = l * fc.data_factor;
+							}
+							break;
+						case Definition.DW_CFA_val_offset_sf:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							l = DwarfLib.getSLEB128(eh_frame_bytes);
+
+							if (frame_need_space(fc, (int) reg) < 0) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_val_offset_sf: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor));
+								fc.fieDetailsKeys.add("DW_CFA_val_offset_sf");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor) });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_val_offset;
+								fc.col_offset[(int) reg] = l * fc.data_factor;
+							}
+							break;
+						case Definition.DW_CFA_def_cfa_sf:
+							fc.cfa_reg = (int) DwarfLib.getULEB128(eh_frame_bytes);
+							fc.cfa_offset = DwarfLib.getSLEB128(eh_frame_bytes);
+
+							fc.cfa_offset = fc.cfa_offset * fc.data_factor;
+							fc.cfa_exp = 0;
+
+							//System.out.printf("  DW_CFA_def_cfa_sf: %s ofs %d\n", Definition.dwarf_regnames_i386[fc.cfa_reg], (int) fc.cfa_offset);
+							fc.fieDetailsKeys.add("DW_CFA_def_cfa_sf");
+							fc.fieDetails.add(new Object[] { Definition.dwarf_regnames_i386[fc.cfa_reg], (int) fc.cfa_offset });
+							break;
+						case Definition.DW_CFA_def_cfa_offset_sf:
+							fc.cfa_offset = DwarfLib.getSLEB128(eh_frame_bytes);
+							fc.cfa_offset *= fc.data_factor;
+
+							//System.out.printf("  DW_CFA_def_cfa_offset_sf: %d\n", (int) fc.cfa_offset);
+							fc.fieDetailsKeys.add("DW_CFA_def_cfa_offset_sf");
+							fc.fieDetails.add(new Object[] { fc.cfa_offset });
+							break;
+						case Definition.DW_CFA_MIPS_advance_loc8:
+							ofs = byte_get(eh_frame_bytes, 8);
+
+							//System.out.printf("  DW_CFA_MIPS_advance_loc8: %ld to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+							fc.fieDetailsKeys.add("DW_CFA_MIPS_advance_loc8");
+							fc.fieDetails.add(new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
+							fc.pc_begin += ofs * fc.code_factor;
+							break;
+						case Definition.DW_CFA_GNU_window_save:
+							//System.out.printf("  DW_CFA_GNU_window_save\n");
+							break;
+
+						case Definition.DW_CFA_GNU_args_size:
+							ul = DwarfLib.getULEB128(eh_frame_bytes);
+
+							//System.out.printf("  DW_CFA_GNU_args_size: %ld\n", ul);
+							fc.fieDetailsKeys.add("DW_CFA_GNU_args_size");
+							fc.fieDetails.add(new Object[] { ul });
+							break;
+						case Definition.DW_CFA_GNU_negative_offset_extended:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							l = -DwarfLib.getULEB128(eh_frame_bytes);
+
+							if (frame_need_space(fc, (int) reg) < 0) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_GNU_negative_offset_extended: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg],(long) (l * fc.data_factor));
+								fc.fieDetailsKeys.add("DW_CFA_GNU_negative_offset_extended");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor) });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_offset;
+								fc.col_offset[(int) reg] = l * fc.data_factor;
+							}
+							break;
+						default:
+							System.err.println("dwarf has something not supported yet");
+							System.exit(1);
+						}
+					}
+				}
+			} else if (SectionFinder.getSection(file, ".debug_frame") != null) {
 				ehFrameSection = SectionFinder.getSection(file, ".debug_frame");
 				eh_frame_bytes = SectionFinder.findSectionByte(ehdr, file, ".debug_frame");
-			}
-			//System.out.println("eh_frame_bytes=" + eh_frame_bytes.limit());
-			//System.out.println(ehFrameSection.sh_size);
 
-			long start = 0;
-			long end = ehFrameSection.sh_size;
-			int initial_length_size;
-			int max_regs = 0;
-			String bad_reg = "bad register: ";
-			while (start < end && eh_frame_bytes.position() < eh_frame_bytes.capacity()) {
-				int saved_start = eh_frame_bytes.position();
-				long length = eh_frame_bytes.getInt() & 0xffffffffL;
-				if (length == 0xffffffff) {
-					length = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
-					offset_size = 8;
-					initial_length_size = 12;
-				} else {
-					offset_size = 4;
-					initial_length_size = 4;
-				}
+				//System.out.println("eh_frame_bytes=" + eh_frame_bytes.limit());
+				//System.out.println(ehFrameSection.sh_size);
 
-				long block_end = saved_start + length + initial_length_size;
+				start = 0;
+				end = ehFrameSection.sh_size;
+				int initial_length_size;
+				int max_regs = 0;
+				String bad_reg = "bad register: ";
+				int encoded_ptr_size = 4;
 
-				int cieID = (int) (eh_frame_bytes.getInt() & 0xffffffffL);
-
-				int eh_addr_size = 4;
-
-				FrameChunk fc;
-				FrameChunk remembered_state = null;
-
-				if (cieID == 0) {
-					// read CIE
-					fc = new FrameChunk();
-					fc.cieID = cieID;
-					int version = eh_frame_bytes.get();
-					fc.version = version;
-					//System.out.println("version=" + version);
-
-					int temp;
-					do {
-						temp = eh_frame_bytes.get();
-						fc.augmentation += (char) temp;
-					} while (temp != 0);
-					//System.out.println("augmentation=" + fc.augmentation);
-
-					if (fc.augmentation.equals("eh")) {
-						start += eh_addr_size;
-					}
-
-					if (version >= 4) {
-						System.err.println("not support version>=4");
-						System.exit(-2);
+				while (start < end && eh_frame_bytes.position() < eh_frame_bytes.capacity()) {
+					int saved_start = eh_frame_bytes.position();
+					long length = eh_frame_bytes.getInt() & 0xffffffffL;
+					if (length == 0xffffffff) {
+						length = CommonLib.get64BitsInt(eh_frame_bytes).longValue();
+						offset_size = 8;
+						initial_length_size = 12;
 					} else {
-						fc.ptr_size = eh_addr_size;
-						fc.segment_size = 0;
+						offset_size = 4;
+						initial_length_size = 4;
 					}
 
-					fc.code_factor = (int) DwarfLib.getULEB128(eh_frame_bytes);
-					//System.out.println("codeAlignmentFactor=" + fc.code_factor);
+					long block_end = saved_start + length + initial_length_size;
+					int cieID = (int) (eh_frame_bytes.getInt() & 0xffffffffL);
 
-					fc.data_factor = (int) DwarfLib.getSLEB128(eh_frame_bytes);
-					//System.out.println("dataAlignmentFactor=" + fc.data_factor);
+					int eh_addr_size = 4;
 
-					if (version == 1) {
-						fc.ra = eh_frame_bytes.get();
-					} else {
-						fc.ra = DwarfLib.getULEB128(eh_frame_bytes);
-					}
+					FrameChunk fc;
+					FrameChunk remembered_state = null;
 
-					int augmentationDataLength = 0;
-					byte augmentationData[] = null;
-					if (fc.augmentation.charAt(0) == 'z') {
-						augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
-						augmentationData = new byte[augmentationDataLength];
+					if (cieID == DW_CIE_ID) {
+						//						System.out.println("1>" + eh_frame_bytes.position());
+						// read CIE
+						fc = new FrameChunk();
+						fc.cieID = cieID;
+						int version = eh_frame_bytes.get();
+						fc.version = version;
+						//						System.out.println("version=" + version);
 
-						for (int z = 0; z < augmentationDataLength; z++) {
-							augmentationData[z] = eh_frame_bytes.get();
-						}
-					}
-					fc.augmentationData = augmentationData;
+						int temp;
+						do {
+							temp = eh_frame_bytes.get();
+							fc.augmentation += (char) temp;
+						} while (temp != 0);
+						//						System.out.println("augmentation=" + fc.augmentation);
 
-					if (augmentationDataLength > 0) {
-						byte q[] = augmentationData;
-						int qPointer = 0;
+						if (fc.augmentation.equals("eh")) {
+							start += eh_addr_size;
+						}
 
-						/* PR 17531: file: 015adfaa.  */
-						//						if (qend < q) {
-						//							warn(_("Negative augmentation data length: 0x%lx"), augmentationDataLength);
-						//							augmentation_data_len = 0;
-						//						}
-
-						for (int tempX = 0; tempX < augmentationDataLength; tempX++) {
-							char p = (char) fc.augmentation.charAt(tempX + 1);
-							if (p == 'L') {
-								qPointer++;
-							} else if (p == 'P') {
-								qPointer += 1 + size_of_encoded_value(q[qPointer], eh_addr_size);
-							} else if (p == 'R') {
-								fc.fde_encoding = q[qPointer++];
-							} else if (p == 'S') {
-							} else {
-								break;
-							}
-						}
-					}
-
-					ehFrames.add(fc);
-					// read CIE end
-
-					int mreg = max_regs > 0 ? max_regs - 1 : 0;
-					if (mreg < fc.ra) {
-						mreg = (int) fc.ra;
-					}
-
-					frame_need_space(fc, mreg);
-				} else {
-					// start FDE
-					//System.out.println("FDE");
-					fc = new FrameChunk();
-					fc.cieID = cieID;
-					ehFrames.add(fc);
-
-					FrameChunk cie = ehFrames.get(0);
-					fc.ncols = cie.ncols;
-					fc.col_type = new long[fc.ncols];
-					fc.col_offset = new long[fc.ncols];
-					fc.augmentation = cie.augmentation;
-					fc.ptr_size = cie.ptr_size;
-					eh_addr_size = cie.ptr_size;
-					fc.segment_size = cie.segment_size;
-					fc.code_factor = cie.code_factor;
-					fc.data_factor = cie.data_factor;
-					fc.cfa_reg = cie.cfa_reg;
-					fc.cfa_offset = cie.cfa_offset;
-					fc.ra = cie.ra;
-					if (frame_need_space(fc, max_regs > 0 ? max_regs - 1 : 0) < 0) {
-						System.err.println("Invalid max register\n");
-						System.exit(111);
-					}
-					fc.fde_encoding = cie.fde_encoding;
-
-					int encoded_ptr_size = 0;
-					if (fc.fde_encoding > 0) {
-						encoded_ptr_size = size_of_encoded_value(fc.fde_encoding, eh_addr_size);
-					}
-
-					fc.pc_begin = get_encoded_value(eh_frame_bytes, fc.fde_encoding, ehFrameSection, eh_addr_size);
-					fc.pc_range = byte_get(eh_frame_bytes, encoded_ptr_size);
-
-					int augmentationDataLength = 0;
-					byte augmentationData[] = null;
-					if (fc.augmentation.charAt(0) == 'z') {
-						augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
-						augmentationData = new byte[augmentationDataLength];
-
-						int oldPosition = eh_frame_bytes.position();
-						for (int z = 0; z < augmentationDataLength; z++) {
-							augmentationData[z] = eh_frame_bytes.get();
-						}
-						eh_frame_bytes.position(oldPosition);
-					}
-
-					//System.out.printf("%x..%x\n", fc.pc_begin, fc.pc_begin + fc.pc_range);
-					fc.pc_begin_real = fc.pc_begin;
-					fc.pc_range_real = fc.pc_range;
-					// FDE end
-				}
-				FrameChunk cie = ehFrames.get(0);
-
-				String reg_prefix = "";
-				int index = 0;
-
-				while (eh_frame_bytes.position() < block_end) {
-					int op = eh_frame_bytes.get();
-					byte opa = (byte) (op & 0x3fL);
-					long ofs;
-
-					if ((op & 0xc0L) > 0) {
-						op &= 0xc0;
-					}
-
-					switch (op) {
-					case Definition.DW_CFA_advance_loc:
-						//System.out.printf("  DW_CFA_advance_loc: %d to %x\n", opa * fc.code_factor, fc.pc_begin + opa * fc.code_factor);
-						fc.fieDetailsKeys.add("DW_CFA_advance_loc");
-						fc.fieDetails.add(new Object[] { opa * fc.code_factor, fc.pc_begin + opa * fc.code_factor });
-						fc.pc_begin += opa * fc.code_factor;
-						break;
-					case Definition.DW_CFA_offset:
-						long roffs = DwarfLib.getULEB128(eh_frame_bytes);
-						if (opa >= fc.ncols) {
-							reg_prefix = bad_reg;
-						}
-						if (reg_prefix != null) {
-							//System.out.printf("  DW_CFA_offset: r(%d) %s%s at cfa %d\n", opa, reg_prefix, Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor);
-							fc.fieDetailsKeys.add("DW_CFA_offset");
-							fc.fieDetails.add(new Object[] { "r" + opa, reg_prefix + Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor });
-						}
-						if (reg_prefix == null) {
-							fc.col_type[opa] = Definition.DW_CFA_offset;
-							fc.col_offset[opa] = roffs * fc.data_factor;
-						}
-						break;
-					case Definition.DW_CFA_restore:
-						if (opa >= cie.ncols || opa >= fc.ncols) {
-							reg_prefix = bad_reg;
-						}
-						//System.out.printf("  DW_CFA_restore: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[opa]);
-						fc.fieDetailsKeys.add("DW_CFA_restore");
-						fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[opa] });
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							fc.col_type[opa] = cie.col_type[opa];
-							fc.col_offset[opa] = cie.col_offset[opa];
-							if (fc.col_type[opa] == Definition.DW_CFA_unreferenced) {
-								fc.col_type[opa] = Definition.DW_CFA_undefined;
-							}
-						}
-						break;
-					case Definition.DW_CFA_set_loc:
-						long vma = get_encoded_value(eh_frame_bytes, fc.fde_encoding, ehFrameSection, (int) block_end);
-						//System.out.printf("  DW_CFA_set_loc: %x\n", vma);
-						fc.fieDetailsKeys.add("DW_CFA_set_loc");
-						fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[opa] });
-						fc.pc_begin = vma;
-						break;
-					case Definition.DW_CFA_advance_loc1:
-						//SAFE_BYTE_GET_AND_INC(ofs, start, 1, end);
-						ofs = byte_get(eh_frame_bytes, 1);
-						//System.out.printf("  DW_CFA_advance_loc1: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
-						fc.fieDetailsKeys.add("DW_CFA_set_loc");
-						fc.fieDetails.add(new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
-						fc.pc_begin += ofs * fc.code_factor;
-						break;
-					case Definition.DW_CFA_advance_loc2:
-						//SAFE_BYTE_GET_AND_INC(ofs, start, 2, block_end);
-						ofs = byte_get(eh_frame_bytes, 2);
-						//System.out.printf("  DW_CFA_advance_loc2: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
-						fc.fieDetailsKeys.add("DW_CFA_advance_loc2");
-						fc.fieDetails.add(new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
-						fc.pc_begin += ofs * fc.code_factor;
-						break;
-					case Definition.DW_CFA_advance_loc4:
-						//SAFE_BYTE_GET_AND_INC(ofs, start, 4, block_end);
-						ofs = byte_get(eh_frame_bytes, 4);
-						//System.out.printf("  DW_CFA_advance_loc4: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
-						fc.fieDetailsKeys.add("DW_CFA_advance_loc4");
-						fc.fieDetails.add(new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
-						fc.pc_begin += ofs * fc.code_factor;
-						break;
-					case Definition.DW_CFA_offset_extended:
-						long reg = DwarfLib.getULEB128(eh_frame_bytes);
-						roffs = DwarfLib.getULEB128(eh_frame_bytes);
-
-						if (reg >= fc.ncols) {
-							reg_prefix = bad_reg;
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							//System.out.printf("  DW_CFA_offset_extended: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor);
-							fc.fieDetailsKeys.add("DW_CFA_offset_extended");
-							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor });
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							fc.col_type[(int) reg] = Definition.DW_CFA_offset;
-							fc.col_offset[(int) reg] = roffs * fc.data_factor;
-						}
-						break;
-					case Definition.DW_CFA_val_offset:
-						reg = DwarfLib.getULEB128(eh_frame_bytes);
-						roffs = DwarfLib.getULEB128(eh_frame_bytes);
-
-						if (reg >= fc.ncols) {
-							reg_prefix = bad_reg;
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							//System.out.printf("  DW_CFA_val_offset: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor);
-							fc.fieDetailsKeys.add("DW_CFA_val_offset");
-							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor });
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							fc.col_type[(int) reg] = Definition.DW_CFA_val_offset;
-							fc.col_offset[(int) reg] = roffs * fc.data_factor;
-						}
-						break;
-					case Definition.DW_CFA_restore_extended:
-						reg = DwarfLib.getULEB128(eh_frame_bytes);
-						if (reg >= cie.ncols || reg >= fc.ncols) {
-							reg_prefix = bad_reg;
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							//System.out.printf("  DW_CFA_restore_extended: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
-							fc.fieDetailsKeys.add("DW_CFA_restore_extended");
-							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							fc.col_type[(int) reg] = cie.col_type[(int) reg];
-							fc.col_offset[(int) reg] = cie.col_offset[(int) reg];
-						}
-						break;
-					case Definition.DW_CFA_undefined:
-						reg = DwarfLib.getULEB128(eh_frame_bytes);
-						if (reg >= fc.ncols) {
-							reg_prefix = bad_reg;
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							//System.out.printf("  DW_CFA_undefined: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
-							fc.fieDetailsKeys.add("DW_CFA_undefined");
-							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							fc.col_type[(int) reg] = Definition.DW_CFA_undefined;
-							fc.col_offset[(int) reg] = 0;
-						}
-						break;
-					case Definition.DW_CFA_same_value:
-						reg = DwarfLib.getULEB128(eh_frame_bytes);
-						if (reg >= fc.ncols) {
-							reg_prefix = bad_reg;
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							//System.out.printf("  DW_CFA_same_value: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
-							fc.fieDetailsKeys.add("DW_CFA_same_value");
-							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							fc.col_type[(int) reg] = Definition.DW_CFA_same_value;
-							fc.col_offset[(int) reg] = 0;
-						}
-						break;
-					case Definition.DW_CFA_register:
-						reg = DwarfLib.getULEB128(eh_frame_bytes);
-						roffs = DwarfLib.getULEB128(eh_frame_bytes);
-						if (reg >= fc.ncols) {
-							reg_prefix = bad_reg;
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							//System.out.printf("  DW_CFA_register: %s%s in ", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
-							fc.fieDetailsKeys.add("DW_CFA_register");
-							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							fc.col_type[(int) reg] = Definition.DW_CFA_register;
-							fc.col_offset[(int) reg] = roffs;
-						}
-						break;
-					case Definition.DW_CFA_remember_state:
-						//System.out.printf("  DW_CFA_remember_state\n");
-						fc.fieDetailsKeys.add("DW_CFA_remember_state");
-						fc.fieDetails.add(new Object[] {});
-						FrameChunk rs = new FrameChunk();
-						rs.cfa_offset = fc.cfa_offset;
-						rs.cfa_reg = fc.cfa_reg;
-						rs.ra = fc.ra;
-						rs.cfa_exp = fc.cfa_exp;
-						rs.ncols = fc.ncols;
-						rs.col_type = fc.col_type;
-						rs.col_offset = fc.col_offset;
-						rs.next = remembered_state;
-						remembered_state = rs;
-						break;
-					case Definition.DW_CFA_restore_state:
-						//System.out.printf("  DW_CFA_restore_state\n");
-						fc.fieDetailsKeys.add("DW_CFA_restore_state");
-						fc.fieDetails.add(new Object[] {});
-						rs = remembered_state;
-						if (rs != null) {
-							remembered_state = rs.next;
-							fc.cfa_offset = rs.cfa_offset;
-							fc.cfa_reg = rs.cfa_reg;
-							fc.ra = rs.ra;
-							fc.cfa_exp = rs.cfa_exp;
-							if (frame_need_space(fc, rs.ncols - 1) < 0) {
-								//System.out.printf("Invalid column number in saved frame state\n");
-								fc.ncols = 0;
-								break;
-							}
-							fc.col_type = rs.col_type;
-							fc.col_offset = rs.col_offset;
+						if (version >= 4) {
+							System.err.println("not support version>=4");
+							System.exit(-2);
 						} else {
-							//System.out.printf("Mismatched DW_CFA_restore_state\n");
+							fc.ptr_size = eh_addr_size;
+							fc.segment_size = 0;
 						}
-						break;
-					case Definition.DW_CFA_def_cfa:
-						long cfa_reg = DwarfLib.getULEB128(eh_frame_bytes);
-						long cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
-						//long cfa_exp = 0;
-						//System.out.println("  DW_CFA_def_cfa: r" + cfa_reg + " " + Definition.dwarf_regnames_i386[(int) cfa_reg] + " ofs " + cfa_offset);
-						fc.fieDetailsKeys.add("DW_CFA_def_cfa");
-						fc.fieDetails.add(new Object[] { Definition.dwarf_regnames_i386[(int) cfa_reg], " ofs ", cfa_offset });
-						break;
-					case Definition.DW_CFA_def_cfa_register:
-						fc.cfa_reg = (int) DwarfLib.getULEB128(eh_frame_bytes);
-						fc.cfa_exp = 0;
-						//System.out.printf("  DW_CFA_def_cfa_register: %s\n", Definition.dwarf_regnames_i386[fc.cfa_reg]);
-						fc.fieDetailsKeys.add("DW_CFA_def_cfa_register");
-						fc.fieDetails.add(new Object[] { Definition.dwarf_regnames_i386[fc.cfa_reg] });
-						break;
-					case Definition.DW_CFA_def_cfa_offset:
-						fc.cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
-						//System.out.printf("  DW_CFA_def_cfa_offset: %d\n", fc.cfa_offset);
-						fc.fieDetailsKeys.add("DW_CFA_def_cfa_offset");
-						fc.fieDetails.add(new Object[] { fc.cfa_offset });
-						break;
-					case Definition.DW_CFA_nop:
-						//System.out.println("  DW_CFA_nop");
-						fc.fieDetailsKeys.add("DW_CFA_nop");
-						fc.fieDetails.add(new Object[] {});
-						break;
-					case Definition.DW_CFA_def_cfa_expression:
-						long ul = DwarfLib.getULEB128(eh_frame_bytes);
 
-						if (start >= block_end || start + ul > block_end || start + ul < start) {
-							//System.out.printf("  DW_CFA_def_cfa_expression: <corrupt len %lu>\n", ul);
+						fc.code_factor = (int) DwarfLib.getULEB128(eh_frame_bytes);
+						//						System.out.println("codeAlignmentFactor=" + fc.code_factor);
+
+						fc.data_factor = (int) DwarfLib.getSLEB128(eh_frame_bytes);
+						//						System.out.println("dataAlignmentFactor=" + fc.data_factor);
+
+						if (version == 1) {
+							fc.ra = eh_frame_bytes.get();
+						} else {
+							fc.ra = DwarfLib.getULEB128(eh_frame_bytes);
+						}
+
+						int augmentationDataLength = 0;
+						byte augmentationData[] = null;
+						if (fc.augmentation.charAt(0) == 'z') {
+							augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
+							augmentationData = new byte[augmentationDataLength];
+
+							for (int z = 0; z < augmentationDataLength; z++) {
+								augmentationData[z] = eh_frame_bytes.get();
+							}
+						}
+						fc.augmentationData = augmentationData;
+
+						if (augmentationDataLength > 0) {
+							byte q[] = augmentationData;
+							int qPointer = 0;
+
+							/* PR 17531: file: 015adfaa.  */
+							//						if (qend < q) {
+							//							warn(_("Negative augmentation data length: 0x%lx"), augmentationDataLength);
+							//							augmentation_data_len = 0;
+							//						}
+
+							for (int tempX = 0; tempX < augmentationDataLength; tempX++) {
+								char p = (char) fc.augmentation.charAt(tempX + 1);
+								if (p == 'L') {
+									qPointer++;
+								} else if (p == 'P') {
+									qPointer += 1 + size_of_encoded_value(q[qPointer], eh_addr_size);
+								} else if (p == 'R') {
+									fc.fde_encoding = q[qPointer++];
+								} else if (p == 'S') {
+								} else {
+									break;
+								}
+							}
+						}
+
+						ehFrames.add(fc);
+						// read CIE end
+
+						int mreg = max_regs > 0 ? max_regs - 1 : 0;
+						if (mreg < fc.ra) {
+							mreg = (int) fc.ra;
+						}
+
+						frame_need_space(fc, mreg);
+						//						System.out.println("2>" + eh_frame_bytes.position());
+					} else {
+						// start FDE
+						//System.out.println("FDE");
+						//						System.out.println("3>" + eh_frame_bytes.position());
+						fc = new FrameChunk();
+						fc.cieID = cieID;
+						ehFrames.add(fc);
+
+						FrameChunk cie = ehFrames.get(0);
+						fc.ncols = cie.ncols;
+						fc.col_type = new long[fc.ncols];
+						fc.col_offset = new long[fc.ncols];
+						fc.augmentation = cie.augmentation;
+						fc.ptr_size = cie.ptr_size;
+						eh_addr_size = cie.ptr_size;
+						fc.segment_size = cie.segment_size;
+						fc.code_factor = cie.code_factor;
+						fc.data_factor = cie.data_factor;
+						fc.cfa_reg = cie.cfa_reg;
+						fc.cfa_offset = cie.cfa_offset;
+						fc.ra = cie.ra;
+						if (frame_need_space(fc, max_regs > 0 ? max_regs - 1 : 0) < 0) {
+							System.err.println("Invalid max register\n");
+							System.exit(111);
+						}
+						fc.fde_encoding = cie.fde_encoding;
+
+						//						System.out.println("3.0> fc.fde_encoding=" + fc.fde_encoding);
+						if (fc.fde_encoding > 0) {
+							encoded_ptr_size = size_of_encoded_value(fc.fde_encoding, eh_addr_size);
+						}
+
+						//						System.out.println("3.0>" + eh_frame_bytes.position());
+						fc.pc_begin = get_encoded_value(eh_frame_bytes, fc.fde_encoding, ehFrameSection, eh_addr_size);
+						//						System.out.println("3.0>" + eh_frame_bytes.position());
+						fc.pc_range = byte_get(eh_frame_bytes, encoded_ptr_size);
+
+						//						System.out.println("3.1>" + eh_frame_bytes.position());
+
+						int augmentationDataLength = 0;
+						byte augmentationData[] = null;
+						if (fc.augmentation.charAt(0) == 'z') {
+							augmentationDataLength = (int) DwarfLib.getULEB128(eh_frame_bytes);
+							augmentationData = new byte[augmentationDataLength];
+
+							int oldPosition = eh_frame_bytes.position();
+							for (int z = 0; z < augmentationDataLength; z++) {
+								augmentationData[z] = eh_frame_bytes.get();
+							}
+							eh_frame_bytes.position(oldPosition);
+						}
+
+						//System.out.printf("%x..%x\n", fc.pc_begin, fc.pc_begin + fc.pc_range);
+						fc.pc_begin_real = fc.pc_begin;
+						fc.pc_range_real = fc.pc_range;
+						// FDE end
+						//						System.out.println("4>" + eh_frame_bytes.position());
+					}
+					FrameChunk cie = ehFrames.get(0);
+
+					String reg_prefix = "";
+					int index = 0;
+
+					while (eh_frame_bytes.position() < block_end) {
+						int op = eh_frame_bytes.get();
+						byte opa = (byte) (op & 0x3fL);
+						long ofs;
+
+						if ((op & 0xc0L) > 0) {
+							op &= 0xc0;
+						}
+
+						switch (op) {
+						case Definition.DW_CFA_advance_loc:
+							//System.out.printf("  DW_CFA_advance_loc: %d to %x\n", opa * fc.code_factor, fc.pc_begin + opa * fc.code_factor);
+							fc.fieDetailsKeys.add("DW_CFA_advance_loc");
+							fc.fieDetails.add(new Object[] { opa * fc.code_factor, fc.pc_begin + opa * fc.code_factor });
+							fc.pc_begin += opa * fc.code_factor;
 							break;
-						}
-
-						//System.out.printf("  DW_CFA_def_cfa_expression (");
-						decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
-						//System.out.printf(")\n");
-						fc.fieDetailsKeys.add("DW_CFA_def_cfa_expression");
-						fc.fieDetails.add(new Object[] {});
-
-						fc.cfa_exp = 1;
-						start += ul;
-						break;
-
-					case Definition.DW_CFA_expression:
-						reg = DwarfLib.getULEB128(eh_frame_bytes);
-						ul = DwarfLib.getULEB128(eh_frame_bytes);
-
-						if (reg >= fc.ncols) {
-							reg_prefix = bad_reg;
-						}
-						/* PR 17512: file: 069-133014-0.006.  */
-						/* PR 17512: file: 98c02eb4.  */
-						long tmp = start + ul;
-						if (start >= block_end || tmp > block_end || tmp < start) {
-							//System.out.printf("  DW_CFA_expression: <corrupt len %lu>\n", ul);
-							fc.fieDetailsKeys.add("DW_CFA_expression");
-							fc.fieDetails.add(new Object[] { ul });
+						case Definition.DW_CFA_offset:
+							long roffs = DwarfLib.getULEB128(eh_frame_bytes);
+							if (opa >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix != null) {
+								//System.out.printf("  DW_CFA_offset: r(%d) %s%s at cfa %d\n", opa, reg_prefix, Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor);
+								fc.fieDetailsKeys.add("DW_CFA_offset");
+								fc.fieDetails.add(new Object[] { "r" + opa, reg_prefix + Definition.dwarf_regnames_i386[opa], roffs * fc.data_factor });
+							}
+							if (reg_prefix == null) {
+								fc.col_type[opa] = Definition.DW_CFA_offset;
+								fc.col_offset[opa] = roffs * fc.data_factor;
+							}
 							break;
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							//System.out.printf("  DW_CFA_expression: %s%s (", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+						case Definition.DW_CFA_restore:
+							if (opa >= cie.ncols || opa >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							//System.out.printf("  DW_CFA_restore: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[opa]);
+							fc.fieDetailsKeys.add("DW_CFA_restore");
+							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[opa] });
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[opa] = cie.col_type[opa];
+								fc.col_offset[opa] = cie.col_offset[opa];
+								if (fc.col_type[opa] == Definition.DW_CFA_unreferenced) {
+									fc.col_type[opa] = Definition.DW_CFA_undefined;
+								}
+							}
+							break;
+						case Definition.DW_CFA_set_loc:
+							long vma = get_encoded_value(eh_frame_bytes, fc.fde_encoding, ehFrameSection, (int) block_end);
+							//System.out.printf("  DW_CFA_set_loc: %x\n", vma);
+							fc.fieDetailsKeys.add("DW_CFA_set_loc");
+							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[opa] });
+							fc.pc_begin = vma;
+							break;
+						case Definition.DW_CFA_advance_loc1:
+							//SAFE_BYTE_GET_AND_INC(ofs, start, 1, end);
+							ofs = byte_get(eh_frame_bytes, 1);
+							//System.out.printf("  DW_CFA_advance_loc1: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+							fc.fieDetailsKeys.add("DW_CFA_set_loc");
+							fc.fieDetails.add(new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
+							fc.pc_begin += ofs * fc.code_factor;
+							break;
+						case Definition.DW_CFA_advance_loc2:
+							//SAFE_BYTE_GET_AND_INC(ofs, start, 2, block_end);
+							ofs = byte_get(eh_frame_bytes, 2);
+							//System.out.printf("  DW_CFA_advance_loc2: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+							fc.fieDetailsKeys.add("DW_CFA_advance_loc2");
+							fc.fieDetails.add(new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
+							fc.pc_begin += ofs * fc.code_factor;
+							break;
+						case Definition.DW_CFA_advance_loc4:
+							//SAFE_BYTE_GET_AND_INC(ofs, start, 4, block_end);
+							ofs = byte_get(eh_frame_bytes, 4);
+							//System.out.printf("  DW_CFA_advance_loc4: %d to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+							fc.fieDetailsKeys.add("DW_CFA_advance_loc4");
+							fc.fieDetails.add(new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
+							fc.pc_begin += ofs * fc.code_factor;
+							break;
+						case Definition.DW_CFA_offset_extended:
+							long reg = DwarfLib.getULEB128(eh_frame_bytes);
+							roffs = DwarfLib.getULEB128(eh_frame_bytes);
+
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_offset_extended: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor);
+								fc.fieDetailsKeys.add("DW_CFA_offset_extended");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_offset;
+								fc.col_offset[(int) reg] = roffs * fc.data_factor;
+							}
+							break;
+						case Definition.DW_CFA_val_offset:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							roffs = DwarfLib.getULEB128(eh_frame_bytes);
+
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_val_offset: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor);
+								fc.fieDetailsKeys.add("DW_CFA_val_offset");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], roffs * fc.data_factor });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_val_offset;
+								fc.col_offset[(int) reg] = roffs * fc.data_factor;
+							}
+							break;
+						case Definition.DW_CFA_restore_extended:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							if (reg >= cie.ncols || reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_restore_extended: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+								fc.fieDetailsKeys.add("DW_CFA_restore_extended");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = cie.col_type[(int) reg];
+								fc.col_offset[(int) reg] = cie.col_offset[(int) reg];
+							}
+							break;
+						case Definition.DW_CFA_undefined:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_undefined: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+								fc.fieDetailsKeys.add("DW_CFA_undefined");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_undefined;
+								fc.col_offset[(int) reg] = 0;
+							}
+							break;
+						case Definition.DW_CFA_same_value:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_same_value: %s%s\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+								fc.fieDetailsKeys.add("DW_CFA_same_value");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_same_value;
+								fc.col_offset[(int) reg] = 0;
+							}
+							break;
+						case Definition.DW_CFA_register:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							roffs = DwarfLib.getULEB128(eh_frame_bytes);
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_register: %s%s in ", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+								fc.fieDetailsKeys.add("DW_CFA_register");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg] });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_register;
+								fc.col_offset[(int) reg] = roffs;
+							}
+							break;
+						case Definition.DW_CFA_remember_state:
+							//System.out.printf("  DW_CFA_remember_state\n");
+							fc.fieDetailsKeys.add("DW_CFA_remember_state");
+							fc.fieDetails.add(new Object[] {});
+							FrameChunk rs = new FrameChunk();
+							rs.cfa_offset = fc.cfa_offset;
+							rs.cfa_reg = fc.cfa_reg;
+							rs.ra = fc.ra;
+							rs.cfa_exp = fc.cfa_exp;
+							rs.ncols = fc.ncols;
+							rs.col_type = fc.col_type;
+							rs.col_offset = fc.col_offset;
+							rs.next = remembered_state;
+							remembered_state = rs;
+							break;
+						case Definition.DW_CFA_restore_state:
+							//System.out.printf("  DW_CFA_restore_state\n");
+							fc.fieDetailsKeys.add("DW_CFA_restore_state");
+							fc.fieDetails.add(new Object[] {});
+							rs = remembered_state;
+							if (rs != null) {
+								remembered_state = rs.next;
+								fc.cfa_offset = rs.cfa_offset;
+								fc.cfa_reg = rs.cfa_reg;
+								fc.ra = rs.ra;
+								fc.cfa_exp = rs.cfa_exp;
+								if (frame_need_space(fc, rs.ncols - 1) < 0) {
+									//System.out.printf("Invalid column number in saved frame state\n");
+									fc.ncols = 0;
+									break;
+								}
+								fc.col_type = rs.col_type;
+								fc.col_offset = rs.col_offset;
+							} else {
+								//System.out.printf("Mismatched DW_CFA_restore_state\n");
+							}
+							break;
+						case Definition.DW_CFA_def_cfa:
+							long cfa_reg = DwarfLib.getULEB128(eh_frame_bytes);
+							long cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
+							//long cfa_exp = 0;
+							//System.out.println("  DW_CFA_def_cfa: r" + cfa_reg + " " + Definition.dwarf_regnames_i386[(int) cfa_reg] + " ofs " + cfa_offset);
+							fc.fieDetailsKeys.add("DW_CFA_def_cfa");
+							fc.fieDetails.add(new Object[] { Definition.dwarf_regnames_i386[(int) cfa_reg], " ofs ", cfa_offset });
+							break;
+						case Definition.DW_CFA_def_cfa_register:
+							fc.cfa_reg = (int) DwarfLib.getULEB128(eh_frame_bytes);
+							fc.cfa_exp = 0;
+							//System.out.printf("  DW_CFA_def_cfa_register: %s\n", Definition.dwarf_regnames_i386[fc.cfa_reg]);
+							fc.fieDetailsKeys.add("DW_CFA_def_cfa_register");
+							fc.fieDetails.add(new Object[] { Definition.dwarf_regnames_i386[fc.cfa_reg] });
+							break;
+						case Definition.DW_CFA_def_cfa_offset:
+							fc.cfa_offset = DwarfLib.getULEB128(eh_frame_bytes);
+							//System.out.printf("  DW_CFA_def_cfa_offset: %d\n", fc.cfa_offset);
+							fc.fieDetailsKeys.add("DW_CFA_def_cfa_offset");
+							fc.fieDetails.add(new Object[] { fc.cfa_offset });
+							break;
+						case Definition.DW_CFA_nop:
+							//System.out.println("  DW_CFA_nop");
+							fc.fieDetailsKeys.add("DW_CFA_nop");
+							fc.fieDetails.add(new Object[] {});
+							break;
+						case Definition.DW_CFA_def_cfa_expression:
+							long ul = DwarfLib.getULEB128(eh_frame_bytes);
+
+							if (start >= block_end || start + ul > block_end || start + ul < start) {
+								//System.out.printf("  DW_CFA_def_cfa_expression: <corrupt len %lu>\n", ul);
+								break;
+							}
+
+							//System.out.printf("  DW_CFA_def_cfa_expression (");
 							decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
 							//System.out.printf(")\n");
-							fc.fieDetailsKeys.add("DW_CFA_expression");
+							fc.fieDetailsKeys.add("DW_CFA_def_cfa_expression");
 							fc.fieDetails.add(new Object[] {});
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							fc.col_type[(int) reg] = Definition.DW_CFA_expression;
-						}
-						start = tmp;
-						break;
-					case Definition.DW_CFA_val_expression:
-						reg = DwarfLib.getULEB128(eh_frame_bytes);
-						ul = DwarfLib.getULEB128(eh_frame_bytes);
-						if (reg >= fc.ncols) {
-							reg_prefix = bad_reg;
-						}
-						tmp = start + ul;
-						if (start >= block_end || tmp > block_end || tmp < start) {
-							//System.out.printf("  DW_CFA_val_expression: <corrupt len %lu>\n", ul);
-							fc.fieDetailsKeys.add("DW_CFA_val_expression");
+
+							fc.cfa_exp = 1;
+							start += ul;
+							break;
+
+						case Definition.DW_CFA_expression:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							ul = DwarfLib.getULEB128(eh_frame_bytes);
+
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							/* PR 17512: file: 069-133014-0.006.  */
+							/* PR 17512: file: 98c02eb4.  */
+							long tmp = start + ul;
+							if (start >= block_end || tmp > block_end || tmp < start) {
+								//System.out.printf("  DW_CFA_expression: <corrupt len %lu>\n", ul);
+								fc.fieDetailsKeys.add("DW_CFA_expression");
+								fc.fieDetails.add(new Object[] { ul });
+								break;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_expression: %s%s (", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+								decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
+								//System.out.printf(")\n");
+								fc.fieDetailsKeys.add("DW_CFA_expression");
+								fc.fieDetails.add(new Object[] {});
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_expression;
+							}
+							start = tmp;
+							break;
+						case Definition.DW_CFA_val_expression:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							ul = DwarfLib.getULEB128(eh_frame_bytes);
+							if (reg >= fc.ncols) {
+								reg_prefix = bad_reg;
+							}
+							tmp = start + ul;
+							if (start >= block_end || tmp > block_end || tmp < start) {
+								//System.out.printf("  DW_CFA_val_expression: <corrupt len %lu>\n", ul);
+								fc.fieDetailsKeys.add("DW_CFA_val_expression");
+								fc.fieDetails.add(new Object[] { ul });
+								break;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_val_expression: %s%s (", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
+								decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
+								//System.out.printf(")\n");
+								fc.fieDetailsKeys.add("DW_CFA_val_expression");
+								fc.fieDetails.add(new Object[] {});
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_val_expression;
+							}
+							start = tmp;
+							break;
+						case Definition.DW_CFA_offset_extended_sf:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							long l = DwarfLib.getSLEB128(eh_frame_bytes);
+
+							if (frame_need_space(fc, (int) reg) < 0) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_offset_extended_sf: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor));
+								fc.fieDetailsKeys.add("DW_CFA_offset_extended_sf");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor) });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_offset;
+								fc.col_offset[(int) reg] = l * fc.data_factor;
+							}
+							break;
+						case Definition.DW_CFA_val_offset_sf:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							l = DwarfLib.getSLEB128(eh_frame_bytes);
+
+							if (frame_need_space(fc, (int) reg) < 0) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_val_offset_sf: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor));
+								fc.fieDetailsKeys.add("DW_CFA_val_offset_sf");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor) });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_val_offset;
+								fc.col_offset[(int) reg] = l * fc.data_factor;
+							}
+							break;
+						case Definition.DW_CFA_def_cfa_sf:
+							fc.cfa_reg = (int) DwarfLib.getULEB128(eh_frame_bytes);
+							fc.cfa_offset = DwarfLib.getSLEB128(eh_frame_bytes);
+
+							fc.cfa_offset = fc.cfa_offset * fc.data_factor;
+							fc.cfa_exp = 0;
+
+							//System.out.printf("  DW_CFA_def_cfa_sf: %s ofs %d\n", Definition.dwarf_regnames_i386[fc.cfa_reg], (int) fc.cfa_offset);
+							fc.fieDetailsKeys.add("DW_CFA_def_cfa_sf");
+							fc.fieDetails.add(new Object[] { Definition.dwarf_regnames_i386[fc.cfa_reg], (int) fc.cfa_offset });
+							break;
+						case Definition.DW_CFA_def_cfa_offset_sf:
+							fc.cfa_offset = DwarfLib.getSLEB128(eh_frame_bytes);
+							fc.cfa_offset *= fc.data_factor;
+
+							//System.out.printf("  DW_CFA_def_cfa_offset_sf: %d\n", (int) fc.cfa_offset);
+							fc.fieDetailsKeys.add("DW_CFA_def_cfa_offset_sf");
+							fc.fieDetails.add(new Object[] { fc.cfa_offset });
+							break;
+						case Definition.DW_CFA_MIPS_advance_loc8:
+							ofs = byte_get(eh_frame_bytes, 8);
+
+							//System.out.printf("  DW_CFA_MIPS_advance_loc8: %ld to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
+							fc.fieDetailsKeys.add("DW_CFA_MIPS_advance_loc8");
+							fc.fieDetails.add(new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
+							fc.pc_begin += ofs * fc.code_factor;
+							break;
+						case Definition.DW_CFA_GNU_window_save:
+							//System.out.printf("  DW_CFA_GNU_window_save\n");
+							break;
+
+						case Definition.DW_CFA_GNU_args_size:
+							ul = DwarfLib.getULEB128(eh_frame_bytes);
+
+							//System.out.printf("  DW_CFA_GNU_args_size: %ld\n", ul);
+							fc.fieDetailsKeys.add("DW_CFA_GNU_args_size");
 							fc.fieDetails.add(new Object[] { ul });
 							break;
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							//System.out.printf("  DW_CFA_val_expression: %s%s (", reg_prefix, Definition.dwarf_regnames_i386[(int) reg]);
-							decode_location_expression(eh_frame_bytes, eh_addr_size, 0, -1, ul, 0, ehFrameSection);
-							//System.out.printf(")\n");
-							fc.fieDetailsKeys.add("DW_CFA_val_expression");
-							fc.fieDetails.add(new Object[] {});
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							fc.col_type[(int) reg] = Definition.DW_CFA_val_expression;
-						}
-						start = tmp;
-						break;
-					case Definition.DW_CFA_offset_extended_sf:
-						reg = DwarfLib.getULEB128(eh_frame_bytes);
-						long l = DwarfLib.getSLEB128(eh_frame_bytes);
+						case Definition.DW_CFA_GNU_negative_offset_extended:
+							reg = DwarfLib.getULEB128(eh_frame_bytes);
+							l = -DwarfLib.getULEB128(eh_frame_bytes);
 
-						if (frame_need_space(fc, (int) reg) < 0) {
-							reg_prefix = bad_reg;
+							if (frame_need_space(fc, (int) reg) < 0) {
+								reg_prefix = bad_reg;
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								//System.out.printf("  DW_CFA_GNU_negative_offset_extended: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg],(long) (l * fc.data_factor));
+								fc.fieDetailsKeys.add("DW_CFA_GNU_negative_offset_extended");
+								fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor) });
+							}
+							if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
+								fc.col_type[(int) reg] = Definition.DW_CFA_offset;
+								fc.col_offset[(int) reg] = l * fc.data_factor;
+							}
+							break;
+						default:
+							System.err.println("dwarf has something not supported yet");
+							System.exit(1);
 						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							//System.out.printf("  DW_CFA_offset_extended_sf: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor));
-							fc.fieDetailsKeys.add("DW_CFA_offset_extended_sf");
-							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor) });
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							fc.col_type[(int) reg] = Definition.DW_CFA_offset;
-							fc.col_offset[(int) reg] = l * fc.data_factor;
-						}
-						break;
-					case Definition.DW_CFA_val_offset_sf:
-						reg = DwarfLib.getULEB128(eh_frame_bytes);
-						l = DwarfLib.getSLEB128(eh_frame_bytes);
-
-						if (frame_need_space(fc, (int) reg) < 0) {
-							reg_prefix = bad_reg;
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							//System.out.printf("  DW_CFA_val_offset_sf: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor));
-							fc.fieDetailsKeys.add("DW_CFA_val_offset_sf");
-							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor) });
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							fc.col_type[(int) reg] = Definition.DW_CFA_val_offset;
-							fc.col_offset[(int) reg] = l * fc.data_factor;
-						}
-						break;
-					case Definition.DW_CFA_def_cfa_sf:
-						fc.cfa_reg = (int) DwarfLib.getULEB128(eh_frame_bytes);
-						fc.cfa_offset = DwarfLib.getSLEB128(eh_frame_bytes);
-
-						fc.cfa_offset = fc.cfa_offset * fc.data_factor;
-						fc.cfa_exp = 0;
-
-						//System.out.printf("  DW_CFA_def_cfa_sf: %s ofs %d\n", Definition.dwarf_regnames_i386[fc.cfa_reg], (int) fc.cfa_offset);
-						fc.fieDetailsKeys.add("DW_CFA_def_cfa_sf");
-						fc.fieDetails.add(new Object[] { Definition.dwarf_regnames_i386[fc.cfa_reg], (int) fc.cfa_offset });
-						break;
-					case Definition.DW_CFA_def_cfa_offset_sf:
-						fc.cfa_offset = DwarfLib.getSLEB128(eh_frame_bytes);
-						fc.cfa_offset *= fc.data_factor;
-
-						//System.out.printf("  DW_CFA_def_cfa_offset_sf: %d\n", (int) fc.cfa_offset);
-						fc.fieDetailsKeys.add("DW_CFA_def_cfa_offset_sf");
-						fc.fieDetails.add(new Object[] { fc.cfa_offset });
-						break;
-					case Definition.DW_CFA_MIPS_advance_loc8:
-						ofs = byte_get(eh_frame_bytes, 8);
-
-						//System.out.printf("  DW_CFA_MIPS_advance_loc8: %ld to %x\n", ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor);
-						fc.fieDetailsKeys.add("DW_CFA_MIPS_advance_loc8");
-						fc.fieDetails.add(new Object[] { ofs * fc.code_factor, fc.pc_begin + ofs * fc.code_factor });
-						fc.pc_begin += ofs * fc.code_factor;
-						break;
-					case Definition.DW_CFA_GNU_window_save:
-						//System.out.printf("  DW_CFA_GNU_window_save\n");
-						break;
-
-					case Definition.DW_CFA_GNU_args_size:
-						ul = DwarfLib.getULEB128(eh_frame_bytes);
-
-						//System.out.printf("  DW_CFA_GNU_args_size: %ld\n", ul);
-						fc.fieDetailsKeys.add("DW_CFA_GNU_args_size");
-						fc.fieDetails.add(new Object[] { ul });
-						break;
-					case Definition.DW_CFA_GNU_negative_offset_extended:
-						reg = DwarfLib.getULEB128(eh_frame_bytes);
-						l = -DwarfLib.getULEB128(eh_frame_bytes);
-
-						if (frame_need_space(fc, (int) reg) < 0) {
-							reg_prefix = bad_reg;
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							//System.out.printf("  DW_CFA_GNU_negative_offset_extended: %s%s at cfa%+ld\n", reg_prefix, Definition.dwarf_regnames_i386[(int) reg],(long) (l * fc.data_factor));
-							fc.fieDetailsKeys.add("DW_CFA_GNU_negative_offset_extended");
-							fc.fieDetails.add(new Object[] { reg_prefix, Definition.dwarf_regnames_i386[(int) reg], (long) (l * fc.data_factor) });
-						}
-						if (reg_prefix.length() == 0 || reg_prefix.charAt(0) == '\0') {
-							fc.col_type[(int) reg] = Definition.DW_CFA_offset;
-							fc.col_offset[(int) reg] = l * fc.data_factor;
-						}
-						break;
-					default:
-						System.err.println("dwarf has something not supported yet");
-						System.exit(1);
 					}
 				}
+			} else {
+				System.err.println("you don't have either .debug_frame or .eh_frame");
+				System.exit(410);
 			}
 
 			// parse .debug_loc
-
 			debug_loc = SectionFinder.findSectionByte(ehdr, file, ".debug_loc");
 
 			//			int compileUnitIndex = 0;

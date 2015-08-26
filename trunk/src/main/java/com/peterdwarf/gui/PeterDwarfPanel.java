@@ -383,11 +383,13 @@ public class PeterDwarfPanel extends JPanel {
 									ehFrameCieSubNode = new DwarfTreeNode("Return address column : " + ehFrame.ra, ehFrameSubNode, ehFrame);
 									ehFrameSubNode.children.add(ehFrameCieSubNode);
 
-									String augmentationDataStr = "";
-									for (byte b : ehFrame.augmentationData) {
-										augmentationDataStr += b + ",";
+									if (ehFrame.augmentationData != null) {
+										String augmentationDataStr = "";
+										for (byte b : ehFrame.augmentationData) {
+											augmentationDataStr += b + ",";
+										}
+										ehFrameCieSubNode = new DwarfTreeNode("Augmentation data : " + augmentationDataStr, ehFrameSubNode, ehFrame);
 									}
-									ehFrameCieSubNode = new DwarfTreeNode("Augmentation data : " + augmentationDataStr, ehFrameSubNode, ehFrame);
 									ehFrameSubNode.children.add(ehFrameCieSubNode);
 
 									// ehFrameFieSubNode = new
@@ -518,13 +520,28 @@ public class PeterDwarfPanel extends JPanel {
 						compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString() + ", " + type, subNode, debugInfoAbbrevEntry);
 					}
 				} else if (debugInfoAbbrevEntry.name.equals("DW_AT_location")) {
-					String values[] = debugInfoAbbrevEntry.value.toString().split(",");
 					String value = "";
-					if (values.length > 1) {
-						value = Definition.getOPName(CommonLib.string2int(values[0]));
-						value += " +" + values[1];
+					if (debugInfoAbbrevEntry.form == Definition.DW_FORM_block1) {
+						byte bytes[] = (byte[]) debugInfoAbbrevEntry.value;
+						value = Definition.getOPName(bytes[0]);
+						value += " ";
+						long l;
+						if (bytes.length > 4) {
+							l = CommonLib.getInt(bytes, 1);
+						} else if (bytes.length > 2) {
+							l = CommonLib.getShort(bytes[1], bytes[2]);
+						} else {
+							l = bytes[1];
+						}
+						value += "0x" + Long.toHexString(l);
 					} else {
-						value = Definition.getOPName(CommonLib.string2int(values[0]));
+						String values[] = debugInfoAbbrevEntry.value.toString().split(",");
+						if (values.length > 1) {
+							value = Definition.getOPName(CommonLib.string2int(values[0]));
+							value += " +" + values[1];
+						} else {
+							value = Definition.getOPName(CommonLib.string2int(values[0]));
+						}
 					}
 					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(debugInfoAbbrevEntry.toString() + ", " + value, subNode, debugInfoAbbrevEntry);
 				} else {
