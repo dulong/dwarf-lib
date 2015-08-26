@@ -17,7 +17,16 @@ public class DebugInfoAbbrevEntry {
 				return "0x" + Integer.toHexString(position) + ", " + name + ", form=" + form + " (" + formStr + "), value=0x" + Long.toHexString((Long) value);
 			}
 		} else {
-			return "0x" + Integer.toHexString(position) + ", " + name + ", form=" + form + " (" + formStr + "), value=" + value;
+			if (form == Definition.DW_FORM_block1) {
+				String str = "";
+				for (byte b : (byte[]) value) {
+					str += Integer.toHexString(b);
+					str += " ";
+				}
+				return "0x" + Integer.toHexString(position) + ", " + name + ", form=" + form + " (" + formStr + "), value=" + str;
+			} else {
+				return "0x" + Integer.toHexString(position) + ", " + name + ", form=" + form + " (" + formStr + "), value=" + value;
+			}
 		}
 	}
 }
