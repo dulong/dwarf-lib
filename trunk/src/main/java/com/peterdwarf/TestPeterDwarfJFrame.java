@@ -8,6 +8,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
@@ -18,7 +19,6 @@ import com.peterdwarf.dwarf.Dwarf;
 import com.peterdwarf.gui.PeterDwarfPanel;
 
 public class TestPeterDwarfJFrame extends javax.swing.JFrame {
-
 	private JToolBar toolBar1;
 	private JButton openButton;
 	private PeterDwarfPanel peterDwarfPanel1;
@@ -43,7 +43,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowOpened(WindowEvent e) {
-				openButtonActionPerformed(null);
+//				openButtonActionPerformed(null);
 			}
 		});
 		initGUI();
@@ -81,11 +81,17 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 
 	private void openButtonActionPerformed(ActionEvent evt) {
 		//File file = new File("/Users/peter/linux-4.0-rc5/");
-		File file = new File("../PeterI/kernel/kernel");
-		peterDwarfPanel1.init(file, 0, true, this);
+		//File file = new File("../PeterI/kernel/kernel");
+		JFileChooser chooser = new JFileChooser();
+		chooser.showSaveDialog(this);
 
-		for (Dwarf dwarf : peterDwarfPanel1.dwarfs) {
-			System.out.println(dwarf.getCompileUnitByFunction("_write"));
+		File file = chooser.getSelectedFile();
+		if (file != null) {
+			peterDwarfPanel1.init(file, 0, true, this);
+
+			for (Dwarf dwarf : peterDwarfPanel1.dwarfs) {
+				System.out.println(dwarf.getCompileUnitByFunction("_write"));
+			}
 		}
 	}
 
