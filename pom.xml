@@ -73,7 +73,7 @@
 							</descriptorRefs>
 							<archive>
 								<manifest>
-									<mainClass>com.peterdwarf.TestPeterDwarf</mainClass>
+									<mainClass>com.peterdwarf.TestPeterDwarfJFrame</mainClass>
 								</manifest>
 							</archive>
 						</configuration>
