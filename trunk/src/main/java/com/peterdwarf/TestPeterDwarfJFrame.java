@@ -91,7 +91,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 			peterDwarfPanel1.init(file, 0, true, this);
 
 			for (Dwarf dwarf : peterDwarfPanel1.dwarfs) {
-				System.out.println(dwarf.getCompileUnitByFunction("_write"));
+				System.out.println(dwarf.getCompileUnitByFunction("itoa"));
 			}
 		}
 	}
