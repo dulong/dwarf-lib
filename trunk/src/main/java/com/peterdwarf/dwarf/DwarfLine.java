@@ -19,4 +19,8 @@ public class DwarfLine implements Comparable {
 			return line_num - o2.line_num;
 		}
 	}
+
+	public String toString() {
+		return "file_num=" + file_num + ", address=0x" + address.toString(16) + ", line_num=" + line_num;
+	}
 }
