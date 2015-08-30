@@ -2838,9 +2838,9 @@ public class Dwarf {
 
 					continue;
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_prologue_end) {
-					break;
+					continue;
 				} else if (opcode == Dwarf_Standard_Opcode_Type.DW_LNS_set_epilogue_begin) {
-					break;
+					continue;
 				} else {
 					if (DwarfGlobal.debug) {
 						System.out.println("error, what? opcode=" + opcode);
@@ -2855,6 +2855,7 @@ public class Dwarf {
 				dwarfLine.column_num = column_num;
 				dwarfLine.is_stmt = is_stmt;
 				dwarfLine.basic_block = basic_block;
+				System.out.println(dwarfLine);
 				dwarfDebugLineHeader.lines.add(dwarfLine);
 			}
 			Collections.sort(dwarfDebugLineHeader.lines);
