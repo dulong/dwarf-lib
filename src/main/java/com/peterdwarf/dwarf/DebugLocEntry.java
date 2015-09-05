@@ -14,6 +14,6 @@ public class DebugLocEntry {
 
 	public String toString() {
 		return "offset=0x" + Integer.toHexString(offset) + ", start=0x" + Long.toHexString(start) + ", end=0x" + Long.toHexString(end) + ", blockSize=" + blockSize + ", name="
-				+ name + ", op_count=" + op_count + " blocks=" + CommonLib.getHexString(unsignedBlocks, ", ");
+				+ name + ", op_count=" + op_count + ", blocks=" + CommonLib.getHexString(unsignedBlocks, ", ");
 	}
 }

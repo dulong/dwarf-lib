@@ -1317,14 +1317,14 @@ public class Dwarf {
 			// parse .debug_loc
 			debug_loc = SectionFinder.findSectionByte(ehdr, file, ".debug_loc");
 
-			//			int compileUnitIndex = 0;
+						int compileUnitIndex = 0;
 			while (debug_loc != null && debug_loc.hasRemaining()) {
 				int debugLocOffset = debug_loc.position();
 				start = debug_loc.getInt();
 				end = debug_loc.getInt();
 				if (start == 0 && end == 0) {
 					//System.out.println("<End of list>\n");
-					//					compileUnitIndex++;
+										compileUnitIndex++;
 					//System.out.println(compileUnitIndex);
 					continue;
 				}
@@ -1342,11 +1342,13 @@ public class Dwarf {
 
 				DebugLocEntry debugLocEntry = new DebugLocEntry();
 				//				System.out.println(compileUnitIndex + " = " + start);
-				//				long base_address = 0;
-				//				if (compileUnits.get(compileUnitIndex).getDebugInfoEntryByName("DW_TAG_compile_unit").size() > 0
-				//						&& compileUnits.get(compileUnitIndex).getDebugInfoEntryByName("DW_TAG_compile_unit").get(0).debugInfoAbbrevEntries.get("DW_AT_low_pc") != null) {
-				//					base_address = (Long) compileUnits.get(compileUnitIndex).getDebugInfoEntryByName("DW_TAG_compile_unit").get(0).debugInfoAbbrevEntries.get("DW_AT_low_pc").value;
-				//				}
+								long base_address = 0;
+								System.out.println(compileUnits.size());
+								if (compileUnits.get(compileUnitIndex).getDebugInfoEntryByName("DW_TAG_compile_unit").size() > 0
+										&& compileUnits.get(compileUnitIndex).getDebugInfoEntryByName("DW_TAG_compile_unit").get(0).debugInfoAbbrevEntries.get("DW_AT_low_pc") != null) {
+									base_address = (Long) compileUnits.get(compileUnitIndex).getDebugInfoEntryByName("DW_TAG_compile_unit").get(0).debugInfoAbbrevEntries.get("DW_AT_low_pc").value;
+								}
+								System.out.println(base_address);
 				debugLocEntry.offset = debugLocOffset;
 				debugLocEntry.start = start;
 				debugLocEntry.end = end;
@@ -1864,7 +1866,7 @@ public class Dwarf {
 							//operand1 = _dwarf_decode_u_leb128(loc_ptr, &leb128_length);
 							//loc_ptr = loc_ptr + leb128_length;
 							//offset = offset + leb128_length;
-							operand2 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
+							operand1 = DwarfLib.getULEB128(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
 							offset = offset + DwarfLib.getULEB128Count(ByteBuffer.wrap(Arrays.copyOfRange(debugLocEntry.blocks, offset, debugLocEntry.blocks.length)));
 
 							/*  Second operand is block of 'operand1' bytes of stuff. */
@@ -1878,13 +1880,15 @@ public class Dwarf {
 								operand2 = CommonLib.getShort(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
 							} else if (size == 4) {
 								operand2 = CommonLib.getInt(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
-							} else {
+							} else if (size == 8) {
 								operand2 = CommonLib.getLong(CommonLib.byteArrayToIntArray(debugLocEntry.blocks), offset);
+							} else {
+								operand2 = debugLocEntry.blocks[offset];
 							}
-							offset = offset + 8;
 
 							//offset = offset + operand1;
 							//loc_ptr = loc_ptr + operand1;
+							offset = (int) (offset + operand1);
 							break;
 						case Definition.DW_OP_GNU_const_type: /* 0xf4 */
 						{
@@ -1976,6 +1980,10 @@ public class Dwarf {
 					}
 				}
 				debugLocEntries.add(debugLocEntry);
+			}
+			
+			for (DebugLocEntry e:debugLocEntries){
+				System.out.println(e);
 			}
 			// end parse debug_loc
 		} catch (OutOfMemoryError e) {
@@ -2855,7 +2863,6 @@ public class Dwarf {
 				dwarfLine.column_num = column_num;
 				dwarfLine.is_stmt = is_stmt;
 				dwarfLine.basic_block = basic_block;
-				System.out.println(dwarfLine);
 				dwarfDebugLineHeader.lines.add(dwarfLine);
 			}
 			Collections.sort(dwarfDebugLineHeader.lines);
