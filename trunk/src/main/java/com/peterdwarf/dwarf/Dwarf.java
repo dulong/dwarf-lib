@@ -1981,10 +1981,6 @@ public class Dwarf {
 				}
 				debugLocEntries.add(debugLocEntry);
 			}
-			
-			for (DebugLocEntry e:debugLocEntries){
-				System.out.println(e);
-			}
 			// end parse debug_loc
 		} catch (OutOfMemoryError e) {
 			e.printStackTrace();
