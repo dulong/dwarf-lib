@@ -1996,7 +1996,7 @@ public class Dwarf {
 	}
 
 	private void decode_location_expression(ByteBuffer eh_frame_bytes2, int eh_addr_size, int i, int j, long ul, int k, Elf32_Shdr ehFrameSection) {
-		System.err.println("not support decode_location_expression");
+		System.err.println("ERROR: not support decode_location_expression");
 		System.exit(400);
 	}
 

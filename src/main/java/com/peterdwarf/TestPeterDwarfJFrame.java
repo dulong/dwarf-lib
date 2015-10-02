@@ -19,11 +19,14 @@ import com.peterdwarf.dwarf.Dwarf;
 import com.peterdwarf.gui.PeterDwarfPanel;
 
 public class TestPeterDwarfJFrame extends javax.swing.JFrame {
+
 	private JToolBar toolBar1;
 	private JButton openButton;
 	private PeterDwarfPanel peterDwarfPanel1;
+	static String[] args;
 
 	public static void main(String[] args) {
+		TestPeterDwarfJFrame.args = args;
 		DwarfGlobal.debug = true;
 		try {
 			UIManager.setLookAndFeel("com.peterswing.white.PeterSwingWhiteLookAndFeel");
@@ -47,7 +50,11 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 				//				openButtonActionPerformed(null);
 			}
 		});
+
 		initGUI();
+		if (args.length > 0) {
+			peterDwarfPanel1.init(new File(args[0]), 0, true, this);
+		}
 	}
 
 	private void initGUI() {
