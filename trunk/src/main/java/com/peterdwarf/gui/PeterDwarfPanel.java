@@ -46,6 +46,7 @@ import com.peterswing.advancedswing.jprogressbardialog.JProgressBarDialog;
 import com.peterswing.advancedswing.searchtextfield.JSearchTextField;
 
 public class PeterDwarfPanel extends JPanel {
+
 	DwarfTreeCellRenderer treeCellRenderer = new DwarfTreeCellRenderer();
 	DwarfTreeNode root = new DwarfTreeNode("Elf files", null, null);
 	DefaultTreeModel treeModel = new DefaultTreeModel(root);
@@ -62,6 +63,7 @@ public class PeterDwarfPanel extends JPanel {
 	ExecutorService pool;
 
 	public PeterDwarfPanel() {
+		System.out.println("d1");
 		setLayout(new BorderLayout(0, 0));
 
 		JScrollPane scrollPane = new JScrollPane();
@@ -81,7 +83,7 @@ public class PeterDwarfPanel extends JPanel {
 			}
 		});
 		toolBar.add(expandAllButton);
-
+		System.out.println("d2");
 		JButton collapseButton = new JButton("collapse");
 		collapseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -113,12 +115,13 @@ public class PeterDwarfPanel extends JPanel {
 		});
 		searchTextField.setMaximumSize(new Dimension(300, 20));
 		toolBar.add(searchTextField);
-
+		System.out.println("d3");
 		ToolTipManager.sharedInstance().registerComponent(tree);
+		System.out.println("d4");
 	}
 
 	public void init(String filepath) {
-		init(new File(filepath), 0);
+//		init(new File(filepath), 0);
 	}
 
 	public void clear() {
@@ -127,7 +130,7 @@ public class PeterDwarfPanel extends JPanel {
 	}
 
 	public void init(final File file, long memoryOffset) {
-		init(file, memoryOffset, false, null);
+//		init(file, memoryOffset, false, null);
 	}
 
 	public void init(final File file, long memoryOffset, final boolean showDialog, JFrame frame) {
@@ -244,8 +247,8 @@ public class PeterDwarfPanel extends JPanel {
 							public void run() {
 								final DwarfTreeNode compileUnitSubnode = new DwarfTreeNode(
 										"0x" + Long.toHexString(compileUnit.DW_AT_low_pc) + " - " + "0x"
-												+ Long.toHexString(compileUnit.DW_AT_low_pc + compileUnit.DW_AT_high_pc - 1) + " - " + compileUnit.DW_AT_name + ", offset="
-												+ compileUnit.abbrev_offset + ", length=" + compileUnit.length + " (size " + compileUnit.addr_size + ")",
+										+ Long.toHexString(compileUnit.DW_AT_low_pc + compileUnit.DW_AT_high_pc - 1) + " - " + compileUnit.DW_AT_name + ", offset="
+										+ compileUnit.abbrev_offset + ", length=" + compileUnit.length + " (size " + compileUnit.addr_size + ")",
 										compileUnitNode, compileUnit);
 								compileUnitNode.children.add(compileUnitSubnode);
 
@@ -403,7 +406,6 @@ public class PeterDwarfPanel extends JPanel {
 									// ehFrame.cfa_offset, ehFrameSubNode,
 									// ehFrame);
 									// ehFrameSubNode.children.add(ehFrameFieSubNode);
-
 									ehFrameTreeNode.children.add(ehFrameSubNode);
 								}
 							}
@@ -509,7 +511,7 @@ public class PeterDwarfPanel extends JPanel {
 				if (debugInfoAbbrevEntry.name.equals("DW_AT_decl_file")) {
 					compileUnitDebugInfoAbbrevEntrySubnode = new DwarfTreeNode(
 							debugInfoAbbrevEntry.toString() + ", "
-									+ compileUnit.dwarfDebugLineHeader.filenames.get(Integer.parseInt(debugInfoAbbrevEntry.value.toString()) - 1).file.getAbsolutePath(),
+							+ compileUnit.dwarfDebugLineHeader.filenames.get(Integer.parseInt(debugInfoAbbrevEntry.value.toString()) - 1).file.getAbsolutePath(),
 							subNode, debugInfoAbbrevEntry);
 				} else if (debugInfoAbbrevEntry.name.equals("DW_AT_type")) {
 					int value = CommonLib.string2int("0x" + debugInfoAbbrevEntry.value.toString());

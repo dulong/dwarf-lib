@@ -26,6 +26,7 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 	static String[] args;
 
 	public static void main(String[] args) {
+		System.out.println("main");
 		TestPeterDwarfJFrame.args = args;
 		DwarfGlobal.debug = true;
 		try {
@@ -50,8 +51,9 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 				//				openButtonActionPerformed(null);
 			}
 		});
-
+		System.out.println("initGUI");
 		initGUI();
+		System.out.println("initGUI end");
 		if (args.length > 0) {
 			peterDwarfPanel1.init(new File(args[0]), 0, true, this);
 		}
@@ -76,7 +78,9 @@ public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 				}
 			}
 			{
+				System.out.println("s1");
 				peterDwarfPanel1 = new PeterDwarfPanel();
+				System.out.println("s2");
 				getContentPane().add(peterDwarfPanel1, BorderLayout.CENTER);
 			}
 			pack();
