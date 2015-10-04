@@ -12,11 +12,11 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
 import com.peterdwarf.dwarf.Dwarf;
 import com.peterdwarf.gui.PeterDwarfPanel;
+import javax.swing.UIManager;
 
 public class TestPeterDwarfJFrame extends javax.swing.JFrame {
 

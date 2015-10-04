@@ -46,16 +46,15 @@ import com.peterswing.advancedswing.jprogressbardialog.JProgressBarDialog;
 import com.peterswing.advancedswing.searchtextfield.JSearchTextField;
 
 public class PeterDwarfPanel extends JPanel {
-
-	DwarfTreeCellRenderer treeCellRenderer = new DwarfTreeCellRenderer();
-	DwarfTreeNode root = new DwarfTreeNode("Elf files", null, null);
-	DefaultTreeModel treeModel = new DefaultTreeModel(root);
-	FilterTreeModel filterTreeModel = new FilterTreeModel(treeModel, 10, true);
-	JTree tree = new JTree(filterTreeModel);
-	Vector<File> files = new Vector<File>();
-	public Vector<Dwarf> dwarfs = new Vector<Dwarf>();
+	DwarfTreeCellRenderer treeCellRenderer;
+	DwarfTreeNode root;
+	DefaultTreeModel treeModel;
+	FilterTreeModel filterTreeModel;
+	JTree tree;
+	Vector<File> files;
+	public Vector<Dwarf> dwarfs;
 	boolean showDialog;
-	JSearchTextField searchTextField = new JSearchTextField();
+	JSearchTextField searchTextField;
 
 	final int maxExpandLevel = 5;
 	final int maxPoolSize = 16;
@@ -63,6 +62,23 @@ public class PeterDwarfPanel extends JPanel {
 	ExecutorService pool;
 
 	public PeterDwarfPanel() {
+		System.out.println("d0");
+		this.searchTextField = new JSearchTextField();
+		System.out.println("d0 - 1");
+		this.treeCellRenderer = new DwarfTreeCellRenderer();
+		System.out.println("d0 - 2");
+		this.root = new DwarfTreeNode("Elf files", null, null);
+		System.out.println("d0 - 3");
+		this.treeModel = new DefaultTreeModel(root);
+		System.out.println("d0 - 4");
+		this.filterTreeModel = new FilterTreeModel(treeModel, 10, true);
+		System.out.println("d0 - 5");
+		this.tree = new JTree();
+		System.out.println("d0 - 5.1");
+		tree.setModel(filterTreeModel);
+		System.out.println("d0 - 6");
+		this.dwarfs = new Vector<>();
+		this.files = new Vector<>();
 		System.out.println("d1");
 		setLayout(new BorderLayout(0, 0));
 

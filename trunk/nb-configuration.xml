@@ -20,6 +20,7 @@ Any value defined here will override the pom.xml file value but is only applicab
         <de-markiewb-netbeans-plugins-eclipse-formatter.eclipseFormatterEnabled>false</de-markiewb-netbeans-plugins-eclipse-formatter.eclipseFormatterEnabled>
         <de-markiewb-netbeans-plugins-eclipse-formatter.enableFormatAsSaveAction>false</de-markiewb-netbeans-plugins-eclipse-formatter.enableFormatAsSaveAction>
         <de-markiewb-netbeans-plugins-eclipse-formatter.useProjectSettings>false</de-markiewb-netbeans-plugins-eclipse-formatter.useProjectSettings>
+        <org-netbeans-modules-javascript2-requirejs.enabled>true</org-netbeans-modules-javascript2-requirejs.enabled>
         <netbeans.hint.jdkPlatform>JDK_1.8</netbeans.hint.jdkPlatform>
     </properties>
 </project-shared-configuration>
