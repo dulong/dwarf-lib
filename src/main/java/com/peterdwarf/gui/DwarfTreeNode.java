@@ -3,15 +3,13 @@ package com.peterdwarf.gui;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import javax.swing.ImageIcon;
-import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 
 import com.peterdwarf.dwarf.Dwarf;
 import com.peterswing.FilterTreeNode;
 
 public class DwarfTreeNode extends FilterTreeNode {
-	ImageIcon loadingIcon = new ImageIcon(DwarfTreeCellRenderer.class.getResource("/com/peterdwarf/gui/ajax-loader.gif"));
+	//ImageIcon loadingIcon = new ImageIcon(DwarfTreeCellRenderer.class.getResource("/com/peterdwarf/gui/ajax-loader.gif"));
 
 	public Vector<DwarfTreeNode> children = new Vector<DwarfTreeNode>();
 	boolean allowsChildren;
@@ -21,7 +19,7 @@ public class DwarfTreeNode extends FilterTreeNode {
 	String tooltip;
 	Object object;
 
-	boolean addImageObserver;
+	//boolean addImageObserver;
 
 	public DwarfTreeNode(String text, DwarfTreeNode parent, Object object) {
 		this.text = text;
