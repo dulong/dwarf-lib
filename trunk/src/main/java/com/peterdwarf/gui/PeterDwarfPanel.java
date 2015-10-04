@@ -1,11 +1,5 @@
 package com.peterdwarf.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,13 +10,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JToolBar;
 import javax.swing.JTree;
-import javax.swing.ToolTipManager;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
@@ -80,59 +70,59 @@ public class PeterDwarfPanel extends JPanel {
 		this.dwarfs = new Vector<>();
 		this.files = new Vector<>();
 		System.out.println("d1");
-		setLayout(new BorderLayout(0, 0));
-
-		JScrollPane scrollPane = new JScrollPane();
-		add(scrollPane, BorderLayout.CENTER);
-
-		tree.setShowsRootHandles(true);
-		tree.setCellRenderer(treeCellRenderer);
-		scrollPane.setViewportView(tree);
-
-		JToolBar toolBar = new JToolBar();
-		add(toolBar, BorderLayout.NORTH);
-
-		JButton expandAllButton = new JButton("expand");
-		expandAllButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				CommonLib.expandAll(tree, true, maxExpandLevel);
-			}
-		});
-		toolBar.add(expandAllButton);
-		System.out.println("d2");
-		JButton collapseButton = new JButton("collapse");
-		collapseButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				filterTreeModel.reload();
-				CommonLib.expandAll(tree, false);
-			}
-		});
-		toolBar.add(collapseButton);
-
-		searchTextField.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				//				if (searchTextField.getText().equals(filterTreeModel.filter)) {
-				//					return;
-				//				}
-				if (e.getKeyCode() == 10) {
-					searchTextField.setEditable(false);
-					filterTreeModel.filter = searchTextField.getText();
-					filterTreeModel.reload();
-
-					if (searchTextField.getText().equals("")) {
-						expandFirstLevel();
-					} else {
-						CommonLib.expandAll(tree, true, maxExpandLevel);
-					}
-					searchTextField.setEditable(true);
-				}
-			}
-		});
-		searchTextField.setMaximumSize(new Dimension(300, 20));
-		toolBar.add(searchTextField);
-		System.out.println("d3");
-		ToolTipManager.sharedInstance().registerComponent(tree);
+//		setLayout(new BorderLayout(0, 0));
+//
+//		JScrollPane scrollPane = new JScrollPane();
+//		add(scrollPane, BorderLayout.CENTER);
+//
+//		tree.setShowsRootHandles(true);
+//		tree.setCellRenderer(treeCellRenderer);
+//		scrollPane.setViewportView(tree);
+//
+//		JToolBar toolBar = new JToolBar();
+//		add(toolBar, BorderLayout.NORTH);
+//
+//		JButton expandAllButton = new JButton("expand");
+//		expandAllButton.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				CommonLib.expandAll(tree, true, maxExpandLevel);
+//			}
+//		});
+//		toolBar.add(expandAllButton);
+//		System.out.println("d2");
+//		JButton collapseButton = new JButton("collapse");
+//		collapseButton.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				filterTreeModel.reload();
+//				CommonLib.expandAll(tree, false);
+//			}
+//		});
+//		toolBar.add(collapseButton);
+//
+//		searchTextField.addKeyListener(new KeyAdapter() {
+//			@Override
+//			public void keyReleased(KeyEvent e) {
+//				//				if (searchTextField.getText().equals(filterTreeModel.filter)) {
+//				//					return;
+//				//				}
+//				if (e.getKeyCode() == 10) {
+//					searchTextField.setEditable(false);
+//					filterTreeModel.filter = searchTextField.getText();
+//					filterTreeModel.reload();
+//
+//					if (searchTextField.getText().equals("")) {
+//						expandFirstLevel();
+//					} else {
+//						CommonLib.expandAll(tree, true, maxExpandLevel);
+//					}
+//					searchTextField.setEditable(true);
+//				}
+//			}
+//		});
+//		searchTextField.setMaximumSize(new Dimension(300, 20));
+//		toolBar.add(searchTextField);
+//		System.out.println("d3");
+//		ToolTipManager.sharedInstance().registerComponent(tree);
 		System.out.println("d4");
 	}
 

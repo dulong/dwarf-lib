@@ -11,6 +11,7 @@ import com.peterswing.FilterTreeNode;
 public class DwarfTreeNode extends FilterTreeNode {
 	//ImageIcon loadingIcon = new ImageIcon(DwarfTreeCellRenderer.class.getResource("/com/peterdwarf/gui/ajax-loader.gif"));
 
+//	ImageIcon loadingIcon = new ImageIcon(DwarfTreeCellRenderer.class.getResource("/com/peterdwarf/gui/ajax-loader.gif"));
 	public Vector<DwarfTreeNode> children = new Vector<DwarfTreeNode>();
 	boolean allowsChildren;
 	DwarfTreeNode parent;
